@@ -158,19 +158,19 @@ function addRecipe(recipe) {
 </script>
 
 <template>
-  <main class="min-h-screen bg-slate-950 px-4 py-8 text-violet-100">
+  <main class="min-h-screen bg-zinc-950 px-4 py-8 text-amber-100">
     <div class="mx-auto grid w-full max-w-3xl gap-4">
       <RecipeHero :is-detail-view="activeTab === 'details' && Boolean(selectedRecipe)" />
 
       <nav
-        class="flex flex-wrap items-center gap-2 rounded-2xl border border-violet-500/30 bg-slate-900 p-3 shadow-sm"
+        class="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-500/30 bg-zinc-900 p-3 shadow-sm"
       >
         <button
           class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
           :class="
             activeTab === 'overview'
-              ? 'bg-violet-600 text-white'
-              : 'bg-slate-800 text-violet-200 hover:bg-slate-700'
+              ? 'bg-amber-500 text-zinc-950'
+              : 'bg-zinc-800 text-amber-100 hover:bg-zinc-700'
           "
           type="button"
           @click="setTab('overview')"
@@ -181,8 +181,8 @@ function addRecipe(recipe) {
           class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
           :class="
             activeTab === 'details'
-              ? 'bg-violet-600 text-white'
-              : 'bg-slate-800 text-violet-200 hover:bg-slate-700'
+              ? 'bg-amber-500 text-zinc-950'
+              : 'bg-zinc-800 text-amber-100 hover:bg-zinc-700'
           "
           type="button"
           @click="setTab('details')"
@@ -193,14 +193,14 @@ function addRecipe(recipe) {
 
       <template v-if="activeTab === 'overview'">
         <section
-          class="flex items-center justify-between gap-3 rounded-2xl border border-violet-500/30 bg-slate-900 px-5 py-4 shadow-sm"
+          class="flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-zinc-900 px-5 py-4 shadow-sm"
         >
-          <p class="text-sm text-violet-200/90">
+          <p class="text-sm text-amber-100/85">
             Showing {{ filteredRecipes.length }} of {{ recipes.length }} recipes
           </p>
           <div class="flex items-center gap-2">
             <button
-              class="cursor-pointer rounded-lg border border-violet-500/50 bg-slate-800 px-3 py-2 text-sm font-semibold text-violet-200 hover:bg-slate-700"
+              class="cursor-pointer rounded-lg border border-amber-500/50 bg-zinc-800 px-3 py-2 text-sm font-semibold text-amber-100 hover:bg-zinc-700"
               type="button"
               @click="openFilterModal"
             >
@@ -218,10 +218,10 @@ function addRecipe(recipe) {
       <template v-else>
         <template v-if="selectedRecipe">
           <section
-            class="rounded-2xl border border-violet-500/30 bg-slate-900 px-5 py-4 shadow-sm"
+            class="rounded-2xl border border-amber-500/30 bg-zinc-900 px-5 py-4 shadow-sm"
           >
             <button
-              class="cursor-pointer text-sm font-semibold text-violet-300 hover:text-violet-200"
+              class="cursor-pointer text-sm font-semibold text-amber-300 hover:text-amber-200"
               type="button"
               @click="goToOverview"
             >
@@ -229,24 +229,24 @@ function addRecipe(recipe) {
             </button>
             <div class="mt-3 flex items-center gap-3">
               <div
-                class="flex h-12 w-12 items-center justify-center rounded-xl border border-violet-400/40 bg-violet-500/20 text-2xl"
+                class="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-400/40 bg-amber-500/20 text-2xl"
                 aria-hidden="true"
               >
                 {{ selectedRecipe.thumbnail }}
               </div>
               <div>
-                <h2 class="text-2xl font-bold text-violet-50">
+                <h2 class="text-2xl font-bold text-amber-50">
                   {{ selectedRecipe.title }}
                 </h2>
-                <p class="mt-1 text-violet-200/90">{{ selectedRecipe.description }}</p>
+                <p class="mt-1 text-amber-100/85">{{ selectedRecipe.description }}</p>
                 <div class="mt-2 flex flex-wrap gap-2">
                   <span
-                    class="rounded-md border border-violet-500/40 bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-200"
+                    class="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-100"
                   >
                     {{ selectedRecipe.cuisine }}
                   </span>
                   <span
-                    class="rounded-md border border-violet-500/40 bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-200"
+                    class="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-100"
                   >
                     {{ selectedRecipe.mealType }}
                   </span>
@@ -260,14 +260,14 @@ function addRecipe(recipe) {
 
         <section
           v-else
-          class="rounded-2xl border border-violet-500/30 bg-slate-900 px-5 py-6 text-center shadow-sm"
+          class="rounded-2xl border border-amber-500/30 bg-zinc-900 px-5 py-6 text-center shadow-sm"
         >
-          <h2 class="text-xl font-semibold text-violet-50">No recipe selected yet</h2>
-          <p class="mt-2 text-sm text-violet-200/90">
+          <h2 class="text-xl font-semibold text-amber-50">No recipe selected yet</h2>
+          <p class="mt-2 text-sm text-amber-100/85">
             Open one from the Overview tab to see ingredients and steps.
           </p>
           <button
-            class="mt-4 cursor-pointer rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500"
+            class="mt-4 cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
             type="button"
             @click="setTab('overview')"
           >
@@ -279,16 +279,16 @@ function addRecipe(recipe) {
 
     <div
       v-if="isFilterModalOpen"
-      class="fixed inset-0 z-50 bg-slate-950/70 p-4 md:flex md:items-center md:justify-center"
+      class="fixed inset-0 z-50 bg-black/70 p-4 md:flex md:items-center md:justify-center"
       @click.self="closeFilterModal"
     >
       <section
-        class="fixed bottom-0 left-0 right-0 rounded-t-2xl border border-violet-500/30 bg-slate-900 px-5 py-4 shadow-xl md:static md:w-full md:max-w-xl md:rounded-2xl"
+        class="fixed bottom-0 left-0 right-0 rounded-t-2xl border border-amber-500/30 bg-zinc-900 px-5 py-4 shadow-xl md:static md:w-full md:max-w-xl md:rounded-2xl"
       >
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-violet-50">Filter Recipes</h2>
+          <h2 class="text-lg font-semibold text-amber-50">Filter Recipes</h2>
           <button
-            class="cursor-pointer rounded-md px-2 py-1 text-sm text-violet-300 hover:bg-slate-800 hover:text-violet-100"
+            class="cursor-pointer rounded-md px-2 py-1 text-sm text-amber-300 hover:bg-zinc-800 hover:text-amber-100"
             type="button"
             @click="closeFilterModal"
           >
@@ -298,7 +298,7 @@ function addRecipe(recipe) {
 
         <div class="grid gap-4">
           <div class="grid gap-2">
-            <p class="text-xs font-semibold uppercase tracking-wider text-violet-300/90">
+            <p class="text-xs font-semibold uppercase tracking-wider text-amber-300/90">
               Cuisine
             </p>
             <div class="flex flex-wrap gap-2">
@@ -308,8 +308,8 @@ function addRecipe(recipe) {
                 class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
                 :class="
                   selectedCuisine === option
-                    ? 'border-violet-300 bg-violet-500/30 text-violet-50'
-                    : 'border-violet-500/40 bg-slate-800 text-violet-200 hover:border-violet-400/70 hover:bg-slate-700'
+                    ? 'border-amber-300 bg-amber-500/30 text-amber-50'
+                    : 'border-amber-500/40 bg-zinc-800 text-amber-100 hover:border-amber-400/70 hover:bg-zinc-700'
                 "
                 type="button"
                 @click="selectedCuisine = option"
@@ -319,7 +319,7 @@ function addRecipe(recipe) {
             </div>
           </div>
           <div class="grid gap-2">
-            <p class="text-xs font-semibold uppercase tracking-wider text-violet-300/90">
+            <p class="text-xs font-semibold uppercase tracking-wider text-amber-300/90">
               Meal Type
             </p>
             <div class="flex flex-wrap gap-2">
@@ -329,8 +329,8 @@ function addRecipe(recipe) {
                 class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
                 :class="
                   selectedMealType === option
-                    ? 'border-violet-300 bg-violet-500/30 text-violet-50'
-                    : 'border-violet-500/40 bg-slate-800 text-violet-200 hover:border-violet-400/70 hover:bg-slate-700'
+                    ? 'border-amber-300 bg-amber-500/30 text-amber-50'
+                    : 'border-amber-500/40 bg-zinc-800 text-amber-100 hover:border-amber-400/70 hover:bg-zinc-700'
                 "
                 type="button"
                 @click="selectedMealType = option"
@@ -343,14 +343,14 @@ function addRecipe(recipe) {
 
         <div class="mt-5 flex flex-wrap justify-end gap-2">
           <button
-            class="cursor-pointer rounded-lg border border-violet-500/50 bg-slate-800 px-3 py-2 text-sm font-semibold text-violet-200 hover:bg-slate-700"
+            class="cursor-pointer rounded-lg border border-amber-500/50 bg-zinc-800 px-3 py-2 text-sm font-semibold text-amber-100 hover:bg-zinc-700"
             type="button"
             @click="clearFilters"
           >
             Clear Filters
           </button>
           <button
-            class="cursor-pointer rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500"
+            class="cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
             type="button"
             @click="closeFilterModal"
           >
@@ -362,7 +362,7 @@ function addRecipe(recipe) {
 
     <div
       v-if="isAddModalOpen"
-      class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 p-4"
+      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
       @click.self="closeAddRecipeModal"
     >
       <div class="w-full max-w-2xl">
