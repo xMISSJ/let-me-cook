@@ -17,3 +17,12 @@ body,
 #app {
   background-color: var(--app-chrome-color);
 }
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+}
