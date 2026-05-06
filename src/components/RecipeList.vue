@@ -1,5 +1,6 @@
 <script setup>
 import RecipeMetaInfo from "./RecipeMetaInfo.vue";
+import { useI18n } from "vue-i18n";
 
 defineProps({
   recipes: {
@@ -9,6 +10,7 @@ defineProps({
 });
 
 const emit = defineEmits(["select-recipe", "add-recipe"]);
+const { t } = useI18n();
 
 function selectRecipe(recipeId) {
   emit("select-recipe", recipeId);
@@ -23,16 +25,16 @@ function addRecipe() {
   <section class="rounded-2xl border border-amber-500/30 bg-zinc-900 px-5 py-4 shadow-sm">
     <div class="flex items-start justify-between gap-3">
       <div>
-        <h2 class="text-xl font-semibold text-amber-50">My Recipes</h2>
+        <h2 class="text-xl font-semibold text-amber-50">{{ t("overview.myRecipes") }}</h2>
         <p class="mt-1 text-sm text-amber-100/85">
-          Click a recipe to open ingredients and step-by-step details.
+          {{ t("overview.helpText") }}
         </p>
       </div>
       <button
         class="cursor-pointer rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
         type="button"
         @click="addRecipe"
-        aria-label="Add recipe"
+        :aria-label="t('overview.addRecipe')"
       >
         <span class="flex h-8 w-8 items-center justify-center sm:hidden" aria-hidden="true">
           <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -45,7 +47,7 @@ function addRecipe() {
             />
           </svg>
         </span>
-        <span class="hidden sm:inline">+ Add Recipe</span>
+        <span class="hidden sm:inline">+ {{ t("overview.addRecipe") }}</span>
       </button>
     </div>
 
@@ -72,12 +74,12 @@ function addRecipe() {
                 <span
                   class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-100"
                 >
-                  {{ recipe.cuisine }}
+                  {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
                 </span>
                 <span
                   class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-100"
                 >
-                  {{ recipe.mealType }}
+                  {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
                 </span>
               </div>
               <RecipeMetaInfo :recipe="recipe" />

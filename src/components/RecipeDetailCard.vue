@@ -1,5 +1,6 @@
 <script setup>
 import RecipeMetaInfo from "./RecipeMetaInfo.vue";
+import { useI18n } from "vue-i18n";
 
 defineProps({
   recipe: {
@@ -9,6 +10,7 @@ defineProps({
 });
 
 const emit = defineEmits(["back"]);
+const { t } = useI18n();
 </script>
 
 <template>
@@ -18,7 +20,7 @@ const emit = defineEmits(["back"]);
       type="button"
       @click="emit('back')"
     >
-      ← Back to recipes
+      ← {{ t("details.backToRecipes") }}
     </button>
     <div class="mt-3 flex items-center gap-3">
       <div
@@ -35,12 +37,12 @@ const emit = defineEmits(["back"]);
             <span
               class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-100"
             >
-              {{ recipe.cuisine }}
+              {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
             </span>
             <span
               class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-100"
             >
-              {{ recipe.mealType }}
+              {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
             </span>
           </div>
           <RecipeMetaInfo :recipe="recipe" />

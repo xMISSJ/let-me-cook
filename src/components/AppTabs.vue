@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from "vue-i18n";
+
 defineProps({
   activeTab: {
     type: String,
@@ -7,6 +9,8 @@ defineProps({
 });
 
 const emit = defineEmits(["change-tab"]);
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -23,7 +27,7 @@ const emit = defineEmits(["change-tab"]);
       type="button"
       @click="emit('change-tab', 'overview')"
     >
-      Overview
+      {{ t("tabs.overview") }}
     </button>
     <button
       class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
@@ -35,7 +39,7 @@ const emit = defineEmits(["change-tab"]);
       type="button"
       @click="emit('change-tab', 'details')"
     >
-      Recipe Details
+      {{ t("tabs.details") }}
     </button>
   </nav>
 </template>

@@ -1,10 +1,14 @@
 <script setup>
+import { useI18n } from "vue-i18n";
+
 defineProps({
   recipe: {
     type: Object,
     required: true,
   },
 });
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -32,7 +36,7 @@ defineProps({
               : 'text-rose-200'
         "
       >
-        {{ recipe.difficulty }}
+        {{ t(`difficulty.${recipe.difficulty}`, recipe.difficulty) }}
       </span>
     </div>
     <div class="flex items-center gap-1.5 text-amber-100/90">
@@ -52,7 +56,7 @@ defineProps({
         />
         <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="2" />
       </svg>
-      <span>{{ recipe.cookTimeMinutes }} min</span>
+      <span>{{ recipe.cookTimeMinutes }} {{ t("meta.minutes") }}</span>
     </div>
     <div class="flex items-center gap-1.5 text-amber-100/90">
       <svg

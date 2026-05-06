@@ -1,7 +1,9 @@
 <script setup>
 import { reactive, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 const emit = defineEmits(["add-recipe", "cancel"]);
+const { t } = useI18n();
 
 const form = reactive({
   title: "",
@@ -47,8 +49,7 @@ function handleSubmit() {
     .filter(Boolean);
 
   if (!title || !description || ingredients.length === 0 || steps.length === 0) {
-    error.value =
-      "Please fill in title, description, and at least one ingredient and step.";
+    error.value = t("addRecipeForm.requiredError");
     return;
   }
 
@@ -60,7 +61,7 @@ function handleSubmit() {
     servings <= 0 ||
     servings > 100
   ) {
-    error.value = "Please enter a valid cook time and servings.";
+    error.value = t("addRecipeForm.invalidNumbersError");
     return;
   }
 
@@ -83,68 +84,68 @@ function handleSubmit() {
 
 <template>
   <section class="rounded-2xl border border-amber-500/30 bg-zinc-900 px-5 py-4 shadow-sm">
-    <h2 class="text-xl font-semibold text-amber-50">Add Your Own Recipe</h2>
+    <h2 class="text-xl font-semibold text-amber-50">{{ t("addRecipeForm.title") }}</h2>
     <p class="mt-1 text-sm text-amber-100/85">
-      Enter one ingredient and one step per line.
+      {{ t("addRecipeForm.subtitle") }}
     </p>
 
     <form class="mt-4 grid gap-3" @submit.prevent="handleSubmit">
       <input
         v-model="form.title"
         class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-sm text-amber-100 outline-none placeholder:text-amber-200/55 focus:border-amber-300"
-        placeholder="Recipe title"
+        :placeholder="t('addRecipeForm.recipeTitle')"
         type="text"
       />
       <input
         v-model="form.description"
         class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-sm text-amber-100 outline-none placeholder:text-amber-200/55 focus:border-amber-300"
-        placeholder="Short description"
+        :placeholder="t('addRecipeForm.shortDescription')"
         type="text"
       />
       <div class="grid gap-3 sm:grid-cols-2">
         <label class="grid gap-1 text-sm text-amber-100/85">
-          <span>Cuisine</span>
+          <span>{{ t("addRecipeForm.cuisine") }}</span>
           <select
             v-model="form.cuisine"
             class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-amber-100 outline-none focus:border-amber-300"
           >
-            <option>Italian</option>
-            <option>Chinese</option>
-            <option>Japanese</option>
-            <option>Mexican</option>
-            <option>Indian</option>
-            <option>American</option>
-            <option>International</option>
+            <option value="Italian">{{ t("cuisine.Italian") }}</option>
+            <option value="Chinese">{{ t("cuisine.Chinese") }}</option>
+            <option value="Japanese">{{ t("cuisine.Japanese") }}</option>
+            <option value="Mexican">{{ t("cuisine.Mexican") }}</option>
+            <option value="Indian">{{ t("cuisine.Indian") }}</option>
+            <option value="American">{{ t("cuisine.American") }}</option>
+            <option value="International">{{ t("cuisine.International") }}</option>
           </select>
         </label>
         <label class="grid gap-1 text-sm text-amber-100/85">
-          <span>Meal Type</span>
+          <span>{{ t("addRecipeForm.mealType") }}</span>
           <select
             v-model="form.mealType"
             class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-amber-100 outline-none focus:border-amber-300"
           >
-            <option>Breakfast</option>
-            <option>Lunch</option>
-            <option>Dinner</option>
-            <option>Snack</option>
-            <option>Dessert</option>
+            <option value="Breakfast">{{ t("mealType.Breakfast") }}</option>
+            <option value="Lunch">{{ t("mealType.Lunch") }}</option>
+            <option value="Dinner">{{ t("mealType.Dinner") }}</option>
+            <option value="Snack">{{ t("mealType.Snack") }}</option>
+            <option value="Dessert">{{ t("mealType.Dessert") }}</option>
           </select>
         </label>
       </div>
       <div class="grid gap-3 sm:grid-cols-3">
         <label class="grid gap-1 text-sm text-amber-100/85">
-          <span>Difficulty</span>
+          <span>{{ t("addRecipeForm.difficulty") }}</span>
           <select
             v-model="form.difficulty"
             class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-amber-100 outline-none focus:border-amber-300"
           >
-            <option>Easy</option>
-            <option>Medium</option>
-            <option>Hard</option>
+            <option value="Easy">{{ t("difficulty.Easy") }}</option>
+            <option value="Medium">{{ t("difficulty.Medium") }}</option>
+            <option value="Hard">{{ t("difficulty.Hard") }}</option>
           </select>
         </label>
         <label class="grid gap-1 text-sm text-amber-100/85">
-          <span>Cook time (min)</span>
+          <span>{{ t("addRecipeForm.cookTime") }}</span>
           <input
             v-model.number="form.cookTimeMinutes"
             class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-sm text-amber-100 outline-none placeholder:text-amber-200/55 focus:border-amber-300"
@@ -156,7 +157,7 @@ function handleSubmit() {
           />
         </label>
         <label class="grid gap-1 text-sm text-amber-100/85">
-          <span>Servings</span>
+          <span>{{ t("addRecipeForm.servings") }}</span>
           <input
             v-model.number="form.servings"
             class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-sm text-amber-100 outline-none placeholder:text-amber-200/55 focus:border-amber-300"
@@ -171,12 +172,12 @@ function handleSubmit() {
       <textarea
         v-model="form.ingredientsText"
         class="min-h-24 rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-sm text-amber-100 outline-none placeholder:text-amber-200/55 focus:border-amber-300"
-        placeholder="Ingredients (one per line)"
+        :placeholder="t('addRecipeForm.ingredientsPlaceholder')"
       />
       <textarea
         v-model="form.stepsText"
         class="min-h-32 rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-sm text-amber-100 outline-none placeholder:text-amber-200/55 focus:border-amber-300"
-        placeholder="Steps (one per line)"
+        :placeholder="t('addRecipeForm.stepsPlaceholder')"
       />
       <p v-if="error" class="text-sm font-medium text-rose-300">{{ error }}</p>
       <div class="flex flex-wrap gap-2">
@@ -184,14 +185,14 @@ function handleSubmit() {
           class="cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
           type="submit"
         >
-          Add Recipe
+          {{ t("addRecipeForm.addRecipe") }}
         </button>
         <button
           class="cursor-pointer rounded-lg border border-amber-500/50 bg-zinc-800 px-4 py-2 text-sm font-semibold text-amber-100 hover:bg-zinc-700"
           type="button"
           @click="emit('cancel')"
         >
-          Cancel
+          {{ t("addRecipeForm.cancel") }}
         </button>
       </div>
     </form>
