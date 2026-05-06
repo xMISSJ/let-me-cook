@@ -8,6 +8,9 @@ const form = reactive({
   description: "",
   cuisine: "Italian",
   mealType: "Dinner",
+  difficulty: "Easy",
+  cookTimeMinutes: 20,
+  servings: 2,
   ingredientsText: "",
   stepsText: "",
 });
@@ -19,6 +22,9 @@ function resetForm() {
   form.description = "";
   form.cuisine = "Italian";
   form.mealType = "Dinner";
+  form.difficulty = "Easy";
+  form.cookTimeMinutes = 20;
+  form.servings = 2;
   form.ingredientsText = "";
   form.stepsText = "";
 }
@@ -28,6 +34,9 @@ function handleSubmit() {
   const description = form.description.trim();
   const cuisine = form.cuisine;
   const mealType = form.mealType;
+  const difficulty = form.difficulty;
+  const cookTimeMinutes = Number(form.cookTimeMinutes);
+  const servings = Number(form.servings);
   const ingredients = form.ingredientsText
     .split("\n")
     .map((item) => item.trim())
@@ -43,11 +52,26 @@ function handleSubmit() {
     return;
   }
 
+  if (
+    !Number.isFinite(cookTimeMinutes) ||
+    cookTimeMinutes <= 0 ||
+    cookTimeMinutes > 1440 ||
+    !Number.isFinite(servings) ||
+    servings <= 0 ||
+    servings > 100
+  ) {
+    error.value = "Please enter a valid cook time and servings.";
+    return;
+  }
+
   emit("add-recipe", {
     title,
     description,
     cuisine,
     mealType,
+    difficulty,
+    cookTimeMinutes,
+    servings,
     ingredients,
     steps,
   });
@@ -105,6 +129,43 @@ function handleSubmit() {
             <option>Snack</option>
             <option>Dessert</option>
           </select>
+        </label>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-3">
+        <label class="grid gap-1 text-sm text-amber-100/85">
+          <span>Difficulty</span>
+          <select
+            v-model="form.difficulty"
+            class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-amber-100 outline-none focus:border-amber-300"
+          >
+            <option>Easy</option>
+            <option>Medium</option>
+            <option>Hard</option>
+          </select>
+        </label>
+        <label class="grid gap-1 text-sm text-amber-100/85">
+          <span>Cook time (min)</span>
+          <input
+            v-model.number="form.cookTimeMinutes"
+            class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-sm text-amber-100 outline-none placeholder:text-amber-200/55 focus:border-amber-300"
+            inputmode="numeric"
+            min="1"
+            max="1440"
+            placeholder="20"
+            type="number"
+          />
+        </label>
+        <label class="grid gap-1 text-sm text-amber-100/85">
+          <span>Servings</span>
+          <input
+            v-model.number="form.servings"
+            class="rounded-lg border border-amber-500/40 bg-zinc-800 px-3 py-2 text-sm text-amber-100 outline-none placeholder:text-amber-200/55 focus:border-amber-300"
+            inputmode="numeric"
+            min="1"
+            max="100"
+            placeholder="2"
+            type="number"
+          />
         </label>
       </div>
       <textarea

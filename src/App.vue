@@ -1,86 +1,17 @@
 <script setup>
 import { computed, ref } from "vue";
 import AddRecipeForm from "./components/AddRecipeForm.vue";
+import AppTabs from "./components/AppTabs.vue";
+import FilterModal from "./components/FilterModal.vue";
 import IngredientsCard from "./components/IngredientsCard.vue";
+import OverviewToolbar from "./components/OverviewToolbar.vue";
+import RecipeDetailCard from "./components/RecipeDetailCard.vue";
 import RecipeHero from "./components/RecipeHero.vue";
 import RecipeList from "./components/RecipeList.vue";
 import StepsCard from "./components/StepsCard.vue";
+import { seedRecipes } from "./data/seedRecipes";
 
-const recipes = ref([
-  {
-    id: 1,
-    title: "Weeknight Lemon Garlic Pasta",
-    description: "Fresh, simple, and ready in about 20 minutes.",
-    thumbnail: "🍝",
-    cuisine: "Italian",
-    mealType: "Dinner",
-    ingredients: [
-      "250g spaghetti",
-      "3 tbsp olive oil",
-      "3 garlic cloves (thinly sliced)",
-      "1 lemon (zest + juice)",
-      "40g grated parmesan",
-      "Salt and black pepper",
-      "Handful of chopped parsley",
-    ],
-    steps: [
-      "Boil spaghetti in salted water until al dente.",
-      "Reserve one cup of pasta water and drain the rest.",
-      "Warm olive oil in a pan and gently cook garlic for 1 minute.",
-      "Add lemon zest, lemon juice, and 1/4 cup pasta water to the pan.",
-      "Toss spaghetti into the sauce, then stir in parmesan and parsley.",
-      "Season with salt and black pepper. Add extra pasta water if needed.",
-    ],
-  },
-  {
-    id: 2,
-    title: "Simple Veggie Omelette",
-    description: "A quick protein-packed breakfast you can customize.",
-    thumbnail: "🍳",
-    cuisine: "International",
-    mealType: "Breakfast",
-    ingredients: [
-      "3 eggs",
-      "1 tbsp milk",
-      "1 tsp butter",
-      "1/4 cup chopped spinach",
-      "1/4 cup diced tomato",
-      "2 tbsp shredded cheese",
-      "Salt and pepper",
-    ],
-    steps: [
-      "Whisk eggs, milk, salt, and pepper in a bowl.",
-      "Heat butter in a non-stick pan over medium heat.",
-      "Add spinach and tomato, and cook for 1 minute.",
-      "Pour in egg mixture and cook until mostly set.",
-      "Sprinkle cheese, fold the omelette, and cook for 30 seconds more.",
-    ],
-  },
-  {
-    id: 3,
-    title: "Honey Soy Chicken Bowl",
-    description: "Sweet-savory chicken with rice and steamed vegetables.",
-    thumbnail: "🍚",
-    cuisine: "Chinese",
-    mealType: "Lunch",
-    ingredients: [
-      "2 chicken thighs, sliced",
-      "2 tbsp soy sauce",
-      "1 tbsp honey",
-      "1 tsp sesame oil",
-      "1 cup cooked rice",
-      "1 cup steamed broccoli",
-      "1 tsp sesame seeds",
-    ],
-    steps: [
-      "Mix soy sauce, honey, and sesame oil in a bowl.",
-      "Cook chicken in a pan until browned and cooked through.",
-      "Pour in the sauce and simmer for 2 minutes.",
-      "Serve chicken over rice with broccoli.",
-      "Finish with sesame seeds.",
-    ],
-  },
-]);
+const recipes = ref([...seedRecipes]);
 
 const selectedRecipeId = ref(null);
 const nextRecipeId = ref(4);
@@ -155,59 +86,24 @@ function addRecipe(recipe) {
   activeTab.value = "details";
   closeAddRecipeModal();
 }
+
+function applyFilters() {
+  closeFilterModal();
+}
 </script>
 
 <template>
   <main class="min-h-screen bg-zinc-950 px-4 py-8 text-amber-100">
     <div class="mx-auto grid w-full max-w-3xl gap-4">
       <RecipeHero :is-detail-view="activeTab === 'details' && Boolean(selectedRecipe)" />
-
-      <nav
-        class="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-500/30 bg-zinc-900 p-3 shadow-sm"
-      >
-        <button
-          class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
-          :class="
-            activeTab === 'overview'
-              ? 'bg-amber-500 text-zinc-950'
-              : 'bg-zinc-800 text-amber-100 hover:bg-zinc-700'
-          "
-          type="button"
-          @click="setTab('overview')"
-        >
-          Overview
-        </button>
-        <button
-          class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
-          :class="
-            activeTab === 'details'
-              ? 'bg-amber-500 text-zinc-950'
-              : 'bg-zinc-800 text-amber-100 hover:bg-zinc-700'
-          "
-          type="button"
-          @click="setTab('details')"
-        >
-          Recipe Details
-        </button>
-      </nav>
+      <AppTabs :active-tab="activeTab" @change-tab="setTab" />
 
       <template v-if="activeTab === 'overview'">
-        <section
-          class="flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-zinc-900 px-5 py-4 shadow-sm"
-        >
-          <p class="text-sm text-amber-100/85">
-            Showing {{ filteredRecipes.length }} of {{ recipes.length }} recipes
-          </p>
-          <div class="flex items-center gap-2">
-            <button
-              class="cursor-pointer rounded-lg border border-amber-500/50 bg-zinc-800 px-3 py-2 text-sm font-semibold text-amber-100 hover:bg-zinc-700"
-              type="button"
-              @click="openFilterModal"
-            >
-              Edit Filters
-            </button>
-          </div>
-        </section>
+        <OverviewToolbar
+          :filtered-count="filteredRecipes.length"
+          :total-count="recipes.length"
+          @edit-filters="openFilterModal"
+        />
         <RecipeList
           :recipes="filteredRecipes"
           @select-recipe="openRecipe"
@@ -217,43 +113,7 @@ function addRecipe(recipe) {
 
       <template v-else>
         <template v-if="selectedRecipe">
-          <section
-            class="rounded-2xl border border-amber-500/30 bg-zinc-900 px-5 py-4 shadow-sm"
-          >
-            <button
-              class="cursor-pointer text-sm font-semibold text-amber-300 hover:text-amber-200"
-              type="button"
-              @click="goToOverview"
-            >
-              ← Back to recipes
-            </button>
-            <div class="mt-3 flex items-center gap-3">
-              <div
-                class="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-400/40 bg-amber-500/20 text-2xl"
-                aria-hidden="true"
-              >
-                {{ selectedRecipe.thumbnail }}
-              </div>
-              <div>
-                <h2 class="text-2xl font-bold text-amber-50">
-                  {{ selectedRecipe.title }}
-                </h2>
-                <p class="mt-1 text-amber-100/85">{{ selectedRecipe.description }}</p>
-                <div class="mt-2 flex flex-wrap gap-2">
-                  <span
-                    class="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-100"
-                  >
-                    {{ selectedRecipe.cuisine }}
-                  </span>
-                  <span
-                    class="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-100"
-                  >
-                    {{ selectedRecipe.mealType }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
+          <RecipeDetailCard :recipe="selectedRecipe" @back="goToOverview" />
           <IngredientsCard :ingredients="selectedRecipe.ingredients" />
           <StepsCard :steps="selectedRecipe.steps" />
         </template>
@@ -277,88 +137,18 @@ function addRecipe(recipe) {
       </template>
     </div>
 
-    <div
-      v-if="isFilterModalOpen"
-      class="fixed inset-0 z-50 bg-black/70 p-4 md:flex md:items-center md:justify-center"
-      @click.self="closeFilterModal"
-    >
-      <section
-        class="fixed bottom-0 left-0 right-0 rounded-t-2xl border border-amber-500/30 bg-zinc-900 px-5 py-4 shadow-xl md:static md:w-full md:max-w-xl md:rounded-2xl"
-      >
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-amber-50">Filter Recipes</h2>
-          <button
-            class="cursor-pointer rounded-md px-2 py-1 text-sm text-amber-300 hover:bg-zinc-800 hover:text-amber-100"
-            type="button"
-            @click="closeFilterModal"
-          >
-            Close
-          </button>
-        </div>
-
-        <div class="grid gap-4">
-          <div class="grid gap-2">
-            <p class="text-xs font-semibold uppercase tracking-wider text-amber-300/90">
-              Cuisine
-            </p>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="option in cuisineOptions"
-                :key="option"
-                class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
-                :class="
-                  selectedCuisine === option
-                    ? 'border-amber-300 bg-amber-500/30 text-amber-50'
-                    : 'border-amber-500/40 bg-zinc-800 text-amber-100 hover:border-amber-400/70 hover:bg-zinc-700'
-                "
-                type="button"
-                @click="selectedCuisine = option"
-              >
-                {{ option }}
-              </button>
-            </div>
-          </div>
-          <div class="grid gap-2">
-            <p class="text-xs font-semibold uppercase tracking-wider text-amber-300/90">
-              Meal Type
-            </p>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="option in mealTypeOptions"
-                :key="option"
-                class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
-                :class="
-                  selectedMealType === option
-                    ? 'border-amber-300 bg-amber-500/30 text-amber-50'
-                    : 'border-amber-500/40 bg-zinc-800 text-amber-100 hover:border-amber-400/70 hover:bg-zinc-700'
-                "
-                type="button"
-                @click="selectedMealType = option"
-              >
-                {{ option }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-5 flex flex-wrap justify-end gap-2">
-          <button
-            class="cursor-pointer rounded-lg border border-amber-500/50 bg-zinc-800 px-3 py-2 text-sm font-semibold text-amber-100 hover:bg-zinc-700"
-            type="button"
-            @click="clearFilters"
-          >
-            Clear Filters
-          </button>
-          <button
-            class="cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
-            type="button"
-            @click="closeFilterModal"
-          >
-            Apply
-          </button>
-        </div>
-      </section>
-    </div>
+    <FilterModal
+      :is-open="isFilterModalOpen"
+      :cuisine-options="cuisineOptions"
+      :meal-type-options="mealTypeOptions"
+      :selected-cuisine="selectedCuisine"
+      :selected-meal-type="selectedMealType"
+      @close="closeFilterModal"
+      @clear="clearFilters"
+      @apply="applyFilters"
+      @update:selected-cuisine="selectedCuisine = $event"
+      @update:selected-meal-type="selectedMealType = $event"
+    />
 
     <div
       v-if="isAddModalOpen"
