@@ -32,7 +32,8 @@ function toUnsplashSizedUrl(url, options = {}) {
 }
 
 export function getRecipeImageThumbnailUrl(url) {
-  return toUnsplashSizedUrl(url, { w: 220, q: 60, fit: "crop", fm: "jpg" });
+  // Recipe cards render at ~112px; request a 2x source for sharper images on high-DPI screens.
+  return toUnsplashSizedUrl(url, { w: 420, q: 82, fit: "crop", fm: "jpg" });
 }
 
 export function getRecipeImageDetailUrl(url) {

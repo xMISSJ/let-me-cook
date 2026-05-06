@@ -308,7 +308,7 @@ function onCardKeydown(event, recipeId) {
             {{ recipe.thumbnail || "🍽️" }}
           </div>
           <div class="min-w-0 flex-1">
-            <h3 class="min-w-0 break-words text-pretty font-semibold text-amber-900 line-clamp-2 dark:text-amber-50 lg:pr-20">{{ recipe.title }}</h3>
+            <h3 class="min-w-0 break-words text-pretty font-semibold text-amber-900 line-clamp-2 pr-10 dark:text-amber-50 lg:pr-20">{{ recipe.title }}</h3>
             <p class="mt-1 hidden text-xs text-amber-900/75 dark:text-amber-100/75 md:line-clamp-2 md:block">
               {{ recipe.description || "Tap to view ingredients and steps." }}
             </p>
