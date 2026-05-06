@@ -15,6 +15,7 @@ const props = defineProps({
 
 const menuItems = [
   { key: "overview", label: "Recipes", icon: "utensils" },
+  { key: "favorites", label: "Favorites", icon: "heart" },
   { key: "planner", label: "Planner", icon: "calendar" },
   { key: "profile", label: "Profile", icon: "user" },
 ];
@@ -62,10 +63,10 @@ function navigateTo(menu) {
     </nav>
 
     <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-amber-500/40 bg-amber-50/95 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] backdrop-blur md:hidden dark:border-amber-300/20 dark:bg-zinc-900/95">
-      <div class="relative grid grid-cols-3 rounded-xl bg-white/90 p-1 shadow-sm dark:bg-zinc-800/90">
+      <div class="relative grid rounded-xl bg-white/90 p-1 shadow-sm dark:bg-zinc-800/90" :style="{ gridTemplateColumns: `repeat(${menuItems.length}, minmax(0, 1fr))` }">
         <span
-          class="pointer-events-none absolute bottom-1 top-1 w-[calc((100%-0.5rem)/3)] rounded-lg bg-amber-500 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.22,1,0.36,1)]"
-          :style="{ transform: `translateX(${activeMenuIndex * 100}%)` }"
+          class="pointer-events-none absolute bottom-1 top-1 rounded-lg bg-amber-500 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          :style="{ width: `calc((100% - 0.5rem) / ${menuItems.length})`, transform: `translateX(${activeMenuIndex * 100}%)` }"
           aria-hidden="true"
         />
 
@@ -118,6 +119,15 @@ function navigateTo(menu) {
           >
             <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
             <path d="M7 3.5v3M17 3.5v3M3.5 9.5h17" />
+          </svg>
+          <svg
+            v-else-if="item.icon === 'heart'"
+            class="h-4 w-4"
+            viewBox="0 0 512 512"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M256 436a54.62 54.62 0 0 1-29.53-8.64c-25-16.07-73.08-49.05-113.75-89.32C62.81 288.58 37.5 242 37.5 199.56c0-29.49 8.72-56.51 25.22-78.13a115.2 115.2 0 0 1 137.89-35.75c21.18 9.14 40.07 24.55 55.39 45 15.32-20.5 34.21-35.91 55.39-45a115.2 115.2 0 0 1 137.89 35.75c16.5 21.62 25.22 48.64 25.22 78.13 0 42.44-25.31 89-75.22 138.44-40.67 40.27-88.73 73.25-113.75 89.32A54.62 54.62 0 0 1 256 436zM154.16 101.06a89.41 89.41 0 0 0-23.42 3.1 90.93 90.93 0 0 0-48.15 32.44c-13.14 17.22-20.09 39-20.09 63 0 35.52 22.81 76.12 67.81 120.68 39 38.66 85.47 70.5 109.67 86a29.72 29.72 0 0 0 32 0c24.2-15.54 70.63-47.38 109.67-86 45-44.56 67.81-85.16 67.81-120.68 0-24-6.95-45.74-20.09-63a90.93 90.93 0 0 0-48.15-32.44c-34.17-9.28-82.18.42-114.48 55.48a12.49 12.49 0 0 1-21.56 0c-25.38-43.34-60.54-58.58-91.02-58.58z" />
           </svg>
           <svg
             v-else

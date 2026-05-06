@@ -115,6 +115,7 @@ const isRecipePage = computed(() => Boolean(route.params.id));
 const currentMenu = computed(() => {
   if (route.name === "planner") return "planner";
   if (route.name === "profile") return "profile";
+  if (route.query.menu === "favorites") return "favorites";
   return "overview";
 });
 const DEFAULT_CUISINES = [
@@ -290,6 +291,10 @@ function navigateToMenu(menu) {
   }
   if (menu === "profile") {
     router.push("/profile");
+    return;
+  }
+  if (menu === "favorites") {
+    router.push({ path: "/", query: { menu: "favorites" } });
     return;
   }
   router.push("/");
@@ -710,24 +715,49 @@ onBeforeUnmount(() => {
                 </button>
               </section>
 
-              <section class="grid gap-3 rounded-xl border border-amber-500/30 bg-white p-3 dark:bg-zinc-800">
-                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">Favorites</h3>
-                <p v-if="favoriteRecipes.length === 0" class="text-xs text-amber-900/75 dark:text-amber-100/75">
-                  Tap the heart on any recipe to save it here.
-                </p>
-                <button
-                  v-for="recipe in favoriteRecipes.slice(0, 5)"
-                  :key="`favorite-${recipe.id}`"
-                  class="group flex items-center justify-between gap-2 rounded-lg border border-amber-500/30 bg-white/70 px-3 py-2 text-left text-sm transition-[box-shadow,background-color,border-color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-50 lg:hover:border-amber-400/70 lg:hover:bg-amber-200 lg:hover:shadow-sm dark:bg-zinc-800/70 dark:focus-visible:ring-amber-300/60 dark:focus-visible:ring-offset-zinc-800 dark:lg:hover:border-amber-300/50 dark:lg:hover:bg-zinc-700"
-                  type="button"
-                  @click="openRecipe(recipe.id)"
-                >
-                  <span class="truncate font-medium text-amber-900 dark:text-amber-50">{{ recipe.title }}</span>
-                  <span class="shrink-0 text-base" aria-hidden="true">❤️</span>
-                </button>
-              </section>
             </aside>
           </div>
+        </section>
+
+        <section v-else-if="!isRecipePage && currentMenu === 'favorites'" key="menu-favorites" class="grid gap-4">
+          <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">Favorites</h2>
+                <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">
+                  Your saved recipes in one place.
+                </p>
+              </div>
+              <button
+                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
+                type="button"
+                @click="navigateToMenu('overview')"
+              >
+                Browse all
+              </button>
+            </div>
+          </section>
+
+          <section
+            v-if="favoriteRecipes.length === 0"
+            class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
+          >
+            <h3 class="text-lg font-semibold text-amber-900 dark:text-amber-50">No favorites yet</h3>
+            <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
+              Tap the heart on any recipe to add it here.
+            </p>
+          </section>
+
+          <RecipeList
+            v-else
+            :recipes="favoriteRecipes"
+            :favorite-recipe-ids="favoriteRecipeIds"
+            @select-recipe="openRecipe"
+            @add-recipe="openAddRecipeModal"
+            @edit-recipe="openEditRecipeModalById"
+            @delete-recipe="removeRecipeById"
+            @toggle-favorite="toggleFavoriteRecipe"
+          />
         </section>
 
         <section
@@ -811,7 +841,7 @@ onBeforeUnmount(() => {
                   type="button"
                   @click="saveGuestName"
                 >
-                  Save name
+                  Save
                 </button>
               </div>
             </section>
@@ -825,7 +855,7 @@ onBeforeUnmount(() => {
                     :model-value="locale"
                     :items="languageItems"
                     value-key="value"
-                    class="w-full"
+                    class="w-full [&_button]:rounded-xl [&_button]:border-amber-500/25 [&_button]:bg-amber-50/90 [&_button]:text-amber-900 [&_button]:shadow-none [&_button]:ring-0 [&_button]:focus-visible:ring-2 [&_button]:focus-visible:ring-amber-500/40 dark:[&_button]:border-amber-300/20 dark:[&_button]:bg-zinc-900/70 dark:[&_button]:text-amber-100 dark:[&_button]:focus-visible:ring-amber-300/35 [&_span]:text-amber-900 dark:[&_span]:text-amber-100"
                     @update:model-value="setLanguage"
                   />
                 </label>
