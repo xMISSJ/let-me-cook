@@ -32,14 +32,14 @@ const { t } = useI18n();
     <button
       class="inline-flex items-center justify-center cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
       :class="
-        activeTab === 'details'
+        activeTab === 'recent'
           ? 'bg-amber-500 text-zinc-950'
           : 'bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
       "
       type="button"
-      @click="emit('change-tab', 'details')"
+      @click="emit('change-tab', 'recent')"
     >
-      {{ t("tabs.details") }}
+      {{ t("tabs.recent") }}
     </button>
   </nav>
 </template>

@@ -14,6 +14,7 @@ function toReadableError(error) {
 function normalizeRecipe(record) {
   return {
     id: record.id,
+    createdAt: record.created_at ?? null,
     title: record.title,
     description: record.description,
     thumbnail: record.thumbnail ?? "🍽️",

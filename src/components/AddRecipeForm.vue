@@ -24,8 +24,8 @@ const form = reactive({
   difficulty: "Easy",
   cookTimeMinutes: 20,
   servings: 2,
-  ingredientsText: "",
-  stepsText: "",
+  ingredientsList: [""],
+  stepsList: [""],
 });
 
 const error = ref("");
@@ -39,8 +39,8 @@ function fillForm(recipe) {
   form.difficulty = recipe?.difficulty ?? "Easy";
   form.cookTimeMinutes = recipe?.cookTimeMinutes ?? 20;
   form.servings = recipe?.servings ?? 2;
-  form.ingredientsText = Array.isArray(recipe?.ingredients) ? recipe.ingredients.join("\n") : "";
-  form.stepsText = Array.isArray(recipe?.steps) ? recipe.steps.join("\n") : "";
+  form.ingredientsList = Array.isArray(recipe?.ingredients) && recipe.ingredients.length > 0 ? [...recipe.ingredients] : [""];
+  form.stepsList = Array.isArray(recipe?.steps) && recipe.steps.length > 0 ? [...recipe.steps] : [""];
   selectedImage.value = null;
 }
 
@@ -61,6 +61,32 @@ function onImageChange(event) {
   selectedImage.value = file ?? null;
 }
 
+function addIngredient() {
+  form.ingredientsList.push("");
+}
+
+function insertIngredientAfter(index) {
+  form.ingredientsList.splice(index + 1, 0, "");
+}
+
+function removeIngredient(index) {
+  form.ingredientsList.splice(index, 1);
+  if (form.ingredientsList.length === 0) form.ingredientsList.push("");
+}
+
+function addStep() {
+  form.stepsList.push("");
+}
+
+function insertStepAfter(index) {
+  form.stepsList.splice(index + 1, 0, "");
+}
+
+function removeStep(index) {
+  form.stepsList.splice(index, 1);
+  if (form.stepsList.length === 0) form.stepsList.push("");
+}
+
 function handleSubmit() {
   const title = form.title.trim();
   const description = form.description.trim();
@@ -69,14 +95,8 @@ function handleSubmit() {
   const difficulty = form.difficulty;
   const cookTimeMinutes = Number(form.cookTimeMinutes);
   const servings = Number(form.servings);
-  const ingredients = form.ingredientsText
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  const steps = form.stepsText
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
+  const ingredients = form.ingredientsList.map((item) => item.trim()).filter(Boolean);
+  const steps = form.stepsList.map((item) => item.trim()).filter(Boolean);
 
   if (!title || !description || ingredients.length === 0 || steps.length === 0) {
     error.value = t("addRecipeForm.requiredError");
@@ -202,16 +222,86 @@ function handleSubmit() {
           />
         </label>
       </div>
-      <textarea
-        v-model="form.ingredientsText"
-        class="min-h-24 rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
-        :placeholder="t('addRecipeForm.ingredientsPlaceholder')"
-      />
-      <textarea
-        v-model="form.stepsText"
-        class="min-h-32 rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
-        :placeholder="t('addRecipeForm.stepsPlaceholder')"
-      />
+      <div class="grid gap-2">
+        <p class="text-sm font-semibold text-amber-900/90 dark:text-amber-100/90">{{ t("details.ingredients") }}</p>
+        <div class="grid gap-2">
+          <div v-for="(item, index) in form.ingredientsList" :key="`ingredient-${index}`" class="flex items-center gap-2">
+            <input
+              v-model="form.ingredientsList[index]"
+              class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
+              :placeholder="`${t('details.ingredients')} ${index + 1}`"
+              type="text"
+            />
+            <button
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+              type="button"
+              @click="insertIngredientAfter(index)"
+              aria-label="Add ingredient row"
+            >
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              </svg>
+            </button>
+            <button
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
+              type="button"
+              @click="removeIngredient(index)"
+              aria-label="Remove ingredient row"
+            >
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid gap-2">
+        <p class="text-sm font-semibold text-amber-900/90 dark:text-amber-100/90">{{ t("details.steps") }}</p>
+        <div class="grid gap-2">
+          <div v-for="(item, index) in form.stepsList" :key="`step-${index}`" class="flex items-start gap-2">
+            <span class="pt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">{{ index + 1 }}.</span>
+            <input
+              v-model="form.stepsList[index]"
+              class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
+              :placeholder="`Step ${index + 1}`"
+              type="text"
+            />
+            <button
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+              type="button"
+              @click="insertStepAfter(index)"
+              aria-label="Add step row"
+            >
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              </svg>
+            </button>
+            <button
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
+              type="button"
+              @click="removeStep(index)"
+              aria-label="Remove step row"
+            >
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
       <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
         <span>{{ t("addRecipeForm.image") }}</span>
         <input

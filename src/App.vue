@@ -1,15 +1,14 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
 import AddRecipeForm from "./components/AddRecipeForm.vue";
 import AppTabs from "./components/AppTabs.vue";
 import FilterModal from "./components/FilterModal.vue";
-import IngredientsCard from "./components/IngredientsCard.vue";
 import OverviewToolbar from "./components/OverviewToolbar.vue";
 import RecipeDetailCard from "./components/RecipeDetailCard.vue";
 import RecipeHero from "./components/RecipeHero.vue";
 import RecipeList from "./components/RecipeList.vue";
-import StepsCard from "./components/StepsCard.vue";
 import {
   createRecipe,
   deleteRecipe,
@@ -26,6 +25,8 @@ import {
 } from "./data/supabaseClient";
 
 const { t, locale } = useI18n();
+const route = useRoute();
+const router = useRouter();
 const recipes = ref([]);
 const isLoadingRecipes = ref(true);
 const recipeLoadError = ref("");
@@ -39,7 +40,6 @@ const pendingGuestName = ref("");
 const isAuthScreenOpen = ref(false);
 const isSettingsOpen = ref(false);
 
-const selectedRecipeId = ref(null);
 const activeTab = ref("overview");
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -47,9 +47,17 @@ const editingRecipeId = ref(null);
 const isFilterModalOpen = ref(false);
 const selectedCuisine = ref("All");
 const selectedMealType = ref("All");
+const recentRecipeIds = ref([]);
 
 const selectedRecipe = computed(() =>
-  recipes.value.find((recipe) => recipe.id === selectedRecipeId.value),
+  recipes.value.find((recipe) => String(recipe.id) === String(route.params.id)),
+);
+const isRecipePage = computed(() => Boolean(route.params.id));
+const recentRecipes = computed(() =>
+  recentRecipeIds.value
+    .map((recipeId) => recipes.value.find((recipe) => recipe.id === recipeId))
+    .filter(Boolean)
+    .slice(0, 3),
 );
 const cuisineOptions = computed(() => [
   "All",
@@ -92,6 +100,15 @@ onMounted(() => {
   pendingGuestName.value = guestName.value;
   theme.value = localStorage.getItem("let-me-cook-theme") ?? "dark";
   locale.value = localStorage.getItem("let-me-cook-language") ?? locale.value;
+  const storedRecentIds = localStorage.getItem("let-me-cook-recent-recipe-ids");
+  if (storedRecentIds) {
+    try {
+      const parsed = JSON.parse(storedRecentIds);
+      recentRecipeIds.value = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      recentRecipeIds.value = [];
+    }
+  }
   document.documentElement.classList.toggle("dark", theme.value === "dark");
   void getCurrentSession().then((value) => {
     session.value = value;
@@ -102,12 +119,22 @@ onMounted(() => {
   void refreshRecipes();
 });
 
+watch(
+  () => route.fullPath,
+  async () => {
+    await nextTick();
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  },
+);
+
 function openRecipe(recipeId) {
-  selectedRecipeId.value = recipeId;
-  activeTab.value = "details";
+  recentRecipeIds.value = [recipeId, ...recentRecipeIds.value.filter((id) => id !== recipeId)].slice(0, 3);
+  localStorage.setItem("let-me-cook-recent-recipe-ids", JSON.stringify(recentRecipeIds.value));
+  router.push({ name: "recipe", params: { id: recipeId } });
 }
 
 function goToOverview() {
+  router.push({ name: "home" });
   activeTab.value = "overview";
 }
 
@@ -116,10 +143,7 @@ function setTab(tab) {
 }
 
 function openAddRecipeModal() {
-  if (!canManageRecipes.value) {
-    actionError.value = "Open profile and sign in or enter your name to edit.";
-    return;
-  }
+  actionError.value = "";
   isAddModalOpen.value = true;
 }
 
@@ -153,8 +177,7 @@ async function addRecipe(recipe) {
     editorName: activeEditorName.value,
   });
   recipes.value.unshift(created);
-  selectedRecipeId.value = created.id;
-  activeTab.value = "details";
+  activeTab.value = "overview";
   closeAddRecipeModal();
 }
 
@@ -191,8 +214,10 @@ async function removeSelectedRecipe() {
   if (!shouldDelete) return;
   await deleteRecipe(selectedRecipe.value.id);
   recipes.value = recipes.value.filter((recipe) => recipe.id !== selectedRecipe.value.id);
-  selectedRecipeId.value = null;
+  recentRecipeIds.value = recentRecipeIds.value.filter((id) => id !== selectedRecipe.value.id);
+  localStorage.setItem("let-me-cook-recent-recipe-ids", JSON.stringify(recentRecipeIds.value));
   activeTab.value = "overview";
+  router.push({ name: "home" });
 }
 
 async function startEmailSignIn() {
@@ -241,9 +266,12 @@ function setLanguage(value) {
 </script>
 
 <template>
-  <main class="min-h-screen bg-amber-100 px-4 py-8 text-amber-950 dark:bg-zinc-950 dark:text-amber-100">
-    <div class="mx-auto grid w-full max-w-3xl gap-4">
-      <div class="flex justify-end">
+  <main
+    class="min-h-screen bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
+    :class="isRecipePage ? 'px-0 py-0' : 'px-4 py-8'"
+  >
+    <div class="mx-auto grid w-full gap-4" :class="isRecipePage ? 'max-w-none' : 'max-w-3xl'">
+      <div v-if="!isRecipePage" class="flex justify-end">
         <div class="flex flex-wrap items-center justify-end gap-3">
           <button
             class="inline-flex items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-3 py-1.5 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
@@ -280,12 +308,14 @@ function setLanguage(value) {
           </button>
         </div>
       </div>
-      <p v-if="session?.user" class="text-xs text-emerald-700 dark:text-emerald-300">Signed in as {{ session.user.email }}</p>
-      <p v-else-if="guestName" class="text-xs text-emerald-700 dark:text-emerald-300">Using app as {{ guestName }}</p>
-      <p v-if="authMessage" class="text-xs text-emerald-700 dark:text-emerald-300">{{ authMessage }}</p>
-      <p v-if="actionError" class="text-xs text-rose-700 dark:text-rose-300">{{ actionError }}</p>
-      <RecipeHero :is-detail-view="activeTab === 'details' && Boolean(selectedRecipe)" />
-      <AppTabs :active-tab="activeTab" @change-tab="setTab" />
+      <p v-if="!isRecipePage && session?.user" class="text-xs text-emerald-700 dark:text-emerald-300">Signed in as {{ session.user.email }}</p>
+      <p v-else-if="!isRecipePage && guestName" class="text-xs text-emerald-700 dark:text-emerald-300">Using app as {{ guestName }}</p>
+      <p v-if="!isRecipePage && authMessage" class="text-xs text-emerald-700 dark:text-emerald-300">{{ authMessage }}</p>
+      <p v-if="!isRecipePage && actionError" class="text-xs text-rose-700 dark:text-rose-300">{{ actionError }}</p>
+      <template v-if="!isRecipePage">
+        <RecipeHero :is-detail-view="false" />
+        <AppTabs :active-tab="activeTab" @change-tab="setTab" />
+      </template>
 
       <section
         v-if="recipeLoadError"
@@ -302,7 +332,33 @@ function setLanguage(value) {
         </button>
       </section>
 
-      <template v-if="activeTab === 'overview'">
+      <template v-if="isRecipePage">
+        <RecipeDetailCard
+          v-if="selectedRecipe"
+          :recipe="selectedRecipe"
+          :can-manage="canManageRecipes"
+          @back="goToOverview"
+          @edit="openEditRecipeModal"
+          @delete="removeSelectedRecipe"
+        />
+        <section
+          v-else
+          class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
+        >
+          <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("details.noneTitle") }}</h2>
+          <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
+            {{ t("details.noneText") }}
+          </p>
+          <button
+            class="mt-4 inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
+            type="button"
+            @click="goToOverview"
+          >
+            {{ t("details.goToOverview") }}
+          </button>
+        </section>
+      </template>
+      <template v-else-if="activeTab === 'overview'">
         <OverviewToolbar
           :filtered-count="filteredRecipes.length"
           :total-count="recipes.length"
@@ -316,34 +372,22 @@ function setLanguage(value) {
         <p v-if="isLoadingRecipes" class="text-sm text-amber-900/75 dark:text-amber-100/75">Loading recipes…</p>
       </template>
 
-      <template v-else>
-        <template v-if="selectedRecipe">
-          <RecipeDetailCard
-            :recipe="selectedRecipe"
-            :can-manage="canManageRecipes"
-            @back="goToOverview"
-            @edit="openEditRecipeModal"
-            @delete="removeSelectedRecipe"
+      <template v-else-if="activeTab === 'recent'">
+        <template v-if="recentRecipes.length > 0">
+          <RecipeList
+            :recipes="recentRecipes"
+            @select-recipe="openRecipe"
+            @add-recipe="openAddRecipeModal"
           />
-          <IngredientsCard :ingredients="selectedRecipe.ingredients" />
-          <StepsCard :steps="selectedRecipe.steps" />
         </template>
-
         <section
           v-else
           class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
         >
-          <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("details.noneTitle") }}</h2>
+          <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("recent.emptyTitle") }}</h2>
           <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
-            {{ t("details.noneText") }}
+            {{ t("recent.emptyText") }}
           </p>
-          <button
-            class="mt-4 inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
-            type="button"
-            @click="setTab('overview')"
-          >
-            {{ t("details.goToOverview") }}
-          </button>
         </section>
       </template>
     </div>
@@ -470,7 +514,7 @@ function setLanguage(value) {
       class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
       @click.self="closeAddRecipeModal"
     >
-      <div class="w-full max-w-2xl">
+      <div class="w-full max-w-2xl max-h-[85vh] overflow-y-auto">
         <AddRecipeForm @save-recipe="addRecipe" @cancel="closeAddRecipeModal" />
       </div>
     </div>
@@ -480,7 +524,7 @@ function setLanguage(value) {
       class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
       @click.self="closeEditRecipeModal"
     >
-      <div class="w-full max-w-2xl">
+      <div class="w-full max-w-2xl max-h-[85vh] overflow-y-auto">
         <AddRecipeForm
           :initial-recipe="editingRecipe"
           submit-label="Save Recipe"

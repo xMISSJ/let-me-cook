@@ -26,7 +26,11 @@ const messages = {
     language: "Language",
     tabs: {
       overview: "Overview",
-      details: "Recipe Details",
+      recent: "Recent",
+    },
+    recent: {
+      emptyTitle: "No recent recipes yet",
+      emptyText: "Open recipes from Overview and your last 3 opened recipes will show here.",
     },
     hero: {
       title: "My Recipe Book",
@@ -109,7 +113,11 @@ const messages = {
     language: "Taal",
     tabs: {
       overview: "Overzicht",
-      details: "Receptdetails",
+      recent: "Recent",
+    },
+    recent: {
+      emptyTitle: "Nog geen recente recepten",
+      emptyText: "Open recepten vanuit Overzicht en je laatste 3 geopende recepten verschijnen hier.",
     },
     hero: {
       title: "Mijn Receptenboek",
@@ -192,7 +200,11 @@ const messages = {
     language: "语言",
     tabs: {
       overview: "总览",
-      details: "菜谱详情",
+      recent: "最近制作",
+    },
+    recent: {
+      emptyTitle: "还没有最近打开的菜谱",
+      emptyText: "先在总览中打开菜谱，这里会显示你最近打开的 3 个菜谱。",
     },
     hero: {
       title: "我的菜谱本",
