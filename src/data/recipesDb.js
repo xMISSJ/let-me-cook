@@ -61,11 +61,6 @@ async function fetchRecipeImageFromMealDb(recipe) {
   return "";
 }
 
-function getUnsplashFallbackUrl(recipe) {
-  const parts = [recipe.title, recipe.cuisine, recipe.mealType, "food"].filter(Boolean).join(",");
-  return `https://source.unsplash.com/1600x900/?${encodeURIComponent(parts)}`;
-}
-
 function withUnsplashTracking(url) {
   if (!url) return "";
   try {
@@ -239,7 +234,7 @@ export async function uploadRecipeImage(file, userId) {
 export async function fetchRecipeImageFromSpoonacular(recipe) {
   if (!UNSPLASH_ACCESS_KEY || unsplashDisabledForSession) {
     const mealDbImage = await fetchRecipeImageFromMealDb(recipe);
-    return mealDbImage || getUnsplashFallbackUrl(recipe);
+    return mealDbImage || "";
   }
 
   const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients.slice(0, 5).join(" ") : "";
@@ -284,9 +279,9 @@ export async function fetchRecipeImageFromSpoonacular(recipe) {
     }
   }
 
-  // No Unsplash result (or blocked by quota/rate limits): fallback to free public sources.
+  // No Unsplash result (or blocked by quota/rate limits): fallback to MealDB only.
   const mealDbImage = await fetchRecipeImageFromMealDb(recipe);
-  return mealDbImage || getUnsplashFallbackUrl(recipe);
+  return mealDbImage || "";
 }
 
 export async function backfillMissingRecipeImages(limit = 20) {
