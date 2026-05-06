@@ -13,32 +13,8 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="inline-flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-amber-500/30 bg-amber-100/70 px-2.5 py-1.5 text-xs dark:bg-zinc-900/70"
+    class="inline-flex items-center gap-3 whitespace-nowrap rounded-lg border border-amber-500/30 bg-amber-100/70 px-2.5 py-1.5 text-xs dark:bg-zinc-900/70"
   >
-    <div class="flex items-center gap-1.5 font-semibold">
-      <span
-        class="h-2 w-2 rounded-full"
-        :class="
-          recipe.difficulty === 'Easy'
-            ? 'bg-emerald-400'
-            : recipe.difficulty === 'Medium'
-              ? 'bg-amber-400'
-              : 'bg-rose-400'
-        "
-        aria-hidden="true"
-      />
-      <span
-        :class="
-          recipe.difficulty === 'Easy'
-            ? 'text-emerald-700 dark:text-emerald-200'
-            : recipe.difficulty === 'Medium'
-              ? 'text-amber-700 dark:text-amber-200'
-              : 'text-rose-700 dark:text-rose-200'
-        "
-      >
-        {{ t(`difficulty.${recipe.difficulty}`, recipe.difficulty) }}
-      </span>
-    </div>
     <div class="flex items-center gap-1.5 text-amber-900/90 dark:text-amber-100/90">
       <svg
         class="h-3.5 w-3.5"

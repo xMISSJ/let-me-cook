@@ -16,12 +16,38 @@ create table if not exists public.recipes (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+alter table public.recipes add column if not exists user_id uuid references auth.users(id);
+alter table public.recipes add column if not exists editor_name text;
+alter table public.recipes add column if not exists image_url text;
+alter table public.recipes add column if not exists created_at timestamptz not null default timezone('utc', now());
+
 create table if not exists public.user_roles (
   email text primary key,
   role text not null check (role in ('admin', 'member')),
   assigned_by text,
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.user_roles add column if not exists role text;
+alter table public.user_roles add column if not exists assigned_by text;
+alter table public.user_roles add column if not exists updated_at timestamptz not null default timezone('utc', now());
+alter table public.user_roles
+  alter column role set default 'member';
+update public.user_roles set role = 'member' where role is null;
+alter table public.user_roles
+  alter column role set not null;
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'user_roles_role_check'
+      and conrelid = 'public.user_roles'::regclass
+  ) then
+    alter table public.user_roles
+      add constraint user_roles_role_check check (role in ('admin', 'member'));
+  end if;
+end $$;
 
 grant usage on schema public to anon, authenticated;
 grant select, insert on table public.recipes to anon, authenticated;

@@ -16,20 +16,6 @@ function toReadableError(error) {
   return new Error(String(error));
 }
 
-function isMissingRolesTableError(error) {
-  if (!error) return false;
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === "object" && "message" in error
-        ? String(error.message)
-        : String(error);
-  return (
-    message.includes("relation \"public.user_roles\" does not exist") ||
-    message.includes("Could not find the table 'public.user_roles'")
-  );
-}
-
 export async function listAdminEmails() {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
@@ -38,10 +24,7 @@ export async function listAdminEmails() {
     .eq("role", "admin")
     .order("email", { ascending: true });
 
-  if (error) {
-    if (isMissingRolesTableError(error)) return [];
-    throw toReadableError(error);
-  }
+  if (error) throw toReadableError(error);
 
   return (data ?? []).map((row) => normalizeEmail(row.email)).filter(Boolean);
 }

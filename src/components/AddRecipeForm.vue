@@ -31,6 +31,40 @@ const form = reactive({
 const error = ref("");
 const selectedImage = ref(null);
 
+const cuisineItems = [
+  { label: () => t("cuisine.Italian"), value: "Italian" },
+  { label: () => t("cuisine.Chinese"), value: "Chinese" },
+  { label: () => t("cuisine.Japanese"), value: "Japanese" },
+  { label: () => t("cuisine.Mexican"), value: "Mexican" },
+  { label: () => t("cuisine.Indian"), value: "Indian" },
+  { label: () => t("cuisine.French"), value: "French" },
+  { label: () => t("cuisine.Thai"), value: "Thai" },
+  { label: () => t("cuisine.Mediterranean"), value: "Mediterranean" },
+  { label: () => t("cuisine.Spanish"), value: "Spanish" },
+  { label: () => t("cuisine.Greek"), value: "Greek" },
+  { label: () => t("cuisine.Korean"), value: "Korean" },
+  { label: () => t("cuisine.MiddleEastern"), value: "Middle Eastern" },
+  { label: () => t("cuisine.Vietnamese"), value: "Vietnamese" },
+  { label: () => t("cuisine.Turkish"), value: "Turkish" },
+  { label: () => t("cuisine.Lebanese"), value: "Lebanese" },
+  { label: () => t("cuisine.American"), value: "American" },
+  { label: () => t("cuisine.International"), value: "International" },
+];
+
+const mealTypeItems = [
+  { label: () => t("mealType.Breakfast"), value: "Breakfast" },
+  { label: () => t("mealType.Lunch"), value: "Lunch" },
+  { label: () => t("mealType.Dinner"), value: "Dinner" },
+  { label: () => t("mealType.Snack"), value: "Snack" },
+  { label: () => t("mealType.Dessert"), value: "Dessert" },
+];
+
+const difficultyItems = [
+  { label: () => t("difficulty.Easy"), value: "Easy" },
+  { label: () => t("difficulty.Medium"), value: "Medium" },
+  { label: () => t("difficulty.Hard"), value: "Hard" },
+];
+
 function fillForm(recipe) {
   form.title = recipe?.title ?? "";
   form.description = recipe?.description ?? "";
@@ -161,44 +195,32 @@ function handleSubmit() {
       <div class="grid gap-3 sm:grid-cols-2">
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.cuisine") }}</span>
-          <select
+          <USelect
             v-model="form.cuisine"
-            class="rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-amber-900 outline-none focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
-          >
-            <option value="Italian">{{ t("cuisine.Italian") }}</option>
-            <option value="Chinese">{{ t("cuisine.Chinese") }}</option>
-            <option value="Japanese">{{ t("cuisine.Japanese") }}</option>
-            <option value="Mexican">{{ t("cuisine.Mexican") }}</option>
-            <option value="Indian">{{ t("cuisine.Indian") }}</option>
-            <option value="American">{{ t("cuisine.American") }}</option>
-            <option value="International">{{ t("cuisine.International") }}</option>
-          </select>
+            :items="cuisineItems.map((item) => ({ label: item.label(), value: item.value }))"
+            value-key="value"
+            class="w-full"
+          />
         </label>
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.mealType") }}</span>
-          <select
+          <USelect
             v-model="form.mealType"
-            class="rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-amber-900 outline-none focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
-          >
-            <option value="Breakfast">{{ t("mealType.Breakfast") }}</option>
-            <option value="Lunch">{{ t("mealType.Lunch") }}</option>
-            <option value="Dinner">{{ t("mealType.Dinner") }}</option>
-            <option value="Snack">{{ t("mealType.Snack") }}</option>
-            <option value="Dessert">{{ t("mealType.Dessert") }}</option>
-          </select>
+            :items="mealTypeItems.map((item) => ({ label: item.label(), value: item.value }))"
+            value-key="value"
+            class="w-full"
+          />
         </label>
       </div>
       <div class="grid gap-3 sm:grid-cols-3">
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.difficulty") }}</span>
-          <select
+          <USelect
             v-model="form.difficulty"
-            class="rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-amber-900 outline-none focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
-          >
-            <option value="Easy">{{ t("difficulty.Easy") }}</option>
-            <option value="Medium">{{ t("difficulty.Medium") }}</option>
-            <option value="Hard">{{ t("difficulty.Hard") }}</option>
-          </select>
+            :items="difficultyItems.map((item) => ({ label: item.label(), value: item.value }))"
+            value-key="value"
+            class="w-full"
+          />
         </label>
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.cookTime") }}</span>
@@ -240,10 +262,9 @@ function handleSubmit() {
               type="text"
             />
             <div class="flex gap-2 sm:contents">
-              <UButton
+              <button
                 class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
                 type="button"
-                variant="ghost"
                 @click="insertIngredientAfter(index)"
                 aria-label="Add ingredient row"
               >
@@ -256,12 +277,11 @@ function handleSubmit() {
                 >
                   <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
                 </svg>
-              </UButton>
-              <UButton
+              </button>
+              <button
                 v-if="index > 0"
                 class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
                 type="button"
-                variant="ghost"
                 @click="removeIngredient(index)"
                 aria-label="Remove ingredient row"
               >
@@ -280,7 +300,7 @@ function handleSubmit() {
                     stroke-linejoin="round"
                   />
                 </svg>
-              </UButton>
+              </button>
             </div>
           </div>
         </div>
@@ -302,10 +322,9 @@ function handleSubmit() {
               type="text"
             />
             <div class="flex gap-2 sm:contents">
-              <UButton
+              <button
                 class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
                 type="button"
-                variant="ghost"
                 @click="insertStepAfter(index)"
                 aria-label="Add step row"
               >
@@ -318,12 +337,11 @@ function handleSubmit() {
                 >
                   <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
                 </svg>
-              </UButton>
-              <UButton
+              </button>
+              <button
                 v-if="index > 0"
                 class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
                 type="button"
-                variant="ghost"
                 @click="removeStep(index)"
                 aria-label="Remove step row"
               >
@@ -342,7 +360,7 @@ function handleSubmit() {
                     stroke-linejoin="round"
                   />
                 </svg>
-              </UButton>
+              </button>
             </div>
           </div>
         </div>
@@ -358,21 +376,19 @@ function handleSubmit() {
       </label>
       <p v-if="error" class="text-sm font-medium text-rose-300">{{ error }}</p>
       <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <UButton
+        <button
           class="inline-flex w-full items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400 sm:w-auto"
           type="submit"
-          variant="ghost"
         >
           {{ props.submitLabel || (props.initialRecipe ? t("addRecipeForm.saveRecipe") : t("addRecipeForm.addRecipe")) }}
-        </UButton>
-        <UButton
+        </button>
+        <button
           class="inline-flex w-full items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-200 sm:w-auto dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
           type="button"
-          variant="ghost"
           @click="emit('cancel')"
         >
           {{ t("addRecipeForm.cancel") }}
-        </UButton>
+        </button>
       </div>
     </form>
   </section>

@@ -43,27 +43,54 @@ function formatMealType(option) {
   if (option === "All") return t("filters.all");
   return t(`mealType.${option}`, option);
 }
+
+function getMealTypeEmoji(option) {
+  const mealType = String(option ?? "").toLowerCase();
+  if (mealType === "breakfast") return "🍳";
+  if (mealType === "lunch") return "🥪";
+  if (mealType === "dinner") return "🍽️";
+  if (mealType === "snack") return "🍿";
+  if (mealType === "dessert") return "🍰";
+  return "";
+}
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="fixed inset-0 z-50 bg-black/70 p-4 md:flex md:items-center md:justify-center"
-    @click.self="emit('close')"
+  <Transition
+    enter-active-class="transition-opacity duration-250 ease-out"
+    enter-from-class="opacity-0"
+    enter-to-class="opacity-100"
+    leave-active-class="transition-opacity duration-200 ease-in"
+    leave-from-class="opacity-100"
+    leave-to-class="opacity-0"
   >
-    <section
-      class="fixed bottom-0 left-0 right-0 rounded-t-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-xl dark:bg-zinc-900 md:static md:w-full md:max-w-xl md:rounded-2xl"
+    <div
+      v-show="isOpen"
+      class="fixed inset-0 z-50 bg-black/70 p-4 md:flex md:items-center md:justify-center"
+      @click.self="emit('close')"
     >
+      <Transition
+        enter-active-class="transition-transform duration-320 ease-out md:transition-opacity md:duration-200"
+        enter-from-class="translate-y-full md:translate-y-0 md:opacity-0"
+        enter-to-class="translate-y-0 md:opacity-100"
+        leave-active-class="transition-transform duration-260 ease-in md:transition-opacity md:duration-180"
+        leave-from-class="translate-y-0 md:opacity-100"
+        leave-to-class="translate-y-full md:translate-y-0 md:opacity-0"
+      >
+        <section
+          v-show="isOpen"
+          class="fixed bottom-0 left-0 right-0 rounded-t-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-xl dark:bg-zinc-900 md:static md:w-full md:max-w-xl md:rounded-2xl"
+        >
+          <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-amber-500/35 md:hidden" aria-hidden="true" />
       <div class="mb-4 flex items-center justify-between">
         <h2 class="text-lg font-semibold text-amber-900 dark:text-amber-50">{{ t("filters.title") }}</h2>
-        <UButton
+        <button
           class="inline-flex items-center justify-center cursor-pointer rounded-md px-2 py-1 text-sm text-amber-700 hover:bg-amber-200 hover:text-amber-900 dark:text-amber-300 dark:hover:bg-zinc-800 dark:hover:text-amber-100"
           type="button"
-          variant="ghost"
           @click="emit('close')"
         >
           {{ t("filters.close") }}
-        </UButton>
+        </button>
       </div>
 
       <div class="grid gap-4">
@@ -72,7 +99,7 @@ function formatMealType(option) {
             {{ t("filters.cuisine") }}
           </p>
           <div class="flex flex-wrap gap-2">
-            <UButton
+            <button
               v-for="option in cuisineOptions"
               :key="option"
               class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
@@ -82,11 +109,10 @@ function formatMealType(option) {
                   : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
               "
               type="button"
-              variant="ghost"
               @click="emit('update:selected-cuisine', option)"
             >
               {{ formatCuisine(option) }}
-            </UButton>
+            </button>
           </div>
         </div>
         <div class="grid gap-2">
@@ -94,7 +120,7 @@ function formatMealType(option) {
             {{ t("filters.mealType") }}
           </p>
           <div class="flex flex-wrap gap-2">
-            <UButton
+            <button
               v-for="option in mealTypeOptions"
               :key="option"
               class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
@@ -104,33 +130,33 @@ function formatMealType(option) {
                   : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
               "
               type="button"
-              variant="ghost"
               @click="emit('update:selected-meal-type', option)"
             >
+              <span v-if="getMealTypeEmoji(option)" class="mr-1.5" aria-hidden="true">{{ getMealTypeEmoji(option) }}</span>
               {{ formatMealType(option) }}
-            </UButton>
+            </button>
           </div>
         </div>
       </div>
 
       <div class="mt-5 flex flex-wrap justify-end gap-2">
-        <UButton
+        <button
           class="inline-flex items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
           type="button"
-          variant="ghost"
           @click="emit('clear')"
         >
           {{ t("filters.clear") }}
-        </UButton>
-        <UButton
+        </button>
+        <button
           class="inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
           type="button"
-          variant="ghost"
           @click="emit('apply')"
         >
           {{ t("filters.apply") }}
-        </UButton>
+        </button>
       </div>
-    </section>
-  </div>
+        </section>
+      </Transition>
+    </div>
+  </Transition>
 </template>

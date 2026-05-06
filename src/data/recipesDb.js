@@ -1,10 +1,11 @@
 import { getSupabaseClient } from "./supabaseClient";
 import { seedRecipes } from "./seedRecipes";
-const SPOONACULAR_API_KEY = import.meta.env.VITE_SPOONACULAR_API_KEY;
-let spoonacularDisabledForSession = false;
+const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
+let unsplashDisabledForSession = false;
 
 function getBestSpoonacularImageUrl(url) {
   if (!url || typeof url !== "string") return "";
+  if (url.includes("images.unsplash.com")) return url;
   // Spoonacular commonly returns low-res "312x231" thumbnails from complexSearch.
   // Prefer larger known variants from Spoonacular/CDN.
   return url
@@ -14,6 +15,28 @@ function getBestSpoonacularImageUrl(url) {
     .replace("-90x90.", "-636x393.")
     .replace("-240x150.", "-636x393.")
     .replace("-480x360.", "-636x393.");
+}
+
+function toUnsplashSizedUrl(url, options = {}) {
+  if (!url || typeof url !== "string" || !url.includes("images.unsplash.com")) return url || "";
+  try {
+    const parsed = new URL(url);
+    if (options.w) parsed.searchParams.set("w", String(options.w));
+    if (options.q) parsed.searchParams.set("q", String(options.q));
+    if (options.fit) parsed.searchParams.set("fit", options.fit);
+    if (options.fm) parsed.searchParams.set("fm", options.fm);
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+export function getRecipeImageThumbnailUrl(url) {
+  return toUnsplashSizedUrl(url, { w: 220, q: 60, fit: "crop", fm: "jpg" });
+}
+
+export function getRecipeImageDetailUrl(url) {
+  return toUnsplashSizedUrl(url, { w: 1800, q: 85, fit: "max", fm: "jpg" });
 }
 
 async function fetchRecipeImageFromMealDb(recipe) {
@@ -43,29 +66,32 @@ function getUnsplashFallbackUrl(recipe) {
   return `https://source.unsplash.com/1600x900/?${encodeURIComponent(parts)}`;
 }
 
-function isMissingImageColumnError(error) {
-  if (!error) return false;
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === "object" && "message" in error
-        ? String(error.message)
-        : String(error);
-  return (
-    message.includes("column recipes.image_url does not exist") ||
-    message.includes("Could not find the 'image_url' column of 'recipes'")
-  );
+function withUnsplashTracking(url) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set("utm_source", "let-me-cook");
+    parsed.searchParams.set("utm_medium", "referral");
+    return parsed.toString();
+  } catch {
+    return url;
+  }
 }
 
-function isMissingEditorNameColumnError(error) {
-  if (!error) return false;
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === "object" && "message" in error
-        ? String(error.message)
-        : String(error);
-  return message.includes("Could not find the 'editor_name' column of 'recipes'");
+function getHighQualityUnsplashUrl(photo) {
+  if (!photo?.urls) return "";
+  const candidate = photo.urls.raw || photo.urls.full || photo.urls.regular || photo.urls.small || "";
+  if (!candidate) return "";
+  try {
+    const parsed = new URL(candidate);
+    parsed.searchParams.set("fm", "jpg");
+    parsed.searchParams.set("q", "85");
+    parsed.searchParams.set("fit", "max");
+    parsed.searchParams.set("w", "1800");
+    return parsed.toString();
+  } catch {
+    return candidate;
+  }
 }
 
 function toReadableError(error) {
@@ -127,20 +153,7 @@ export async function seedRecipesIfEmpty() {
   );
 
   const { error } = await supabase.from("recipes").insert(payload);
-  if (error) {
-    const shouldDropImage = isMissingImageColumnError(error);
-    const shouldDropEditorName = isMissingEditorNameColumnError(error);
-    if (!shouldDropImage && !shouldDropEditorName) throw toReadableError(error);
-
-    const fallbackPayload = payload.map((row) => {
-      const nextRow = { ...row };
-      if (shouldDropImage) delete nextRow.image_url;
-      if (shouldDropEditorName) delete nextRow.editor_name;
-      return nextRow;
-    });
-    const { error: retryError } = await supabase.from("recipes").insert(fallbackPayload);
-    if (retryError) throw toReadableError(retryError);
-  }
+  if (error) throw toReadableError(error);
 }
 
 export async function listRecipes() {
@@ -167,21 +180,8 @@ export async function createRecipe(recipe) {
     image_url: recipe.imageUrl ?? null,
     editor_name: recipe.editorName ?? null,
   };
+  const { data, error } = await supabase.from("recipes").insert(insertPayload).select("*").single();
 
-  let { data, error } = await supabase
-    .from("recipes")
-    .insert(insertPayload)
-    .select("*")
-    .single();
-
-  if (error && (isMissingImageColumnError(error) || isMissingEditorNameColumnError(error))) {
-    const fallbackPayload = { ...insertPayload };
-    if (isMissingImageColumnError(error)) delete fallbackPayload.image_url;
-    if (isMissingEditorNameColumnError(error)) delete fallbackPayload.editor_name;
-    const retry = await supabase.from("recipes").insert(fallbackPayload).select("*").single();
-    data = retry.data;
-    error = retry.error;
-  }
   if (error) throw toReadableError(error);
   return normalizeRecipe(data);
 }
@@ -205,26 +205,13 @@ export async function updateRecipe(recipeId, recipe) {
   if ("userId" in recipe) {
     updatePayload.user_id = recipe.userId ?? null;
   }
-
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from("recipes")
     .update(updatePayload)
     .eq("id", recipeId)
     .select("*")
     .single();
-  if (error && (isMissingImageColumnError(error) || isMissingEditorNameColumnError(error))) {
-    const fallbackPayload = { ...updatePayload };
-    if (isMissingImageColumnError(error)) delete fallbackPayload.image_url;
-    if (isMissingEditorNameColumnError(error)) delete fallbackPayload.editor_name;
-    const retry = await supabase
-      .from("recipes")
-      .update(fallbackPayload)
-      .eq("id", recipeId)
-      .select("*")
-      .single();
-    data = retry.data;
-    error = retry.error;
-  }
+
   if (error) throw toReadableError(error);
   return normalizeRecipe(data);
 }
@@ -250,7 +237,7 @@ export async function uploadRecipeImage(file, userId) {
 }
 
 export async function fetchRecipeImageFromSpoonacular(recipe) {
-  if (!SPOONACULAR_API_KEY || spoonacularDisabledForSession) {
+  if (!UNSPLASH_ACCESS_KEY || unsplashDisabledForSession) {
     const mealDbImage = await fetchRecipeImageFromMealDb(recipe);
     return mealDbImage || getUnsplashFallbackUrl(recipe);
   }
@@ -265,56 +252,45 @@ export async function fetchRecipeImageFromSpoonacular(recipe) {
   for (const query of queries) {
     const params = new URLSearchParams({
       query,
-      number: "1",
-      sort: "popularity",
-      sortDirection: "desc",
-      apiKey: SPOONACULAR_API_KEY,
+      per_page: "1",
+      orientation: "landscape",
+      content_filter: "high",
     });
 
     try {
-      const response = await fetch(`https://api.spoonacular.com/recipes/complexSearch?${params.toString()}`);
+      const response = await fetch(`https://api.unsplash.com/search/photos?${params.toString()}`, {
+        headers: {
+          Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+          "Accept-Version": "v1",
+        },
+      });
       if (!response.ok) {
-        const errorText = await response.text();
-        if (response.status === 402 || response.status === 401) {
-          spoonacularDisabledForSession = true;
+        if ([401, 403, 429].includes(response.status)) {
+          unsplashDisabledForSession = true;
         }
-        console.warn("Spoonacular image fetch failed", {
+        console.warn("Unsplash image fetch failed", {
           status: response.status,
           query,
-          response: errorText,
         });
         continue;
       }
       const data = await response.json();
       const match = data?.results?.[0];
-      const recipeId = match?.id;
-      if (!recipeId) continue;
-
-      // Follow up with recipe information endpoint to retrieve larger canonical image.
-      const infoParams = new URLSearchParams({ apiKey: SPOONACULAR_API_KEY });
-      const infoResponse = await fetch(
-        `https://api.spoonacular.com/recipes/${recipeId}/information?${infoParams.toString()}`,
-      );
-      if (infoResponse.ok) {
-        const infoData = await infoResponse.json();
-        const highResUrl = getBestSpoonacularImageUrl(infoData?.image ?? "");
-        if (highResUrl) return highResUrl;
-      }
-
-      const imageUrl = getBestSpoonacularImageUrl(match?.image ?? "");
-      if (imageUrl) return imageUrl;
+      const imageUrl = getBestSpoonacularImageUrl(getHighQualityUnsplashUrl(match));
+      if (!imageUrl) continue;
+      return withUnsplashTracking(imageUrl);
     } catch (error) {
-      console.warn("Spoonacular image fetch error", { query, error });
+      console.warn("Unsplash image fetch error", { query, error });
     }
   }
 
-  // No Spoonacular result (or blocked by quota/billing): fallback to free public sources.
+  // No Unsplash result (or blocked by quota/rate limits): fallback to free public sources.
   const mealDbImage = await fetchRecipeImageFromMealDb(recipe);
   return mealDbImage || getUnsplashFallbackUrl(recipe);
 }
 
 export async function backfillMissingRecipeImages(limit = 20) {
-  if (!SPOONACULAR_API_KEY) return 0;
+  if (!UNSPLASH_ACCESS_KEY) return 0;
 
   const supabase = getSupabaseClient();
   const { data, error } = await supabase.from("recipes").select("*").order("id", { ascending: false }).limit(limit);

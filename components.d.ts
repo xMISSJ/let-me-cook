@@ -12,7 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AddRecipeForm: typeof import('./src/components/AddRecipeForm.vue')['default']
-    AppTabs: typeof import('./src/components/AppTabs.vue')['default']
+    AppHeaderBar: typeof import('./src/components/AppHeaderBar.vue')['default']
     FilterModal: typeof import('./src/components/FilterModal.vue')['default']
     IngredientsCard: typeof import('./src/components/IngredientsCard.vue')['default']
     OverviewToolbar: typeof import('./src/components/OverviewToolbar.vue')['default']
@@ -26,5 +26,6 @@ declare module 'vue' {
     UApp: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/App.vue')['default']
     UButton: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Button.vue')['default']
     UInput: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Input.vue')['default']
+    USelect: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Select.vue')['default']
   }
 }
