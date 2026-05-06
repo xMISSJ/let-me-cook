@@ -108,21 +108,16 @@ function getMealTypeEmoji(recipe) {
         </button>
         <div class="flex items-center gap-2">
           <button
-            class="inline-flex items-center justify-center rounded-xl px-3 py-1.5 text-xs font-semibold backdrop-blur-sm lg:hidden"
-            :class="
-              isFavorite
-                ? 'bg-rose-500/85 text-white hover:bg-rose-500'
-                : 'bg-black/60 text-white hover:bg-black/70'
-            "
+            class="inline-flex items-center justify-center rounded-xl bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm hover:bg-black/65 lg:hidden"
             type="button"
             @click="emit('toggle-favorite')"
           >
-            <svg viewBox="0 0 512 512" class="mr-1.5 h-5 w-5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <svg viewBox="0 0 512 512" class="mr-1.5 h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path
                 d="M256 436a54.62 54.62 0 0 1-29.53-8.64c-25-16.07-73.08-49.05-113.75-89.32C62.81 288.58 37.5 242 37.5 199.56c0-29.49 8.72-56.51 25.22-78.13a115.2 115.2 0 0 1 137.89-35.75c21.18 9.14 40.07 24.55 55.39 45 15.32-20.5 34.21-35.91 55.39-45a115.2 115.2 0 0 1 137.89 35.75c16.5 21.62 25.22 48.64 25.22 78.13 0 42.44-25.31 89-75.22 138.44-40.67 40.27-88.73 73.25-113.75 89.32A54.62 54.62 0 0 1 256 436zM154.16 101.06a89.41 89.41 0 0 0-23.42 3.1 90.93 90.93 0 0 0-48.15 32.44c-13.14 17.22-20.09 39-20.09 63 0 35.52 22.81 76.12 67.81 120.68 39 38.66 85.47 70.5 109.67 86a29.72 29.72 0 0 0 32 0c24.2-15.54 70.63-47.38 109.67-86 45-44.56 67.81-85.16 67.81-120.68 0-24-6.95-45.74-20.09-63a90.93 90.93 0 0 0-48.15-32.44c-34.17-9.28-82.18.42-114.48 55.48a12.49 12.49 0 0 1-21.56 0c-25.38-43.34-60.54-58.58-91.02-58.58z"
                 :fill="isFavorite ? 'currentColor' : 'transparent'"
                 stroke="currentColor"
-                :stroke-width="isFavorite ? 20 : 26"
+                stroke-width="1.8"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               />
@@ -130,23 +125,18 @@ function getMealTypeEmoji(recipe) {
             {{ isFavorite ? "Favorited" : "Favorite" }}
           </button>
           <button
-            class="hidden h-9 w-9 items-center justify-center rounded-lg backdrop-blur-sm lg:inline-flex"
-            :class="
-              isFavorite
-                ? 'bg-rose-500/85 text-white hover:bg-rose-500'
-                : 'bg-black/65 text-white hover:bg-black/75'
-            "
+            class="hidden h-8 w-8 items-center justify-center rounded-lg bg-black/55 text-white backdrop-blur-sm hover:bg-black/65 lg:inline-flex"
             type="button"
             :aria-label="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
             :title="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
             @click="emit('toggle-favorite')"
           >
-            <svg viewBox="0 0 512 512" class="h-5 w-5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <svg viewBox="0 0 512 512" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path
                 d="M256 436a54.62 54.62 0 0 1-29.53-8.64c-25-16.07-73.08-49.05-113.75-89.32C62.81 288.58 37.5 242 37.5 199.56c0-29.49 8.72-56.51 25.22-78.13a115.2 115.2 0 0 1 137.89-35.75c21.18 9.14 40.07 24.55 55.39 45 15.32-20.5 34.21-35.91 55.39-45a115.2 115.2 0 0 1 137.89 35.75c16.5 21.62 25.22 48.64 25.22 78.13 0 42.44-25.31 89-75.22 138.44-40.67 40.27-88.73 73.25-113.75 89.32A54.62 54.62 0 0 1 256 436zM154.16 101.06a89.41 89.41 0 0 0-23.42 3.1 90.93 90.93 0 0 0-48.15 32.44c-13.14 17.22-20.09 39-20.09 63 0 35.52 22.81 76.12 67.81 120.68 39 38.66 85.47 70.5 109.67 86a29.72 29.72 0 0 0 32 0c24.2-15.54 70.63-47.38 109.67-86 45-44.56 67.81-85.16 67.81-120.68 0-24-6.95-45.74-20.09-63a90.93 90.93 0 0 0-48.15-32.44c-34.17-9.28-82.18.42-114.48 55.48a12.49 12.49 0 0 1-21.56 0c-25.38-43.34-60.54-58.58-91.02-58.58z"
                 :fill="isFavorite ? 'currentColor' : 'transparent'"
                 stroke="currentColor"
-                :stroke-width="isFavorite ? 20 : 26"
+                stroke-width="1.8"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               />
