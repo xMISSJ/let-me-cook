@@ -10,8 +10,10 @@ import RecipeDetailCard from "./components/RecipeDetailCard.vue";
 import RecipeHero from "./components/RecipeHero.vue";
 import RecipeList from "./components/RecipeList.vue";
 import {
+  backfillMissingRecipeImages,
   createRecipe,
   deleteRecipe,
+  fetchRecipeImageFromSpoonacular,
   listRecipes,
   seedRecipesIfEmpty,
   updateRecipe,
@@ -88,6 +90,10 @@ async function refreshRecipes() {
   try {
     await seedRecipesIfEmpty();
     recipes.value = await listRecipes();
+    const updatedCount = await backfillMissingRecipeImages(12);
+    if (updatedCount > 0) {
+      recipes.value = await listRecipes();
+    }
   } catch (error) {
     recipeLoadError.value = error instanceof Error ? error.message : String(error);
   } finally {
@@ -130,11 +136,11 @@ watch(
 function openRecipe(recipeId) {
   recentRecipeIds.value = [recipeId, ...recentRecipeIds.value.filter((id) => id !== recipeId)].slice(0, 3);
   localStorage.setItem("let-me-cook-recent-recipe-ids", JSON.stringify(recentRecipeIds.value));
-  router.push({ name: "recipe", params: { id: recipeId } });
+  router.push(`/recipe/${recipeId}`);
 }
 
 function goToOverview() {
-  router.push({ name: "home" });
+  router.push("/");
   activeTab.value = "overview";
 }
 
@@ -169,6 +175,8 @@ async function addRecipe(recipe) {
   let imageUrl = "";
   if (recipe.imageFile) {
     imageUrl = await uploadRecipeImage(recipe.imageFile, session.value?.user?.id);
+  } else {
+    imageUrl = await fetchRecipeImageFromSpoonacular(recipe);
   }
   const created = await createRecipe({
     thumbnail: "🍽️",
@@ -198,6 +206,8 @@ async function saveEditedRecipe(recipe) {
   let imageUrl = editingRecipe.value.imageUrl ?? "";
   if (recipe.imageFile) {
     imageUrl = await uploadRecipeImage(recipe.imageFile, session.value?.user?.id);
+  } else if (!imageUrl) {
+    imageUrl = await fetchRecipeImageFromSpoonacular(recipe);
   }
   const updated = await updateRecipe(editingRecipe.value.id, {
     ...recipe,
@@ -217,7 +227,7 @@ async function removeSelectedRecipe() {
   recentRecipeIds.value = recentRecipeIds.value.filter((id) => id !== selectedRecipe.value.id);
   localStorage.setItem("let-me-cook-recent-recipe-ids", JSON.stringify(recentRecipeIds.value));
   activeTab.value = "overview";
-  router.push({ name: "home" });
+  router.push("/");
 }
 
 async function startEmailSignIn() {
@@ -251,6 +261,14 @@ function saveGuestName() {
 
 function applyFilters() {
   closeFilterModal();
+}
+
+function stopModalClipboardShortcuts(event) {
+  const isClipboardShortcut =
+    (event.ctrlKey || event.metaKey) && ["c", "x", "v", "a"].includes(String(event.key).toLowerCase());
+  if (isClipboardShortcut) {
+    event.stopPropagation();
+  }
 }
 
 function toggleTheme() {
@@ -333,8 +351,14 @@ function setLanguage(value) {
       </section>
 
       <template v-if="isRecipePage">
+        <section
+          v-if="isLoadingRecipes"
+          class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
+        >
+          <p class="text-sm text-amber-900/75 dark:text-amber-100/75">Loading recipe…</p>
+        </section>
         <RecipeDetailCard
-          v-if="selectedRecipe"
+          v-else-if="selectedRecipe"
           :recipe="selectedRecipe"
           :can-manage="canManageRecipes"
           @back="goToOverview"
@@ -407,10 +431,13 @@ function setLanguage(value) {
 
     <div
       v-if="isSettingsOpen"
-      class="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4"
+      class="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/80 p-4 sm:items-center"
       @click.self="isSettingsOpen = false"
+      @keydown.capture="stopModalClipboardShortcuts"
     >
-      <section class="w-full max-w-lg rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
+      <section
+        class="my-4 w-full max-w-lg rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900 sm:my-0"
+      >
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-lg font-semibold text-amber-900 dark:text-amber-50">Settings</h2>
           <button
@@ -452,10 +479,13 @@ function setLanguage(value) {
 
     <div
       v-if="isAuthScreenOpen"
-      class="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4"
+      class="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/80 p-4 sm:items-center"
       @click.self="isAuthScreenOpen = false"
+      @keydown.capture="stopModalClipboardShortcuts"
     >
-      <section class="w-full max-w-lg rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
+      <section
+        class="my-4 w-full max-w-lg rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900 sm:my-0"
+      >
         <h2 class="text-lg font-semibold text-amber-900 dark:text-amber-50">Profile</h2>
         <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           Sign in with email or continue with just your name. Name mode is optional.
@@ -511,20 +541,22 @@ function setLanguage(value) {
 
     <div
       v-if="isAddModalOpen"
-      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
+      class="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/70 p-4 sm:items-center"
       @click.self="closeAddRecipeModal"
+      @keydown.capture="stopModalClipboardShortcuts"
     >
-      <div class="w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+      <div class="my-4 w-full max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto sm:my-0">
         <AddRecipeForm @save-recipe="addRecipe" @cancel="closeAddRecipeModal" />
       </div>
     </div>
 
     <div
       v-if="isEditModalOpen && editingRecipe"
-      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
+      class="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/70 p-4 sm:items-center"
       @click.self="closeEditRecipeModal"
+      @keydown.capture="stopModalClipboardShortcuts"
     >
-      <div class="w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+      <div class="my-4 w-full max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto sm:my-0">
         <AddRecipeForm
           :initial-recipe="editingRecipe"
           submit-label="Save Recipe"

@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { fetchRecipeImageFromSpoonacular } from "../data/recipesDb";
 
 const props = defineProps({
   recipe: {
@@ -16,25 +17,31 @@ const props = defineProps({
 const emit = defineEmits(["back", "edit", "delete"]);
 const { t } = useI18n();
 const detailTab = ref("ingredients");
-const failedImageUrls = ref(new Set());
+const fetchedFallbackImageUrl = ref("");
+const hasImageLoadError = ref(false);
 
-const autoImageUrl = computed(() => {
-  const query = `${props.recipe.title || ""},${props.recipe.cuisine || ""},${props.recipe.mealType || ""},food`
-    .toLowerCase()
-    .replace(/\s+/g, ",");
-  return `https://loremflickr.com/1200/800/${encodeURIComponent(query)}?lock=${encodeURIComponent(String(props.recipe.id))}`;
-});
+const detailImageUrl = computed(() => props.recipe.imageUrl || fetchedFallbackImageUrl.value);
 
-const fallbackImageUrl = computed(() => {
-  if (props.recipe.imageUrl?.trim()) return props.recipe.imageUrl;
-  if (failedImageUrls.value.has(autoImageUrl.value)) return "";
-  return autoImageUrl.value;
-});
+watch(
+  () => props.recipe?.id,
+  async () => {
+    fetchedFallbackImageUrl.value = "";
+    hasImageLoadError.value = false;
+    if (props.recipe?.imageUrl) return;
+    fetchedFallbackImageUrl.value = await fetchRecipeImageFromSpoonacular(props.recipe);
+  },
+  { immediate: true },
+);
 
-function handleImageError() {
-  if (fallbackImageUrl.value) {
-    failedImageUrls.value.add(fallbackImageUrl.value);
-  }
+watch(
+  detailImageUrl,
+  () => {
+    hasImageLoadError.value = false;
+  },
+);
+
+function handleDetailImageError() {
+  hasImageLoadError.value = true;
 }
 </script>
 
@@ -42,11 +49,11 @@ function handleImageError() {
   <section class="overflow-hidden bg-white dark:bg-zinc-950">
     <div class="relative">
       <img
-        v-if="fallbackImageUrl"
-        :src="fallbackImageUrl"
+        v-if="detailImageUrl && !hasImageLoadError"
+        :src="detailImageUrl"
         class="h-64 w-full object-cover sm:h-80"
         alt=""
-        @error="handleImageError"
+        @error="handleDetailImageError"
       />
       <div
         v-else

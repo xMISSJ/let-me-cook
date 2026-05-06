@@ -129,7 +129,10 @@ function handleSubmit() {
   });
 
   error.value = "";
-  if (!props.initialRecipe) resetForm();
+  if (!props.initialRecipe) {
+    resetForm();
+    emit("cancel");
+  }
 }
 </script>
 
@@ -228,27 +231,40 @@ function handleSubmit() {
           <div v-for="(item, index) in form.ingredientsList" :key="`ingredient-${index}`" class="flex items-center gap-2">
             <input
               v-model="form.ingredientsList[index]"
-              class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
+              class="min-w-0 flex-1 rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
               :placeholder="`${t('details.ingredients')} ${index + 1}`"
               type="text"
             />
             <button
-              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+              class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
               type="button"
               @click="insertIngredientAfter(index)"
               aria-label="Add ingredient row"
             >
-              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                viewBox="0 0 24 24"
+                class="h-4 w-4 shrink-0"
+                preserveAspectRatio="xMidYMid meet"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
               </svg>
             </button>
             <button
-              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
+              v-if="index > 0"
+              class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
               type="button"
               @click="removeIngredient(index)"
               aria-label="Remove ingredient row"
             >
-              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                viewBox="0 0 24 24"
+                class="h-4 w-4 shrink-0"
+                preserveAspectRatio="xMidYMid meet"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path
                   d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
                   stroke="currentColor"
@@ -266,30 +282,43 @@ function handleSubmit() {
         <p class="text-sm font-semibold text-amber-900/90 dark:text-amber-100/90">{{ t("details.steps") }}</p>
         <div class="grid gap-2">
           <div v-for="(item, index) in form.stepsList" :key="`step-${index}`" class="flex items-start gap-2">
-            <span class="pt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">{{ index + 1 }}.</span>
+            <span class="shrink-0 pt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">{{ index + 1 }}.</span>
             <input
               v-model="form.stepsList[index]"
-              class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
+              class="min-w-0 flex-1 rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
               :placeholder="`Step ${index + 1}`"
               type="text"
             />
             <button
-              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+              class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
               type="button"
               @click="insertStepAfter(index)"
               aria-label="Add step row"
             >
-              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                viewBox="0 0 24 24"
+                class="h-4 w-4 shrink-0"
+                preserveAspectRatio="xMidYMid meet"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
               </svg>
             </button>
             <button
-              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
+              v-if="index > 0"
+              class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
               type="button"
               @click="removeStep(index)"
               aria-label="Remove step row"
             >
-              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                viewBox="0 0 24 24"
+                class="h-4 w-4 shrink-0"
+                preserveAspectRatio="xMidYMid meet"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path
                   d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
                   stroke="currentColor"
