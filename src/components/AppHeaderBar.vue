@@ -98,18 +98,18 @@ function navigateTo(menu) {
           aria-hidden="true"
         />
 
-        <button
-          v-for="item in menuItems"
-          :key="item.key"
-          class="relative z-10 inline-flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-xs font-semibold transition-colors duration-200 ease-out"
-          :class="
-            props.activeMenu === item.key
-              ? 'text-zinc-950'
-              : 'text-amber-900/85 lg:hover:bg-amber-200/70 dark:text-amber-100/90 dark:lg:hover:bg-zinc-700'
-          "
-          type="button"
-          @click="navigateTo(item.key)"
-        >
+          <button
+            v-for="item in menuItems"
+            :key="item.key"
+            class="relative z-10 inline-flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-xs font-semibold transition-colors duration-200 ease-out"
+            :class="
+              props.activeMenu === item.key
+                ? 'text-zinc-950'
+                : 'text-amber-900/85 lg:hover:bg-amber-200/70 dark:text-amber-100/90 dark:lg:hover:bg-zinc-700'
+            "
+            type="button"
+            @click="navigateTo(item.key)"
+          >
           <svg
             v-if="item.icon === 'grid'"
             class="h-4 w-4"
@@ -170,7 +170,7 @@ function navigateTo(menu) {
             <path d="M5 20c0-3.2 2.9-5.5 7-5.5s7 2.3 7 5.5" />
           </svg>
           <span class="leading-none">{{ item.label }}</span>
-        </button>
+          </button>
       </div>
     </nav>
   </div>

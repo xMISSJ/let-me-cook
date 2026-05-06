@@ -582,7 +582,7 @@ onBeforeUnmount(() => {
       :class="isRecipePage ? 'max-w-none' : 'grid max-w-7xl gap-4'"
     >
       <p v-if="!isRecipePage && actionError" class="text-xs text-rose-700 dark:text-rose-300">{{ actionError }}</p>
-      <div v-if="!isRecipePage" :class="isRecipePage ? '' : '-mx-4 md:-mx-6 xl:-mx-10'">
+      <div v-if="!isRecipePage">
         <AppHeaderBar
           :active-menu="currentMenu"
           :guest-name="guestName"
@@ -656,11 +656,12 @@ onBeforeUnmount(() => {
             :total-count="recipes.length"
             @edit-filters="openFilterModal"
           />
-          <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_18rem]">
-            <div class="grid gap-4">
+          <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
+            <div class="min-w-0 grid gap-4">
               <RecipeList
                 :recipes="filteredRecipes"
                 :favorite-recipe-ids="favoriteRecipeIds"
+                :is-loading="isLoadingRecipes"
                 :show-no-results="!isLoadingRecipes && recipes.length > 0 && filteredRecipes.length === 0 && hasActiveFilters"
                 :no-results-cuisine-label="selectedCuisineLabels.length === 0 ? t('filters.all') : selectedCuisineLabels.join(', ')"
                 :no-results-meal-type-label="selectedMealTypeLabels.length === 0 ? t('filters.all') : selectedMealTypeLabels.join(', ')"
@@ -671,10 +672,9 @@ onBeforeUnmount(() => {
                 @toggle-favorite="toggleFavoriteRecipe"
                 @clear-filters="clearFilters"
               />
-              <p v-if="isLoadingRecipes" class="text-sm text-amber-900/75 dark:text-amber-100/75">{{ t("status.loadingRecipes") }}</p>
             </div>
 
-            <aside class="hidden h-fit rounded-2xl border border-amber-500/30 bg-amber-50 p-4 shadow-sm md:grid md:gap-4 dark:bg-zinc-900">
+            <aside class="hidden min-w-0 h-fit rounded-2xl border border-amber-500/30 bg-amber-50 p-4 shadow-sm md:grid md:gap-4 dark:bg-zinc-900">
               <section class="grid gap-2">
                 <h3 class="text-sm font-semibold uppercase tracking-wide text-amber-900/75 dark:text-amber-100/75">{{ t("overview.panelTitle") }}</h3>
               </section>
