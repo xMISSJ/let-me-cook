@@ -17,6 +17,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  embedded: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(["select-recipe", "add-recipe", "edit-recipe", "delete-recipe", "toggle-favorite"]);
@@ -143,8 +147,14 @@ function onCardKeydown(event, recipeId) {
 </script>
 
 <template>
-  <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
-    <div class="flex items-start justify-between gap-3">
+  <section
+    :class="
+      props.embedded
+        ? 'px-0 py-0'
+        : 'rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900'
+    "
+  >
+    <div v-if="!props.embedded" class="flex items-start justify-between gap-3">
       <div>
         <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.myRecipes") }}</h2>
         <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">
@@ -182,7 +192,7 @@ function onCardKeydown(event, recipeId) {
       </button>
     </div>
 
-    <div class="mt-4 grid items-start gap-3 xl:grid-cols-2">
+    <div :class="props.embedded ? 'grid items-start gap-3 xl:grid-cols-2' : 'mt-4 grid items-start gap-3 xl:grid-cols-2'">
       <div
         v-for="recipe in recipes"
         :key="recipe.id"

@@ -113,9 +113,9 @@ const selectedRecipe = computed(() =>
 );
 const isRecipePage = computed(() => Boolean(route.params.id));
 const currentMenu = computed(() => {
+  if (route.name === "favorites") return "favorites";
   if (route.name === "planner") return "planner";
   if (route.name === "profile") return "profile";
-  if (route.query.menu === "favorites") return "favorites";
   return "overview";
 });
 const DEFAULT_CUISINES = [
@@ -294,7 +294,7 @@ function navigateToMenu(menu) {
     return;
   }
   if (menu === "favorites") {
-    router.push({ path: "/", query: { menu: "favorites" } });
+    router.push("/favorites");
     return;
   }
   router.push("/");
@@ -543,8 +543,8 @@ onBeforeUnmount(() => {
 <template>
   <div>
     <main
-      class="min-h-screen bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
-      :class="isRecipePage ? 'px-0 py-0' : 'px-4 py-8 pb-24 md:px-6 md:pb-8 xl:px-10'"
+      class="font-description-preview min-h-screen bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
+      :class="isRecipePage ? 'px-0 py-0 pb-24 md:pb-0' : 'px-4 py-8 pb-24 md:px-6 md:pb-8 xl:px-10'"
     >
     <div
       class="mx-auto w-full"
@@ -560,11 +560,9 @@ onBeforeUnmount(() => {
         <span>Using app as {{ guestName }}</span>
       </p>
       <p v-if="!isRecipePage && actionError" class="text-xs text-rose-700 dark:text-rose-300">{{ actionError }}</p>
-      <template v-if="!isRecipePage">
-        <div class="-mx-4 md:-mx-6 xl:-mx-10">
-          <AppHeaderBar :active-menu="currentMenu" @navigate="navigateToMenu" />
-        </div>
-      </template>
+      <div v-if="!isRecipePage" :class="isRecipePage ? '' : '-mx-4 md:-mx-6 xl:-mx-10'">
+        <AppHeaderBar :active-menu="currentMenu" @navigate="navigateToMenu" />
+      </div>
 
       <section
         v-if="recipeLoadError"
@@ -736,28 +734,29 @@ onBeforeUnmount(() => {
                 Browse all
               </button>
             </div>
-          </section>
+            <section
+              v-if="favoriteRecipes.length === 0"
+              class="mt-4 rounded-xl border border-amber-500/30 bg-white px-5 py-6 text-center dark:bg-zinc-800"
+            >
+              <h3 class="text-lg font-semibold text-amber-900 dark:text-amber-50">No favorites yet</h3>
+              <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
+                Tap the heart on any recipe to add it here.
+              </p>
+            </section>
 
-          <section
-            v-if="favoriteRecipes.length === 0"
-            class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
-          >
-            <h3 class="text-lg font-semibold text-amber-900 dark:text-amber-50">No favorites yet</h3>
-            <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
-              Tap the heart on any recipe to add it here.
-            </p>
+            <RecipeList
+              v-else
+              class="mt-4"
+              :recipes="favoriteRecipes"
+              :favorite-recipe-ids="favoriteRecipeIds"
+              :embedded="true"
+              @select-recipe="openRecipe"
+              @add-recipe="openAddRecipeModal"
+              @edit-recipe="openEditRecipeModalById"
+              @delete-recipe="removeRecipeById"
+              @toggle-favorite="toggleFavoriteRecipe"
+            />
           </section>
-
-          <RecipeList
-            v-else
-            :recipes="favoriteRecipes"
-            :favorite-recipe-ids="favoriteRecipeIds"
-            @select-recipe="openRecipe"
-            @add-recipe="openAddRecipeModal"
-            @edit-recipe="openEditRecipeModalById"
-            @delete-recipe="removeRecipeById"
-            @toggle-favorite="toggleFavoriteRecipe"
-          />
         </section>
 
         <section
@@ -899,7 +898,7 @@ onBeforeUnmount(() => {
 
     <div
       v-if="isAddModalOpen"
-      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/70 p-0 sm:items-center sm:p-4"
+      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-amber-100 p-0 dark:bg-zinc-950 sm:items-center sm:bg-black/70 sm:p-4"
       @click.self="closeAddRecipeModal"
       @keydown.capture="stopModalClipboardShortcuts"
     >

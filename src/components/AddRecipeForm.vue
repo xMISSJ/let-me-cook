@@ -195,32 +195,38 @@ function handleSubmit() {
       <div class="grid gap-3 sm:grid-cols-2">
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.cuisine") }}</span>
-          <USelect
+          <select
             v-model="form.cuisine"
-            :items="cuisineItems.map((item) => ({ label: item.label(), value: item.value }))"
-            value-key="value"
-            class="w-full"
-          />
+            class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none focus:border-amber-500 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
+          >
+            <option v-for="item in cuisineItems" :key="item.value" :value="item.value">
+              {{ item.label() }}
+            </option>
+          </select>
         </label>
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.mealType") }}</span>
-          <USelect
+          <select
             v-model="form.mealType"
-            :items="mealTypeItems.map((item) => ({ label: item.label(), value: item.value }))"
-            value-key="value"
-            class="w-full"
-          />
+            class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none focus:border-amber-500 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
+          >
+            <option v-for="item in mealTypeItems" :key="item.value" :value="item.value">
+              {{ item.label() }}
+            </option>
+          </select>
         </label>
       </div>
       <div class="grid gap-3 sm:grid-cols-3">
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.difficulty") }}</span>
-          <USelect
+          <select
             v-model="form.difficulty"
-            :items="difficultyItems.map((item) => ({ label: item.label(), value: item.value }))"
-            value-key="value"
-            class="w-full"
-          />
+            class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none focus:border-amber-500 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
+          >
+            <option v-for="item in difficultyItems" :key="item.value" :value="item.value">
+              {{ item.label() }}
+            </option>
+          </select>
         </label>
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.cookTime") }}</span>

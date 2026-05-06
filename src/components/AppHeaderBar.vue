@@ -32,18 +32,18 @@ function navigateTo(menu) {
 
 <template>
   <div>
-    <div class="md:hidden px-4 py-3">
-      <div class="grid gap-0.5">
-        <p class="text-sm font-extrabold tracking-wide text-amber-900 dark:text-amber-50">LET ME COOK</p>
-        <p class="text-[11px] text-amber-900/75 dark:text-amber-100/75">Your FYP, but edible.</p>
-      </div>
+    <div class="md:hidden px-4 py-3.5">
+      <button class="grid gap-0.5 text-left" type="button" @click="navigateTo('overview')">
+        <p class="font-brand-name text-[2.15rem] leading-[0.95] text-amber-900 dark:text-amber-50">Let Me Cook</p>
+        <p class="font-brand-rounded text-xs font-medium text-amber-900/75 dark:text-amber-100/75">Your FYP, but edible.</p>
+      </button>
     </div>
 
     <nav class="hidden items-center justify-between border-b border-amber-500/30 px-4 py-3 lg:px-5 md:flex">
-      <div class="grid gap-0.5">
-        <p class="text-base font-extrabold tracking-wide text-amber-900 dark:text-amber-50">LET ME COOK</p>
-        <p class="text-xs text-amber-900/75 dark:text-amber-100/75">Your FYP, but edible.</p>
-      </div>
+      <button class="grid gap-0.5 text-left" type="button" @click="navigateTo('overview')">
+        <p class="font-brand-name text-[2.65rem] leading-[0.95] text-amber-900 dark:text-amber-50">Let Me Cook</p>
+        <p class="font-brand-rounded text-sm font-medium text-amber-900/75 dark:text-amber-100/75">Your FYP, but edible.</p>
+      </button>
       <div class="flex items-center gap-1">
         <button
           v-for="item in menuItems"

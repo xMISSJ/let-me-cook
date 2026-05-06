@@ -1,5 +1,13 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import "@fontsource/atma/600.css";
+@import "@fontsource/atma/700.css";
+@import "@fontsource/gaegu/400.css";
+@import "@fontsource/gaegu/700.css";
+@import "@fontsource/outfit/500.css";
+@import "@fontsource/outfit/600.css";
+@import "@fontsource/outfit/700.css";
+@import "@fontsource/outfit/800.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -26,4 +34,28 @@ body {
 
 body {
   min-height: 100dvh;
+}
+
+.font-brand-name {
+  font-family: "Atma", "Outfit", ui-sans-serif, system-ui, sans-serif !important;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.font-brand-rounded {
+  font-family: "Gaegu", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.font-description-preview h1,
+.font-description-preview h2,
+.font-description-preview h3,
+.font-description-preview h4,
+.font-description-preview h5,
+.font-description-preview h6 {
+  font-family: "Atma", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.006em;
+  text-transform: uppercase;
 }
