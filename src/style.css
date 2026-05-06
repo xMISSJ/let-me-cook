@@ -1,3 +1,11 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --app-chrome-color: #fef3c7;
+}
+
+.dark {
+  --app-chrome-color: #09090b;
+}
