@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import AddRecipeForm from "./components/AddRecipeForm.vue";
@@ -19,6 +19,7 @@ import {
   updateRecipe,
   uploadRecipeImage,
 } from "./data/recipesDb";
+import { listAdminEmails, setUserRole } from "./data/userRolesDb";
 import {
   getCurrentSession,
   isSupabaseConfigured,
@@ -30,6 +31,9 @@ import {
 const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const appOwnerEmail = String(import.meta.env.VITE_APP_OWNER_EMAIL ?? "")
+  .trim()
+  .toLowerCase();
 const recipes = ref([]);
 const isLoadingRecipes = ref(true);
 const recipeLoadError = ref("");
@@ -37,6 +41,7 @@ const actionError = ref("");
 const authEmail = ref("");
 const authMessage = ref("");
 const session = ref(null);
+const adminEmails = ref([]);
 const theme = ref("dark");
 const guestName = ref("");
 const pendingGuestName = ref("");
@@ -48,6 +53,7 @@ const isFilterModalOpen = ref(false);
 const selectedCuisine = ref("All");
 const selectedMealType = ref("All");
 const recentRecipeIds = ref([]);
+const adminEmailInput = ref("");
 
 const selectedRecipe = computed(() =>
   recipes.value.find((recipe) => String(recipe.id) === String(route.params.id)),
@@ -75,11 +81,38 @@ const filteredRecipes = computed(() =>
     return cuisineMatch && mealTypeMatch;
   }),
 );
-const canManageRecipes = computed(() => Boolean(session.value?.user) || Boolean(guestName.value.trim()));
-const activeEditorName = computed(() => session.value?.user?.email || guestName.value.trim() || "Guest");
+const signedInEmail = computed(() => String(session.value?.user?.email ?? "").trim().toLowerCase());
+const signedInUserId = computed(() => session.value?.user?.id ?? null);
+const activeEditorName = computed(() => signedInEmail.value || guestName.value.trim());
+const isAdminOwner = computed(() => Boolean(signedInEmail.value) && signedInEmail.value === appOwnerEmail);
+const isAdmin = computed(
+  () => isAdminOwner.value || (Boolean(signedInEmail.value) && adminEmails.value.includes(signedInEmail.value)),
+);
+const canAssignAdminRoles = computed(() => Boolean(signedInEmail.value) && isAdmin.value);
 const editingRecipe = computed(() =>
   recipes.value.find((recipe) => recipe.id === editingRecipeId.value) ?? null,
 );
+const canManageSelectedRecipe = computed(() => canManageRecipe(selectedRecipe.value));
+
+function canManageRecipe(recipe) {
+  if (!recipe) return false;
+  if (isAdmin.value) return true;
+  if (signedInUserId.value && recipe.userId && String(recipe.userId) === String(signedInUserId.value)) return true;
+  const ownerIdentity = String(recipe.editorName ?? "")
+    .trim()
+    .toLowerCase();
+  if (!ownerIdentity) return false;
+  return Boolean(activeEditorName.value) && ownerIdentity === String(activeEditorName.value).trim().toLowerCase();
+}
+
+async function refreshAdminRoles() {
+  try {
+    adminEmails.value = await listAdminEmails();
+  } catch (error) {
+    console.warn("Unable to load admin roles", error);
+    actionError.value = error instanceof Error ? error.message : String(error);
+  }
+}
 
 async function refreshRecipes() {
   isLoadingRecipes.value = true;
@@ -136,6 +169,11 @@ onMounted(() => {
   }
 
   void refreshRecipes();
+  void refreshAdminRoles();
+});
+
+watch(signedInEmail, () => {
+  void refreshAdminRoles();
 });
 
 watch(
@@ -201,6 +239,7 @@ async function addRecipe(recipe) {
   const created = await createRecipe({
     thumbnail: "🍽️",
     ...recipe,
+    userId: signedInUserId.value,
     imageUrl,
     editorName: activeEditorName.value,
   });
@@ -210,7 +249,10 @@ async function addRecipe(recipe) {
 }
 
 function openEditRecipeModal() {
-  if (!selectedRecipe.value || !canManageRecipes.value) return;
+  if (!selectedRecipe.value || !canManageSelectedRecipe.value) {
+    actionError.value = "Only the recipe owner or app admin can edit this recipe.";
+    return;
+  }
   editingRecipeId.value = selectedRecipe.value.id;
   isEditModalOpen.value = true;
 }
@@ -232,14 +274,16 @@ async function saveEditedRecipe(recipe) {
   const updated = await updateRecipe(editingRecipe.value.id, {
     ...recipe,
     imageUrl,
-    editorName: activeEditorName.value,
   });
   recipes.value = recipes.value.map((item) => (item.id === updated.id ? updated : item));
   closeEditRecipeModal();
 }
 
 async function removeSelectedRecipe() {
-  if (!selectedRecipe.value || !canManageRecipes.value) return;
+  if (!selectedRecipe.value || !canManageSelectedRecipe.value) {
+    actionError.value = "Only the recipe owner or app admin can delete this recipe.";
+    return;
+  }
   const shouldDelete = window.confirm("Delete this recipe?");
   if (!shouldDelete) return;
   await deleteRecipe(selectedRecipe.value.id);
@@ -265,6 +309,45 @@ async function handleSignOut() {
   authMessage.value = "";
 }
 
+async function assignAdminRole() {
+  if (!canAssignAdminRoles.value) {
+    actionError.value = "Only admins can assign roles.";
+    return;
+  }
+  const email = adminEmailInput.value.trim().toLowerCase();
+  if (!email) return;
+  actionError.value = "";
+  await setUserRole({
+    email,
+    role: "admin",
+    assignedBy: signedInEmail.value,
+  });
+  adminEmailInput.value = "";
+  await refreshAdminRoles();
+  authMessage.value = `${email} is now an admin.`;
+}
+
+async function removeAdminRole(email) {
+  if (!canAssignAdminRoles.value) {
+    actionError.value = "Only admins can assign roles.";
+    return;
+  }
+  const normalized = String(email ?? "").trim().toLowerCase();
+  if (!normalized || normalized === appOwnerEmail) return;
+  if (normalized === signedInEmail.value) {
+    actionError.value = "You cannot remove your own admin role.";
+    return;
+  }
+  actionError.value = "";
+  await setUserRole({
+    email: normalized,
+    role: "member",
+    assignedBy: signedInEmail.value,
+  });
+  await refreshAdminRoles();
+  authMessage.value = `${normalized} is no longer an admin.`;
+}
+
 function saveGuestName() {
   const normalized = pendingGuestName.value.trim();
   guestName.value = normalized;
@@ -279,6 +362,17 @@ function saveGuestName() {
 
 function applyFilters() {
   closeFilterModal();
+}
+
+function syncBodyScrollLock() {
+  const hasOpenModal = isAddModalOpen.value || isEditModalOpen.value || isFilterModalOpen.value;
+  if (hasOpenModal) {
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+  }
 }
 
 function stopModalClipboardShortcuts(event) {
@@ -312,13 +406,23 @@ function updateBrowserThemeColor() {
   }
   themeColorMeta.setAttribute("content", color);
 }
+
+watch([isAddModalOpen, isEditModalOpen, isFilterModalOpen], () => {
+  syncBodyScrollLock();
+});
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = "";
+  document.documentElement.style.overflow = "";
+});
 </script>
 
 <template>
-  <main
-    class="min-h-screen bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
-    :class="isRecipePage ? 'px-0 py-0' : 'px-4 py-8 pb-24 md:pb-8'"
-  >
+  <UApp>
+    <main
+      class="min-h-screen bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
+      :class="isRecipePage ? 'px-0 py-0' : 'px-4 py-8 pb-24 md:pb-8'"
+    >
     <div class="mx-auto grid w-full gap-4" :class="isRecipePage ? 'max-w-none' : 'max-w-3xl'">
       <p v-if="!isRecipePage && session?.user" class="text-xs text-emerald-700 dark:text-emerald-300">Signed in as {{ session.user.email }}</p>
       <p v-else-if="!isRecipePage && guestName" class="text-xs text-emerald-700 dark:text-emerald-300">Using app as {{ guestName }}</p>
@@ -326,8 +430,8 @@ function updateBrowserThemeColor() {
       <p v-if="!isRecipePage && actionError" class="text-xs text-rose-700 dark:text-rose-300">{{ actionError }}</p>
       <template v-if="!isRecipePage">
         <RecipeHero :is-detail-view="false" />
-        <AppTabs :active-menu="currentMenu" @navigate="navigateToMenu" />
       </template>
+      <AppTabs :active-menu="currentMenu" @navigate="navigateToMenu" />
 
       <section
         v-if="recipeLoadError"
@@ -335,13 +439,14 @@ function updateBrowserThemeColor() {
       >
         <p class="text-sm font-semibold">Failed to load recipes.</p>
         <p class="mt-1 break-words text-sm opacity-90">{{ recipeLoadError }}</p>
-        <button
+        <UButton
           class="mt-3 inline-flex items-center justify-center cursor-pointer rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-rose-400"
           type="button"
+          variant="ghost"
           @click="refreshRecipes"
         >
           Retry
-        </button>
+        </UButton>
       </section>
 
       <template v-if="isRecipePage">
@@ -354,7 +459,7 @@ function updateBrowserThemeColor() {
         <RecipeDetailCard
           v-else-if="selectedRecipe"
           :recipe="selectedRecipe"
-          :can-manage="canManageRecipes"
+          :can-manage="canManageSelectedRecipe"
           @back="goToOverview"
           @edit="openEditRecipeModal"
           @delete="removeSelectedRecipe"
@@ -367,13 +472,14 @@ function updateBrowserThemeColor() {
           <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
             {{ t("details.noneText") }}
           </p>
-          <button
+          <UButton
             class="mt-4 inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
             type="button"
+            variant="ghost"
             @click="goToOverview"
           >
             {{ t("details.goToOverview") }}
-          </button>
+          </UButton>
         </section>
       </template>
       <template v-else-if="currentMenu === 'overview'">
@@ -408,50 +514,96 @@ function updateBrowserThemeColor() {
           <div class="mt-4 grid gap-2">
             <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
               <span>Email sign-in</span>
-              <input
+              <UInput
                 v-model="authEmail"
                 class="rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
                 placeholder="family@email.com"
                 type="email"
               />
             </label>
-            <button
+            <UButton
               class="inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
               type="button"
+              variant="ghost"
               @click="startEmailSignIn"
             >
               Send magic link
-            </button>
-            <button
+            </UButton>
+            <UButton
               v-if="session?.user"
               class="inline-flex items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
               type="button"
+              variant="ghost"
               @click="handleSignOut"
             >
               Sign out
-            </button>
+            </UButton>
           </div>
 
           <div class="mt-4 grid gap-2">
             <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
               <span>Use with your name (optional)</span>
-              <input
+              <UInput
                 v-model="pendingGuestName"
                 class="rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
                 placeholder="Jenny"
                 type="text"
               />
             </label>
-            <button
+            <UButton
               class="inline-flex items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
               type="button"
+              variant="ghost"
               @click="saveGuestName"
             >
               Save name
-            </button>
+            </UButton>
           </div>
 
           <div class="mt-6 border-t border-amber-500/30 pt-4 dark:border-amber-300/20">
+            <div class="mb-6 grid gap-3">
+              <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">Admin Roles</h3>
+              <p class="text-sm text-amber-900/85 dark:text-amber-100/85">
+                Admins can manage recipe ownership permissions and promote other admins.
+              </p>
+              <p class="text-xs text-amber-900/75 dark:text-amber-100/75">
+                Current admins: {{ [appOwnerEmail, ...adminEmails].filter(Boolean).join(", ") || "none" }}
+              </p>
+              <div v-if="canAssignAdminRoles" class="grid gap-2 sm:grid-cols-[1fr_auto]">
+                <UInput
+                  v-model="adminEmailInput"
+                  class="rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
+                  placeholder="new-admin@email.com"
+                  type="email"
+                />
+                <UButton
+                  class="inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
+                  type="button"
+                  variant="ghost"
+                  @click="assignAdminRole"
+                >
+                  Make admin
+                </UButton>
+              </div>
+              <div v-if="canAssignAdminRoles && adminEmails.length" class="grid gap-2">
+                <div
+                  v-for="email in adminEmails"
+                  :key="email"
+                  class="flex items-center justify-between gap-2 rounded-lg border border-amber-500/30 bg-white px-3 py-2 dark:bg-zinc-800"
+                >
+                  <span class="text-sm text-amber-900 dark:text-amber-100">{{ email }}</span>
+                  <UButton
+                    v-if="email !== appOwnerEmail && email !== signedInEmail"
+                    class="inline-flex items-center justify-center cursor-pointer rounded-lg border border-rose-500/40 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
+                    type="button"
+                    variant="ghost"
+                    @click="removeAdminRole(email)"
+                  >
+                    Remove
+                  </UButton>
+                </div>
+              </div>
+            </div>
             <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">Settings</h3>
             <div class="mt-4 grid gap-2">
               <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
@@ -507,22 +659,22 @@ function updateBrowserThemeColor() {
 
     <div
       v-if="isAddModalOpen"
-      class="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/70 p-4 sm:items-center"
+      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/70 p-0 sm:items-center sm:p-4"
       @click.self="closeAddRecipeModal"
       @keydown.capture="stopModalClipboardShortcuts"
     >
-      <div class="my-4 w-full max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto sm:my-0">
+      <div class="h-dvh w-full overflow-y-auto sm:h-auto sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl">
         <AddRecipeForm @save-recipe="addRecipe" @cancel="closeAddRecipeModal" />
       </div>
     </div>
 
     <div
       v-if="isEditModalOpen && editingRecipe"
-      class="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/70 p-4 sm:items-center"
+      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/70 p-0 sm:items-center sm:p-4"
       @click.self="closeEditRecipeModal"
       @keydown.capture="stopModalClipboardShortcuts"
     >
-      <div class="my-4 w-full max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto sm:my-0">
+      <div class="h-dvh w-full overflow-y-auto sm:h-auto sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl">
         <AddRecipeForm
           :initial-recipe="editingRecipe"
           submit-label="Save Recipe"
@@ -531,5 +683,6 @@ function updateBrowserThemeColor() {
         />
       </div>
     </div>
-  </main>
+    </main>
+  </UApp>
 </template>

@@ -30,10 +30,12 @@ export async function getCurrentSession() {
 
 export async function signInWithEmail(email) {
   const supabase = getSupabaseClient();
+  const configuredRedirectUrl = String(import.meta.env.VITE_AUTH_REDIRECT_URL ?? "").trim();
+  const emailRedirectTo = configuredRedirectUrl || window.location.origin;
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: window.location.origin,
+      emailRedirectTo,
     },
   });
   if (error) throw error;

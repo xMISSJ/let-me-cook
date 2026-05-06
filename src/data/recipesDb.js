@@ -81,6 +81,7 @@ function toReadableError(error) {
 function normalizeRecipe(record) {
   return {
     id: record.id,
+    userId: record.user_id ?? null,
     createdAt: record.created_at ?? null,
     title: record.title,
     description: record.description,
@@ -152,6 +153,7 @@ export async function listRecipes() {
 export async function createRecipe(recipe) {
   const supabase = getSupabaseClient();
   const insertPayload = {
+    user_id: recipe.userId ?? null,
     title: recipe.title,
     description: recipe.description,
     thumbnail: recipe.thumbnail ?? "🍽️",
@@ -200,6 +202,9 @@ export async function updateRecipe(recipeId, recipe) {
     image_url: recipe.imageUrl ?? null,
     editor_name: recipe.editorName ?? null,
   };
+  if ("userId" in recipe) {
+    updatePayload.user_id = recipe.userId ?? null;
+  }
 
   let { data, error } = await supabase
     .from("recipes")

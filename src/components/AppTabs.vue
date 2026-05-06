@@ -16,7 +16,7 @@ function navigateTo(menu) {
 <template>
   <div>
     <nav class="hidden items-center justify-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-50 p-3 shadow-sm md:flex dark:bg-zinc-900">
-      <button
+      <UButton
         class="inline-flex items-center justify-center cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
         :class="
           activeMenu === 'overview'
@@ -24,11 +24,12 @@ function navigateTo(menu) {
             : 'bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
         "
         type="button"
+        variant="ghost"
         @click="navigateTo('overview')"
       >
         Overview
-      </button>
-      <button
+      </UButton>
+      <UButton
         class="inline-flex items-center justify-center cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
         :class="
           activeMenu === 'planner'
@@ -36,11 +37,12 @@ function navigateTo(menu) {
             : 'bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
         "
         type="button"
+        variant="ghost"
         @click="navigateTo('planner')"
       >
         Planner
-      </button>
-      <button
+      </UButton>
+      <UButton
         class="inline-flex items-center justify-center cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
         :class="
           activeMenu === 'profile'
@@ -48,16 +50,17 @@ function navigateTo(menu) {
             : 'bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
         "
         type="button"
+        variant="ghost"
         @click="navigateTo('profile')"
       >
         Profile
-      </button>
+      </UButton>
     </nav>
 
     <nav
-      class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 gap-2 border-t border-amber-500/40 bg-amber-50/95 p-3 backdrop-blur md:hidden dark:border-amber-300/20 dark:bg-zinc-900/95"
+      class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 gap-2 border-t border-amber-500/40 bg-amber-50/95 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] backdrop-blur md:hidden dark:border-amber-300/20 dark:bg-zinc-900/95"
     >
-      <button
+      <UButton
         class="inline-flex items-center justify-center cursor-pointer rounded-lg px-2 py-2 text-sm font-semibold transition"
         :class="
           activeMenu === 'overview'
@@ -65,11 +68,12 @@ function navigateTo(menu) {
             : 'bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
         "
         type="button"
+        variant="ghost"
         @click="navigateTo('overview')"
       >
         Overview
-      </button>
-      <button
+      </UButton>
+      <UButton
         class="inline-flex items-center justify-center cursor-pointer rounded-lg px-2 py-2 text-sm font-semibold transition"
         :class="
           activeMenu === 'planner'
@@ -77,11 +81,12 @@ function navigateTo(menu) {
             : 'bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
         "
         type="button"
+        variant="ghost"
         @click="navigateTo('planner')"
       >
         Planner
-      </button>
-      <button
+      </UButton>
+      <UButton
         class="inline-flex items-center justify-center cursor-pointer rounded-lg px-2 py-2 text-sm font-semibold transition"
         :class="
           activeMenu === 'profile'
@@ -89,10 +94,11 @@ function navigateTo(menu) {
             : 'bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
         "
         type="button"
+        variant="ghost"
         @click="navigateTo('profile')"
       >
         Profile
-      </button>
+      </UButton>
     </nav>
   </div>
 </template>

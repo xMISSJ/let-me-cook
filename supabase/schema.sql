@@ -16,12 +16,21 @@ create table if not exists public.recipes (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.user_roles (
+  email text primary key,
+  role text not null check (role in ('admin', 'member')),
+  assigned_by text,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
 grant usage on schema public to anon, authenticated;
 grant select, insert on table public.recipes to anon, authenticated;
 grant update, delete on table public.recipes to anon, authenticated;
+grant select, insert, update, delete on table public.user_roles to authenticated;
 grant usage, select on sequence public.recipes_id_seq to anon, authenticated;
 
 alter table public.recipes enable row level security;
+alter table public.user_roles enable row level security;
 
 drop policy if exists "Allow read recipes" on public.recipes;
 create policy "Allow read recipes"
@@ -47,6 +56,19 @@ create policy "Allow delete recipes"
   on public.recipes
   for delete
   using (true);
+
+drop policy if exists "Allow read user roles" on public.user_roles;
+create policy "Allow read user roles"
+  on public.user_roles
+  for select
+  using (true);
+
+drop policy if exists "Allow authenticated manage user roles" on public.user_roles;
+create policy "Allow authenticated manage user roles"
+  on public.user_roles
+  for all
+  using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
 
 insert into storage.buckets (id, name, public)
 values ('recipe-images', 'recipe-images', true)
