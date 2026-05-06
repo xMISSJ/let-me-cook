@@ -124,6 +124,7 @@ function getMealTypeEmoji(recipe) {
           <button
             class="inline-flex items-center justify-center rounded-xl bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm hover:bg-black/65 lg:hidden"
             type="button"
+            :aria-label="isFavorite ? t('favorites.removeAria') : t('favorites.addAria')"
             @click="emit('toggle-favorite')"
           >
             <svg viewBox="0 0 512 512" class="mr-1.5 h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -136,13 +137,13 @@ function getMealTypeEmoji(recipe) {
                 stroke-linejoin="round"
               />
             </svg>
-            {{ isFavorite ? "Favorited" : "Favorite" }}
+            {{ isFavorite ? t("favorites.favorited") : t("favorites.favorite") }}
           </button>
           <button
             class="hidden h-8 w-8 items-center justify-center rounded-lg bg-black/55 text-white backdrop-blur-sm hover:bg-black/65 lg:inline-flex"
             type="button"
-            :aria-label="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
-            :title="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
+            :aria-label="isFavorite ? t('favorites.removeAria') : t('favorites.addAria')"
+            :title="isFavorite ? t('favorites.removeAria') : t('favorites.addAria')"
             @click="emit('toggle-favorite')"
           >
             <svg viewBox="0 0 512 512" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -181,9 +182,9 @@ function getMealTypeEmoji(recipe) {
         <div class="min-w-0">
           <h2 class="text-3xl font-black tracking-tight text-zinc-900 xl:text-4xl dark:text-zinc-50">{{ props.recipe.title }}</h2>
           <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-            <span>Prep: {{ props.recipe.cookTimeMinutes }}m</span>
-            <span>Cook: {{ props.recipe.cookTimeMinutes }}m</span>
-            <span>Total: {{ props.recipe.cookTimeMinutes * 2 }}m</span>
+            <span>{{ t("details.prepTime", { minutes: props.recipe.cookTimeMinutes }) }}</span>
+            <span>{{ t("details.cookTime", { minutes: props.recipe.cookTimeMinutes }) }}</span>
+            <span>{{ t("details.totalTime", { minutes: props.recipe.cookTimeMinutes * 2 }) }}</span>
           </div>
         </div>
       </div>
@@ -226,7 +227,7 @@ function getMealTypeEmoji(recipe) {
               type="button"
               @click="detailTab = 'nutrition'"
             >
-              Nutrition
+              {{ t("details.nutrition") }}
             </button>
           </div>
 
@@ -257,9 +258,9 @@ function getMealTypeEmoji(recipe) {
           </section>
 
           <section v-else class="mt-4">
-            <h3 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Nutrition</h3>
+            <h3 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ t("details.nutrition") }}</h3>
             <p class="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-              Nutrition info is not available yet for this recipe.
+              {{ t("details.nutritionUnavailable") }}
             </p>
           </section>
         </div>
@@ -267,23 +268,23 @@ function getMealTypeEmoji(recipe) {
         <aside
           class="hidden rounded-2xl border border-amber-500/25 bg-white/90 p-4 shadow-[0_14px_32px_-28px_rgba(120,53,15,0.55)] xl:grid xl:gap-3 dark:border-amber-300/20 dark:bg-zinc-900/70"
         >
-          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Recipe Snapshot</p>
+          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ t("details.snapshot") }}</p>
           <div class="grid gap-2 text-sm text-zinc-700 dark:text-zinc-300">
             <p class="rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-              <span class="font-semibold text-zinc-900 dark:text-zinc-100">Type:</span>
-              {{ getMealTypeEmoji(props.recipe) }} {{ props.recipe.mealType || "Meal" }}
+              <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ t("details.typeLabel") }}</span>
+              {{ getMealTypeEmoji(props.recipe) }} {{ props.recipe.mealType || t("details.mealFallback") }}
             </p>
             <p class="rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-              <span class="font-semibold text-zinc-900 dark:text-zinc-100">Cuisine:</span>
-              {{ props.recipe.cuisine || "Global" }}
+              <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ t("details.cuisineLabel") }}</span>
+              {{ props.recipe.cuisine || t("details.globalFallback") }}
             </p>
             <p class="rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-              <span class="font-semibold text-zinc-900 dark:text-zinc-100">Servings:</span>
-              {{ props.recipe.servings || "N/A" }}
+              <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ t("details.servingsLabel") }}</span>
+              {{ props.recipe.servings || t("details.na") }}
             </p>
             <p class="rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-              <span class="font-semibold text-zinc-900 dark:text-zinc-100">Cook Time:</span>
-              {{ props.recipe.cookTimeMinutes }} mins
+              <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ t("details.cookTimeLabel") }}</span>
+              {{ t("details.minutesCount", { minutes: props.recipe.cookTimeMinutes }) }}
             </p>
           </div>
         </aside>

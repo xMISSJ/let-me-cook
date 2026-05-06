@@ -6,6 +6,8 @@ import AddRecipeForm from "./components/AddRecipeForm.vue";
 import AppHeaderBar from "./components/AppHeaderBar.vue";
 import FilterModal from "./components/FilterModal.vue";
 import OverviewToolbar from "./components/OverviewToolbar.vue";
+import PlannerPanel from "./components/PlannerPanel.vue";
+import ProfilePanel from "./components/ProfilePanel.vue";
 import RecipeDetailCard from "./components/RecipeDetailCard.vue";
 import RecipeList from "./components/RecipeList.vue";
 import {
@@ -183,8 +185,11 @@ const selectedMealTypeLabels = computed(() =>
   selectedMealType.value.map((mealType) => t(`mealType.${mealType}`, mealType)),
 );
 const recentRecipes = computed(() => {
-  const recentIdSet = new Set(recentRecipeIds.value.map((id) => String(id)));
-  return recipes.value.filter((recipe) => recentIdSet.has(String(recipe.id))).slice(0, 3);
+  const recipesById = new Map(recipes.value.map((recipe) => [String(recipe.id), recipe]));
+  return recentRecipeIds.value
+    .map((id) => recipesById.get(String(id)))
+    .filter((recipe) => Boolean(recipe))
+    .slice(0, 3);
 });
 const favoriteRecipes = computed(() => {
   const favoriteIdSet = new Set(favoriteRecipeIds.value.map((id) => String(id)));
@@ -195,15 +200,7 @@ const languageItems = [
   { label: "Nederlands", value: "nl" },
   { label: "中文", value: "zh" },
 ];
-const profileLanguageSelectUi = {
-  base: "min-h-9 rounded-lg border border-amber-500/20 bg-transparent px-2 text-amber-900 shadow-none transition-colors hover:border-amber-500/30 hover:bg-amber-100/40 focus-visible:ring-1 focus-visible:ring-amber-500/30 data-[state=open]:border-amber-500/30 data-[state=open]:bg-amber-100/40 dark:border-amber-300/15 dark:text-amber-100 dark:hover:border-amber-300/25 dark:hover:bg-zinc-800/70 dark:focus-visible:ring-amber-300/25 dark:data-[state=open]:border-amber-300/25 dark:data-[state=open]:bg-zinc-800/70",
-  trailingIcon: "text-amber-800/70 dark:text-amber-100/70",
-  value: "text-amber-900/90 dark:text-amber-100/90",
-  placeholder: "text-amber-900/55 dark:text-amber-100/55",
-  content: "rounded-xl border border-amber-500/25 bg-amber-50 p-1 shadow-lg shadow-amber-900/10 dark:border-amber-300/20 dark:bg-zinc-900 dark:shadow-black/35",
-  item: "rounded-lg text-amber-900/90 hover:bg-amber-100 dark:text-amber-100/90 dark:hover:bg-zinc-800 data-highlighted:not-data-disabled:bg-amber-100 dark:data-highlighted:not-data-disabled:bg-zinc-800",
-};
-const activeEditorName = computed(() => guestName.value.trim() || "Guest");
+const activeEditorName = computed(() => guestName.value.trim() || t("common.guest"));
 const profileHeading = computed(() => {
   const normalizedName = guestName.value.trim();
   const localizedProfileWordByLocale = {
@@ -436,7 +433,7 @@ async function addRecipe(recipe) {
 
 function openEditRecipeModal() {
   if (!selectedRecipe.value || !canManageSelectedRecipe.value) {
-    actionError.value = "Only the recipe owner or app admin can edit this recipe.";
+    actionError.value = t("errors.onlyOwnerOrAdminEdit");
     return;
   }
   editingRecipeId.value = selectedRecipe.value.id;
@@ -446,7 +443,7 @@ function openEditRecipeModal() {
 function openEditRecipeModalById(recipeId) {
   const targetRecipe = recipes.value.find((recipe) => String(recipe.id) === String(recipeId));
   if (!targetRecipe || !canManageRecipe(targetRecipe)) {
-    actionError.value = "Only the recipe owner or app admin can edit this recipe.";
+    actionError.value = t("errors.onlyOwnerOrAdminEdit");
     return;
   }
   actionError.value = "";
@@ -480,10 +477,10 @@ async function saveEditedRecipe(recipe) {
 async function removeRecipeById(recipeId) {
   const targetRecipe = recipes.value.find((recipe) => String(recipe.id) === String(recipeId));
   if (!targetRecipe || !canManageRecipe(targetRecipe)) {
-    actionError.value = "Only the recipe owner or app admin can delete this recipe.";
+    actionError.value = t("errors.onlyOwnerOrAdminDelete");
     return;
   }
-  const shouldDelete = window.confirm("Delete this recipe?");
+  const shouldDelete = window.confirm(t("confirm.deleteRecipe"));
   if (!shouldDelete) return;
   await deleteRecipe(targetRecipe.id);
   recipes.value = recipes.value.filter((recipe) => recipe.id !== targetRecipe.id);
@@ -599,14 +596,14 @@ onBeforeUnmount(() => {
         v-if="recipeLoadError"
         class="rounded-2xl border border-rose-500/40 bg-rose-50 px-5 py-4 text-rose-900 shadow-sm dark:bg-zinc-900 dark:text-rose-100"
       >
-        <p class="text-sm font-semibold">Failed to load recipes.</p>
+        <p class="text-sm font-semibold">{{ t("status.failedToLoadRecipes") }}</p>
         <p class="mt-1 break-words text-sm opacity-90">{{ recipeLoadError }}</p>
         <button
           class="mt-3 inline-flex items-center justify-center cursor-pointer rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-zinc-950 lg:hover:bg-rose-400"
           type="button"
           @click="refreshRecipes"
         >
-          Retry
+          {{ t("common.retry") }}
         </button>
       </section>
 
@@ -623,7 +620,7 @@ onBeforeUnmount(() => {
             class="h-16 w-16 animate-spin rounded-full shadow-lg [animation-duration:1.2s]"
             aria-hidden="true"
           />
-          <p class="text-sm font-semibold text-amber-900/80 dark:text-amber-100/80">Loading recipe…</p>
+          <p class="text-sm font-semibold text-amber-900/80 dark:text-amber-100/80">{{ t("status.loadingRecipe") }}</p>
         </section>
         <RecipeDetailCard
           v-else-if="selectedRecipe"
@@ -674,12 +671,12 @@ onBeforeUnmount(() => {
                 @toggle-favorite="toggleFavoriteRecipe"
                 @clear-filters="clearFilters"
               />
-              <p v-if="isLoadingRecipes" class="text-sm text-amber-900/75 dark:text-amber-100/75">Loading recipes…</p>
+              <p v-if="isLoadingRecipes" class="text-sm text-amber-900/75 dark:text-amber-100/75">{{ t("status.loadingRecipes") }}</p>
             </div>
 
             <aside class="hidden h-fit rounded-2xl border border-amber-500/30 bg-amber-50 p-4 shadow-sm md:grid md:gap-4 dark:bg-zinc-900">
               <section class="grid gap-2">
-                <h3 class="text-sm font-semibold uppercase tracking-wide text-amber-900/75 dark:text-amber-100/75">Overview panel</h3>
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-amber-900/75 dark:text-amber-100/75">{{ t("overview.panelTitle") }}</h3>
               </section>
 
               <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
@@ -687,13 +684,13 @@ onBeforeUnmount(() => {
               </p>
 
               <section class="grid gap-2 rounded-xl border border-amber-500/30 bg-white p-3 dark:bg-zinc-800">
-                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">Active filters</h3>
+                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.activeFiltersTitle") }}</h3>
                 <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
-                  Cuisine:
+                  {{ t("filters.cuisine") }}:
                   <span class="font-semibold">{{ selectedCuisineLabels.length === 0 ? t("filters.all") : selectedCuisineLabels.join(", ") }}</span>
                 </p>
                 <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
-                  Meal type:
+                  {{ t("filters.mealType") }}:
                   <span class="font-semibold">{{ selectedMealTypeLabels.length === 0 ? t("filters.all") : selectedMealTypeLabels.join(", ") }}</span>
                 </p>
                 <button
@@ -706,9 +703,9 @@ onBeforeUnmount(() => {
               </section>
 
               <section class="grid gap-3 rounded-xl border border-amber-500/30 bg-white p-3 dark:bg-zinc-800">
-                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">Recent picks</h3>
+                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.recentPicksTitle") }}</h3>
                 <p v-if="recentRecipes.length === 0" class="text-xs text-amber-900/75 dark:text-amber-100/75">
-                  Open a recipe to pin it here.
+                  {{ t("overview.recentPicksEmpty") }}
                 </p>
                 <button
                   v-for="recipe in recentRecipes"
@@ -736,12 +733,12 @@ onBeforeUnmount(() => {
 
                   <div class="flex items-center justify-between gap-3 text-[11px] text-amber-900/80 dark:text-amber-100/80">
                     <span class="inline-flex items-center gap-1 font-semibold text-amber-900/75 dark:text-amber-100/75">
-                      Open
+                      {{ t("common.open") }}
                       <span class="inline-block transition-transform duration-200 ease-out lg:group-hover:translate-x-0.5" aria-hidden="true">→</span>
                     </span>
                     <div class="flex items-center gap-3">
                     <span>{{ recipe.cookTimeMinutes }} min</span>
-                    <span>{{ recipe.servings }} servings</span>
+                    <span>{{ t("common.servingsCount", { count: recipe.servings }) }}</span>
                     </div>
                   </div>
 
@@ -756,9 +753,9 @@ onBeforeUnmount(() => {
           <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
             <div class="flex items-start justify-between gap-3">
               <div>
-                <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">Favorites</h2>
+                <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("favorites.title") }}</h2>
                 <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">
-                  Your saved recipes in one place.
+                  {{ t("favorites.subtitle") }}
                 </p>
               </div>
               <button
@@ -766,16 +763,16 @@ onBeforeUnmount(() => {
                 type="button"
                 @click="navigateToMenu('overview')"
               >
-                Browse all
+                {{ t("favorites.browseAll") }}
               </button>
             </div>
             <section
               v-if="favoriteRecipes.length === 0"
               class="mt-4 rounded-xl border border-amber-500/30 bg-white px-5 py-6 text-center dark:bg-zinc-800"
             >
-              <h3 class="text-lg font-semibold text-amber-900 dark:text-amber-50">No favorites yet</h3>
+              <h3 class="text-lg font-semibold text-amber-900 dark:text-amber-50">{{ t("favorites.emptyTitle") }}</h3>
               <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
-                Tap the heart on any recipe to add it here.
+                {{ t("favorites.emptyText") }}
               </p>
             </section>
 
@@ -794,131 +791,30 @@ onBeforeUnmount(() => {
           </section>
         </section>
 
-        <section
+        <PlannerPanel
           v-else-if="!isRecipePage && currentMenu === 'planner'"
           key="menu-planner"
-          class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
-        >
-          <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">Planner</h2>
-          <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
-            Planner calendar is temporarily disabled while we prepare plugin integration.
-          </p>
-        </section>
+          :recipes="recipes"
+          @open-recipe="openRecipe"
+        />
 
-        <section
+        <ProfilePanel
           v-else-if="!isRecipePage && currentMenu === 'profile'"
           key="menu-profile"
-          class="overflow-hidden rounded-3xl border border-amber-500/30 bg-amber-50 px-4 py-4 shadow-sm sm:px-5 sm:py-5 lg:rounded-2xl lg:px-7 lg:py-6 dark:bg-zinc-900"
-        >
-          <div class="mb-4 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-200/70 via-amber-100/80 to-amber-50 px-4 py-4 dark:border-amber-300/20 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-900 sm:px-5">
-            <div class="flex items-center gap-3">
-              <img
-                :src="selectedProfileAvatar.src"
-                :alt="selectedProfileAvatar.alt"
-                class="h-11 w-11 shrink-0 rounded-full border border-amber-500/35 bg-white/85 object-cover shadow-sm dark:border-amber-300/25 dark:bg-zinc-800/85"
-                loading="lazy"
-              />
-              <div class="min-w-0">
-                <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ profileHeading }}</h2>
-                <p class="mt-1 inline-flex items-center rounded-full border border-amber-500/25 bg-white/75 px-2 py-0.5 text-[11px] font-medium text-amber-900/80 dark:border-amber-300/20 dark:bg-zinc-800/70 dark:text-amber-100/80">
-                  Customize your cooking space
-                </p>
-              </div>
-            </div>
-            <div class="mt-3">
-              <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">
-                Set your display name and app preferences.
-              </p>
-            </div>
-          </div>
-
-          <div class="grid items-start gap-3 lg:gap-4 lg:grid-cols-2">
-            <section class="rounded-2xl border border-amber-500/25 bg-white/80 p-4 shadow-[0_6px_18px_-16px_rgba(120,53,15,0.45)] dark:border-amber-300/20 dark:bg-zinc-800/70">
-              <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">Identity</h3>
-              <p class="mt-1 text-xs text-amber-900/75 dark:text-amber-100/75">This name appears while you browse recipes.</p>
-              <div class="mt-4 grid gap-3">
-                <div class="grid gap-2">
-                  <p class="text-sm text-amber-900/85 dark:text-amber-100/85">Avatar</p>
-                  <div class="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
-                    <button
-                      v-for="avatar in PROFILE_AVATAR_OPTIONS"
-                      :key="avatar.id"
-                      class="inline-flex aspect-square w-full cursor-pointer items-center justify-center rounded-xl border p-1 transition-[background-color,box-shadow,border-color] duration-200 ease-out"
-                      :class="
-                        pendingProfileAvatar === avatar.id
-                          ? 'border-amber-500 bg-amber-200/70 shadow-sm dark:border-amber-300 dark:bg-zinc-700'
-                          : 'border-amber-500/30 bg-white/70 lg:hover:bg-amber-100 dark:border-amber-300/20 dark:bg-zinc-800/70 dark:lg:hover:bg-zinc-700'
-                      "
-                      type="button"
-                      @click="selectProfileAvatar(avatar.id)"
-                    >
-                      <img
-                        :src="avatar.src"
-                        :alt="avatar.alt"
-                        class="h-full w-full rounded-[10px] bg-white/60 object-contain p-0.5 dark:bg-zinc-800/60"
-                        loading="lazy"
-                      />
-                    </button>
-                  </div>
-                </div>
-                <label class="grid gap-1.5 text-sm text-amber-900/85 dark:text-amber-100/85">
-                  <span>Use with your name (optional)</span>
-                  <input
-                    v-model="pendingGuestName"
-                    class="w-full rounded-xl border border-amber-500/40 bg-white px-3 py-3 text-base text-amber-900 outline-none focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300 sm:py-2 sm:text-sm"
-                    placeholder="Jenny"
-                    type="text"
-                  />
-                </label>
-                <button
-                  class="inline-flex w-full items-center justify-center cursor-pointer rounded-xl border border-amber-500/50 bg-white px-4 py-3 text-sm font-semibold text-amber-900 transition-[background-color,box-shadow] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-sm dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700 sm:w-auto sm:py-2"
-                  type="button"
-                  @click="saveGuestName"
-                >
-                  Save
-                </button>
-              </div>
-            </section>
-
-            <section class="w-full rounded-2xl border border-amber-500/25 bg-white/80 p-4 shadow-[0_6px_18px_-16px_rgba(120,53,15,0.45)] dark:border-amber-300/20 dark:bg-zinc-800/70">
-              <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">Settings</h3>
-              <div class="mt-3 grid gap-2">
-                <label class="grid min-h-14 gap-2 rounded-xl border border-amber-500/25 bg-amber-50/90 px-3 py-2 text-sm text-amber-900/85 dark:border-amber-300/20 dark:bg-zinc-900/70 dark:text-amber-100/85 md:grid-cols-[7rem_minmax(0,1fr)] md:items-center md:gap-3">
-                  <span class="font-medium">Language</span>
-                  <USelect
-                    :model-value="locale"
-                    :items="languageItems"
-                    value-key="value"
-                    color="neutral"
-                    variant="ghost"
-                    :highlight="false"
-                    class="w-full"
-                    :ui="profileLanguageSelectUi"
-                    @update:model-value="setLanguage"
-                  />
-                </label>
-                <div class="grid min-h-14 gap-2 rounded-xl border border-amber-500/25 bg-amber-50/90 px-3 py-2 dark:border-amber-300/20 dark:bg-zinc-900/70 md:grid-cols-[7rem_minmax(0,1fr)] md:items-center md:gap-3">
-                  <p class="text-sm font-medium text-amber-900/85 dark:text-amber-100/85">Dark theme</p>
-                  <label class="relative inline-flex h-9 w-fit cursor-pointer items-center">
-                    <input
-                      class="peer sr-only"
-                      type="checkbox"
-                      :checked="theme === 'dark'"
-                      aria-label="Toggle dark theme"
-                      @change="toggleTheme"
-                    />
-                    <span
-                      class="h-6 w-11 rounded-full bg-amber-300/80 transition peer-checked:bg-amber-500 dark:bg-zinc-700 dark:peer-checked:bg-amber-400"
-                    />
-                    <span
-                      class="absolute left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5 dark:bg-zinc-950"
-                    />
-                  </label>
-                </div>
-              </div>
-            </section>
-          </div>
-        </section>
+          :profile-heading="profileHeading"
+          :selected-profile-avatar="selectedProfileAvatar"
+          :profile-avatar-options="PROFILE_AVATAR_OPTIONS"
+          :pending-profile-avatar="pendingProfileAvatar"
+          :pending-guest-name="pendingGuestName"
+          :locale="locale"
+          :language-items="languageItems"
+          :theme="theme"
+          @update:pending-guest-name="pendingGuestName = $event"
+          @select-profile-avatar="selectProfileAvatar"
+          @save-guest-name="saveGuestName"
+          @set-language="setLanguage"
+          @toggle-theme="toggleTheme"
+        />
       </Transition>
     </div>
 

@@ -1,11 +1,13 @@
 <script setup>
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 defineOptions({
   name: "AppHeaderBar",
 });
 
 const emit = defineEmits(["navigate"]);
+const { t } = useI18n();
 const props = defineProps({
   activeMenu: {
     type: String,
@@ -25,15 +27,15 @@ const props = defineProps({
   },
 });
 
-const menuItems = [
-  { key: "overview", label: "Recipes", icon: "utensils" },
-  { key: "favorites", label: "Favorites", icon: "heart" },
-  { key: "planner", label: "Planner", icon: "calendar" },
-  { key: "profile", label: "Profile", icon: "user" },
-];
+const menuItems = computed(() => [
+  { key: "overview", label: t("nav.recipes"), icon: "utensils" },
+  { key: "favorites", label: t("nav.favorites"), icon: "heart" },
+  { key: "planner", label: t("nav.planner"), icon: "calendar" },
+  { key: "profile", label: t("nav.profile"), icon: "user" },
+]);
 
 const activeMenuIndex = computed(() => {
-  const index = menuItems.findIndex((item) => item.key === props.activeMenu);
+  const index = menuItems.value.findIndex((item) => item.key === props.activeMenu);
   return index >= 0 ? index : 0;
 });
 
@@ -46,15 +48,15 @@ function navigateTo(menu) {
   <div>
     <div class="md:hidden px-4 py-3.5">
       <button class="grid gap-0.5 text-left" type="button" @click="navigateTo('overview')">
-        <p class="font-brand-name text-[2.15rem] leading-[0.95] text-amber-900 dark:text-amber-50">Let Me Cook</p>
-        <p class="font-brand-rounded text-xs font-medium text-amber-900/75 dark:text-amber-100/75">Your FYP, but edible.</p>
+        <p class="font-brand-name text-[2.15rem] leading-[0.95] text-amber-900 dark:text-amber-50">{{ t("appName") }}</p>
+        <p class="font-brand-rounded text-xs font-medium text-amber-900/75 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
       </button>
     </div>
 
     <nav class="hidden items-center justify-between border-b border-amber-500/30 px-4 py-3 lg:px-5 md:flex">
       <button class="grid gap-0.5 text-left" type="button" @click="navigateTo('overview')">
-        <p class="font-brand-name text-[2.65rem] leading-[0.95] text-amber-900 dark:text-amber-50">Let Me Cook</p>
-        <p class="font-brand-rounded text-sm font-medium text-amber-900/75 dark:text-amber-100/75">Your FYP, but edible.</p>
+        <p class="font-brand-name text-[2.65rem] leading-[0.95] text-amber-900 dark:text-amber-50">{{ t("appName") }}</p>
+        <p class="font-brand-rounded text-sm font-medium text-amber-900/75 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
       </button>
       <div class="flex items-center gap-3">
         <p
@@ -67,7 +69,7 @@ function navigateTo(menu) {
             class="h-4 w-4 rounded-full object-cover"
             loading="lazy"
           />
-          <span>Using app as {{ props.guestName }}</span>
+          <span>{{ t("profile.usingAppAs", { name: props.guestName }) }}</span>
         </p>
         <div class="flex items-center gap-1">
         <button

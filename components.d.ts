@@ -16,6 +16,8 @@ declare module 'vue' {
     FilterModal: typeof import('./src/components/FilterModal.vue')['default']
     IngredientsCard: typeof import('./src/components/IngredientsCard.vue')['default']
     OverviewToolbar: typeof import('./src/components/OverviewToolbar.vue')['default']
+    PlannerPanel: typeof import('./src/components/PlannerPanel.vue')['default']
+    ProfilePanel: typeof import('./src/components/ProfilePanel.vue')['default']
     RecipeDetailCard: typeof import('./src/components/RecipeDetailCard.vue')['default']
     RecipeHero: typeof import('./src/components/RecipeHero.vue')['default']
     RecipeList: typeof import('./src/components/RecipeList.vue')['default']

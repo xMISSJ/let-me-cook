@@ -272,7 +272,7 @@ function handleSubmit() {
                 class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
                 type="button"
                 @click="insertIngredientAfter(index)"
-                aria-label="Add ingredient row"
+                :aria-label="t('addRecipeForm.addIngredientRowAria')"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -289,7 +289,7 @@ function handleSubmit() {
                 class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
                 type="button"
                 @click="removeIngredient(index)"
-                aria-label="Remove ingredient row"
+                :aria-label="t('addRecipeForm.removeIngredientRowAria')"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -324,7 +324,7 @@ function handleSubmit() {
             <input
               v-model="form.stepsList[index]"
               class="min-w-0 rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 sm:flex-1 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
-              :placeholder="`Step ${index + 1}`"
+              :placeholder="t('addRecipeForm.stepPlaceholder', { number: index + 1 })"
               type="text"
             />
             <div class="flex gap-2 sm:contents">
@@ -332,7 +332,7 @@ function handleSubmit() {
                 class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
                 type="button"
                 @click="insertStepAfter(index)"
-                aria-label="Add step row"
+                :aria-label="t('addRecipeForm.addStepRowAria')"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -349,7 +349,7 @@ function handleSubmit() {
                 class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-rose-500/40 bg-white text-rose-700 hover:bg-rose-50 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
                 type="button"
                 @click="removeStep(index)"
-                aria-label="Remove step row"
+                :aria-label="t('addRecipeForm.removeStepRowAria')"
               >
                 <svg
                   viewBox="0 0 24 24"

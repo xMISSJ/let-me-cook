@@ -213,22 +213,22 @@ function onCardKeydown(event, recipeId) {
         v-if="!props.embedded && props.showNoResults"
         class="max-w-xl rounded-lg border border-dashed border-amber-500/25 bg-amber-50/40 px-4 py-4 text-sm text-amber-900 dark:border-amber-300/20 dark:bg-zinc-900/40 dark:text-amber-100"
       >
-        <p class="text-base font-semibold text-amber-900 dark:text-amber-50">No recipes match your selected filters.</p>
+        <p class="text-base font-semibold text-amber-900 dark:text-amber-50">{{ t("filters.noResultsTitle") }}</p>
         <p class="mt-1 text-xs text-amber-900/70 dark:text-amber-100/70">
-          Try widening your filters or clear them to see all recipes.
+          {{ t("filters.noResultsHint") }}
         </p>
         <p class="mt-2 text-xs text-amber-900/80 dark:text-amber-100/80">
-          Cuisine: {{ props.noResultsCuisineLabel || t("filters.all") }}
+          {{ t("filters.cuisine") }}: {{ props.noResultsCuisineLabel || t("filters.all") }}
         </p>
         <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
-          Meal type: {{ props.noResultsMealTypeLabel || t("filters.all") }}
+          {{ t("filters.mealType") }}: {{ props.noResultsMealTypeLabel || t("filters.all") }}
         </p>
         <button
           class="mt-3 inline-flex items-center justify-center rounded-md border border-amber-500/45 bg-transparent px-3 py-1.5 text-xs font-semibold text-amber-900 dark:border-amber-300/35 dark:text-amber-100"
           type="button"
           @click="clearFilters"
         >
-          Clear filters
+          {{ t("filters.clear") }}
         </button>
       </section>
       <div
@@ -245,8 +245,8 @@ function onCardKeydown(event, recipeId) {
         <button
           class="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/55 text-rose-500 transition-[box-shadow,background-color,filter] duration-200 ease-out active:brightness-95 lg:hidden dark:bg-zinc-900/90"
           type="button"
-          :aria-label="isFavorite(recipe.id) ? 'Remove from favorites' : 'Add to favorites'"
-          :title="isFavorite(recipe.id) ? 'Remove from favorites' : 'Add to favorites'"
+          :aria-label="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
+          :title="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
           @click.stop="toggleFavorite(recipe.id)"
         >
           <svg viewBox="0 0 512 512" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -264,8 +264,8 @@ function onCardKeydown(event, recipeId) {
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/55 text-rose-500 transition-[box-shadow,background-color,filter] duration-200 ease-out lg:hover:bg-black/65 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-900/90 dark:lg:hover:bg-zinc-700"
             type="button"
-            :aria-label="isFavorite(recipe.id) ? 'Remove from favorites' : 'Add to favorites'"
-            :title="isFavorite(recipe.id) ? 'Remove from favorites' : 'Add to favorites'"
+            :aria-label="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
+            :title="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
             @click.stop="toggleFavorite(recipe.id)"
           >
             <svg viewBox="0 0 512 512" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -282,7 +282,7 @@ function onCardKeydown(event, recipeId) {
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-500/40 bg-white/90 text-amber-900 transition-[box-shadow,background-color,filter] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-900/90 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
             type="button"
-            aria-label="Edit recipe"
+            :aria-label="t('details.editRecipe')"
             @click.stop="editRecipe(recipe.id)"
           >
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -304,7 +304,7 @@ function onCardKeydown(event, recipeId) {
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-rose-500/40 bg-white/90 text-rose-700 transition-[box-shadow,background-color,filter] duration-200 ease-out lg:hover:bg-rose-100 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-900/90 dark:text-rose-300 dark:lg:hover:bg-zinc-700"
             type="button"
-            aria-label="Delete recipe"
+            :aria-label="t('details.deleteRecipe')"
             @click.stop="deleteRecipe(recipe.id)"
           >
             <svg
@@ -358,7 +358,7 @@ function onCardKeydown(event, recipeId) {
           <div class="min-w-0 flex-1">
             <h3 class="min-w-0 break-words text-pretty font-semibold text-amber-900 line-clamp-2 pr-10 dark:text-amber-50 lg:pr-20">{{ recipe.title }}</h3>
             <p class="mt-1 hidden text-xs text-amber-900/75 dark:text-amber-100/75 md:line-clamp-2 md:block">
-              {{ recipe.description || "Tap to view ingredients and steps." }}
+              {{ recipe.description || t("overview.tapToView") }}
             </p>
             <div class="mt-2 space-y-1.5">
               <div class="flex flex-wrap gap-2">
