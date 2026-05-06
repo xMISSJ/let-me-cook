@@ -92,7 +92,8 @@ async function refreshRecipes() {
       recipes.value = await listRecipes();
     }
   } catch (error) {
-    recipeLoadError.value = error instanceof Error ? error.message : String(error);
+    console.warn("Unable to load recipes", error);
+    recipeLoadError.value = "Please try again.";
   } finally {
     isLoadingRecipes.value = false;
   }
@@ -131,7 +132,7 @@ onMounted(() => {
       console.warn("Unable to subscribe to auth state changes", error);
     }
   } else {
-    authMessage.value = "Supabase config missing in this deployment. Auth and recipe sync are unavailable.";
+    authMessage.value = "Some features are currently unavailable.";
   }
 
   void refreshRecipes();
