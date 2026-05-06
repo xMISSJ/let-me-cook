@@ -15,14 +15,14 @@ const { t } = useI18n();
 
 <template>
   <nav
-    class="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-500/30 bg-zinc-900 p-3 shadow-sm"
+    class="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-50 p-3 shadow-sm dark:bg-zinc-900"
   >
     <button
-      class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
+      class="inline-flex items-center justify-center cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
       :class="
         activeTab === 'overview'
           ? 'bg-amber-500 text-zinc-950'
-          : 'bg-zinc-800 text-amber-100 hover:bg-zinc-700'
+          : 'bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
       "
       type="button"
       @click="emit('change-tab', 'overview')"
@@ -30,11 +30,11 @@ const { t } = useI18n();
       {{ t("tabs.overview") }}
     </button>
     <button
-      class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
+      class="inline-flex items-center justify-center cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold transition"
       :class="
         activeTab === 'details'
           ? 'bg-amber-500 text-zinc-950'
-          : 'bg-zinc-800 text-amber-100 hover:bg-zinc-700'
+          : 'bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
       "
       type="button"
       @click="emit('change-tab', 'details')"

@@ -22,16 +22,16 @@ function addRecipe() {
 </script>
 
 <template>
-  <section class="rounded-2xl border border-amber-500/30 bg-zinc-900 px-5 py-4 shadow-sm">
+  <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
     <div class="flex items-start justify-between gap-3">
       <div>
-        <h2 class="text-xl font-semibold text-amber-50">{{ t("overview.myRecipes") }}</h2>
-        <p class="mt-1 text-sm text-amber-100/85">
+        <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.myRecipes") }}</h2>
+        <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           {{ t("overview.helpText") }}
         </p>
       </div>
       <button
-        class="cursor-pointer rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
+        class="inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
         type="button"
         @click="addRecipe"
         :aria-label="t('overview.addRecipe')"
@@ -55,29 +55,36 @@ function addRecipe() {
       <button
         v-for="recipe in recipes"
         :key="recipe.id"
-        class="cursor-pointer rounded-xl border border-amber-500/30 bg-zinc-800 p-4 text-left transition hover:border-amber-400/60 hover:bg-zinc-700"
+        class="cursor-pointer rounded-xl border border-amber-500/30 bg-white p-4 text-left transition hover:border-amber-400/60 hover:bg-amber-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
         type="button"
         @click="selectRecipe(recipe.id)"
       >
         <div class="flex items-center gap-3">
           <div
+            v-if="recipe.imageUrl"
+            class="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-amber-400/40"
+          >
+            <img :src="recipe.imageUrl" class="h-full w-full object-cover" alt="" />
+          </div>
+          <div
+            v-else
             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-amber-400/40 bg-amber-500/20 text-xl"
             aria-hidden="true"
           >
             {{ recipe.thumbnail || "🍽️" }}
           </div>
           <div>
-            <h3 class="font-semibold text-amber-50">{{ recipe.title }}</h3>
-            <p class="mt-1 text-sm text-amber-100/85">{{ recipe.description }}</p>
+            <h3 class="font-semibold text-amber-900 dark:text-amber-50">{{ recipe.title }}</h3>
+            <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">{{ recipe.description }}</p>
             <div class="mt-2 space-y-1.5">
               <div class="flex flex-wrap gap-2">
                 <span
-                  class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-100"
+                  class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-900 dark:text-amber-100"
                 >
                   {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
                 </span>
                 <span
-                  class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-100"
+                  class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-900 dark:text-amber-100"
                 >
                   {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
                 </span>

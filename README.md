@@ -1,6 +1,6 @@
 # Let Me Cook
 
-A small recipe website built with Vite, ready for GitHub Pages.
+A recipe website built with Vite and Vue. Recipes are stored in Supabase so the same data can be shared across devices/users.
 
 ## Run locally
 
@@ -9,14 +9,28 @@ npm install
 npm run dev
 ```
 
+Create `.env` from `.env.example` before running the app.
+
+## Supabase setup (required)
+
+1. Create a Supabase project.
+2. In Supabase SQL Editor, run `supabase/schema.sql`.
+3. In Supabase project settings, copy:
+   - Project URL -> `VITE_SUPABASE_URL`
+   - Publishable or anon public key -> `VITE_SUPABASE_ANON_KEY`
+4. Create a local `.env` file (or GitHub Actions env vars for deploy) using `.env.example`.
+5. Re-run `supabase/schema.sql` after pulling latest changes (adds edit/delete auth + image upload storage).
+
+## Family access and editing
+
+- Anyone can view recipes.
+- Open the Profile screen and either sign in with email magic link or set a display name to add, edit, delete, and upload recipe images.
+- Share the app URL with family members to collaborate.
+
 ## Deploy to GitHub Pages
 
-1. In GitHub:
-   - Go to `Settings` -> `Pages`
-   - Set source to `Deploy from a branch`
-   - Select branch `gh-pages` and folder `/ (root)`
+For deployed builds to connect to Supabase, add these repository secrets:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
-2. Every push to `master` now builds and deploys automatically via GitHub Actions.
-
-Your site will be available at:
-`https://<your-username>.github.io/let-me-cook/`
+Then keep your existing Pages workflow/branch setup.
