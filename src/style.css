@@ -4,8 +4,16 @@
 
 :root {
   --app-chrome-color: #fef3c7;
+  color-scheme: light;
 }
 
 .dark {
   --app-chrome-color: #09090b;
+  color-scheme: dark;
+}
+
+html,
+body,
+#app {
+  background-color: var(--app-chrome-color);
 }
