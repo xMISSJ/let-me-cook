@@ -63,12 +63,12 @@ const PROFILE_AVATAR_OPTIONS = [
   },
   {
     id: "cute-chef-7",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=MintChefNori&backgroundColor=d9f99d,bbf7d0,dcfce7&hairColor=16a34a,22c55e,15803d",
+    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=StrawberryChefYuna&backgroundColor=fbcfe8,f9a8d4,ddd6fe",
     alt: "Cute chef avatar 7",
   },
   {
     id: "cute-chef-8",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=KitchenKiki&backgroundColor=ddd6fe,bbf7d0,fecaca",
+    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=SunnySousAri&backgroundColor=ddd6fe,bbf7d0,fecaca",
     alt: "Cute chef avatar 8",
   },
   {
@@ -88,7 +88,7 @@ const PROFILE_AVATAR_OPTIONS = [
   },
   {
     id: "cute-chef-12",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=RoseChefRin&backgroundColor=bfdbfe,c7d2fe,bbf7d0",
+    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=HoneyChefAiko&backgroundColor=fbcfe8,bfdbfe,fde68a",
     alt: "Cute chef avatar 12",
   },
 ];
@@ -103,20 +103,21 @@ const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const editingRecipeId = ref(null);
 const isFilterModalOpen = ref(false);
-const selectedCuisine = ref("All");
-const selectedMealType = ref("All");
+const selectedCuisine = ref([]);
+const selectedMealType = ref([]);
 const recentRecipeIds = ref([]);
 const favoriteRecipeIds = ref([]);
 
 const selectedRecipe = computed(() =>
   recipes.value.find((recipe) => String(recipe.id) === String(route.params.id)),
 );
-const isRecipePage = computed(() => Boolean(route.params.id));
+const isRecipePage = computed(() => route.path.startsWith("/recipe/"));
 const currentMenu = computed(() => {
-  if (route.name === "favorites") return "favorites";
-  if (route.name === "planner") return "planner";
-  if (route.name === "profile") return "profile";
-  return "overview";
+  if (route.path === "/") return "overview";
+  if (route.path.startsWith("/favorites")) return "favorites";
+  if (route.path.startsWith("/planner")) return "planner";
+  if (route.path.startsWith("/profile")) return "profile";
+  return null;
 });
 const DEFAULT_CUISINES = [
   "Italian",
@@ -168,11 +169,18 @@ const mealTypeOptions = computed(() => {
 const filteredRecipes = computed(() =>
   recipes.value.filter((recipe) => {
     const cuisineMatch =
-      selectedCuisine.value === "All" || recipe.cuisine === selectedCuisine.value;
+      selectedCuisine.value.length === 0 || selectedCuisine.value.includes(recipe.cuisine);
     const mealTypeMatch =
-      selectedMealType.value === "All" || recipe.mealType === selectedMealType.value;
+      selectedMealType.value.length === 0 || selectedMealType.value.includes(recipe.mealType);
     return cuisineMatch && mealTypeMatch;
   }),
+);
+const hasActiveFilters = computed(() => selectedCuisine.value.length > 0 || selectedMealType.value.length > 0);
+const selectedCuisineLabels = computed(() =>
+  selectedCuisine.value.map((cuisine) => t(`cuisine.${cuisine}`, cuisine)),
+);
+const selectedMealTypeLabels = computed(() =>
+  selectedMealType.value.map((mealType) => t(`mealType.${mealType}`, mealType)),
 );
 const recentRecipes = computed(() => {
   const recentIdSet = new Set(recentRecipeIds.value.map((id) => String(id)));
@@ -187,7 +195,33 @@ const languageItems = [
   { label: "Nederlands", value: "nl" },
   { label: "中文", value: "zh" },
 ];
+const profileLanguageSelectUi = {
+  base: "min-h-9 rounded-lg border border-amber-500/20 bg-transparent px-2 text-amber-900 shadow-none transition-colors hover:border-amber-500/30 hover:bg-amber-100/40 focus-visible:ring-1 focus-visible:ring-amber-500/30 data-[state=open]:border-amber-500/30 data-[state=open]:bg-amber-100/40 dark:border-amber-300/15 dark:text-amber-100 dark:hover:border-amber-300/25 dark:hover:bg-zinc-800/70 dark:focus-visible:ring-amber-300/25 dark:data-[state=open]:border-amber-300/25 dark:data-[state=open]:bg-zinc-800/70",
+  trailingIcon: "text-amber-800/70 dark:text-amber-100/70",
+  value: "text-amber-900/90 dark:text-amber-100/90",
+  placeholder: "text-amber-900/55 dark:text-amber-100/55",
+  content: "rounded-xl border border-amber-500/25 bg-amber-50 p-1 shadow-lg shadow-amber-900/10 dark:border-amber-300/20 dark:bg-zinc-900 dark:shadow-black/35",
+  item: "rounded-lg text-amber-900/90 hover:bg-amber-100 dark:text-amber-100/90 dark:hover:bg-zinc-800 data-highlighted:not-data-disabled:bg-amber-100 dark:data-highlighted:not-data-disabled:bg-zinc-800",
+};
 const activeEditorName = computed(() => guestName.value.trim() || "Guest");
+const profileHeading = computed(() => {
+  const normalizedName = guestName.value.trim();
+  const localizedProfileWordByLocale = {
+    en: "profile",
+    nl: "profiel",
+    zh: "个人资料",
+  };
+  const activeLocale = String(locale.value).split("-")[0];
+  const localizedProfileWord = localizedProfileWordByLocale[activeLocale] ?? "profile";
+  if (!normalizedName) {
+    return localizedProfileWord.charAt(0).toUpperCase() + localizedProfileWord.slice(1);
+  }
+  const capitalizedName = normalizedName.replace(/\b([a-z])/gi, (letter) => letter.toUpperCase());
+  if (activeLocale === "zh") {
+    return `${capitalizedName}的${localizedProfileWord}`;
+  }
+  return `${capitalizedName}'s ${localizedProfileWord}`;
+});
 const editingRecipe = computed(() =>
   recipes.value.find((recipe) => recipe.id === editingRecipeId.value) ?? null,
 );
@@ -318,8 +352,8 @@ function closeFilterModal() {
 }
 
 function clearFilters() {
-  selectedCuisine.value = "All";
-  selectedMealType.value = "All";
+  selectedCuisine.value = [];
+  selectedMealType.value = [];
 }
 
 function inferRecipeEmoji(recipe, fallback = "🍽️") {
@@ -550,18 +584,15 @@ onBeforeUnmount(() => {
       class="mx-auto w-full"
       :class="isRecipePage ? 'max-w-none' : 'grid max-w-7xl gap-4'"
     >
-      <p v-if="!isRecipePage && guestName" class="inline-flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-300">
-        <img
-          :src="selectedProfileAvatar.src"
-          :alt="selectedProfileAvatar.alt"
-          class="h-4 w-4 rounded-full object-cover"
-          loading="lazy"
-        />
-        <span>Using app as {{ guestName }}</span>
-      </p>
       <p v-if="!isRecipePage && actionError" class="text-xs text-rose-700 dark:text-rose-300">{{ actionError }}</p>
       <div v-if="!isRecipePage" :class="isRecipePage ? '' : '-mx-4 md:-mx-6 xl:-mx-10'">
-        <AppHeaderBar :active-menu="currentMenu" @navigate="navigateToMenu" />
+        <AppHeaderBar
+          :active-menu="currentMenu"
+          :guest-name="guestName"
+          :guest-avatar-src="selectedProfileAvatar.src"
+          :guest-avatar-alt="selectedProfileAvatar.alt"
+          @navigate="navigateToMenu"
+        />
       </div>
 
       <section
@@ -633,11 +664,15 @@ onBeforeUnmount(() => {
               <RecipeList
                 :recipes="filteredRecipes"
                 :favorite-recipe-ids="favoriteRecipeIds"
+                :show-no-results="!isLoadingRecipes && recipes.length > 0 && filteredRecipes.length === 0 && hasActiveFilters"
+                :no-results-cuisine-label="selectedCuisineLabels.length === 0 ? t('filters.all') : selectedCuisineLabels.join(', ')"
+                :no-results-meal-type-label="selectedMealTypeLabels.length === 0 ? t('filters.all') : selectedMealTypeLabels.join(', ')"
                 @select-recipe="openRecipe"
                 @add-recipe="openAddRecipeModal"
                 @edit-recipe="openEditRecipeModalById"
                 @delete-recipe="removeRecipeById"
                 @toggle-favorite="toggleFavoriteRecipe"
+                @clear-filters="clearFilters"
               />
               <p v-if="isLoadingRecipes" class="text-sm text-amber-900/75 dark:text-amber-100/75">Loading recipes…</p>
             </div>
@@ -655,11 +690,11 @@ onBeforeUnmount(() => {
                 <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">Active filters</h3>
                 <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
                   Cuisine:
-                  <span class="font-semibold">{{ selectedCuisine === "All" ? t("filters.all") : t(`cuisine.${selectedCuisine}`, selectedCuisine) }}</span>
+                  <span class="font-semibold">{{ selectedCuisineLabels.length === 0 ? t("filters.all") : selectedCuisineLabels.join(", ") }}</span>
                 </p>
                 <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
                   Meal type:
-                  <span class="font-semibold">{{ selectedMealType === "All" ? t("filters.all") : t(`mealType.${selectedMealType}`, selectedMealType) }}</span>
+                  <span class="font-semibold">{{ selectedMealTypeLabels.length === 0 ? t("filters.all") : selectedMealTypeLabels.join(", ") }}</span>
                 </p>
                 <button
                   class="mt-1 inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-md active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
@@ -688,10 +723,10 @@ onBeforeUnmount(() => {
                         {{ recipe.title }}
                       </p>
                       <div class="mt-1 flex flex-wrap items-center gap-1 text-[11px] font-medium text-amber-900/80 dark:text-amber-100/80">
-                        <span class="rounded-full bg-amber-100 px-2 py-0.5 dark:bg-zinc-700">
+                        <span class="rounded-full bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
                           {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
                         </span>
-                        <span class="rounded-full bg-amber-100 px-2 py-0.5 dark:bg-zinc-700">
+                        <span class="rounded-full bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
                           {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
                         </span>
                       </div>
@@ -776,7 +811,7 @@ onBeforeUnmount(() => {
           class="overflow-hidden rounded-3xl border border-amber-500/30 bg-amber-50 px-4 py-4 shadow-sm sm:px-5 sm:py-5 lg:rounded-2xl lg:px-7 lg:py-6 dark:bg-zinc-900"
         >
           <div class="mb-4 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-200/70 via-amber-100/80 to-amber-50 px-4 py-4 dark:border-amber-300/20 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-900 sm:px-5">
-            <div class="flex items-start gap-3">
+            <div class="flex items-center gap-3">
               <img
                 :src="selectedProfileAvatar.src"
                 :alt="selectedProfileAvatar.alt"
@@ -784,7 +819,7 @@ onBeforeUnmount(() => {
                 loading="lazy"
               />
               <div class="min-w-0">
-                <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">Profile</h2>
+                <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ profileHeading }}</h2>
                 <p class="mt-1 inline-flex items-center rounded-full border border-amber-500/25 bg-white/75 px-2 py-0.5 text-[11px] font-medium text-amber-900/80 dark:border-amber-300/20 dark:bg-zinc-800/70 dark:text-amber-100/80">
                   Customize your cooking space
                 </p>
@@ -797,7 +832,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div class="grid gap-3 lg:gap-4 lg:grid-cols-2">
+          <div class="grid items-start gap-3 lg:gap-4 lg:grid-cols-2">
             <section class="rounded-2xl border border-amber-500/25 bg-white/80 p-4 shadow-[0_6px_18px_-16px_rgba(120,53,15,0.45)] dark:border-amber-300/20 dark:bg-zinc-800/70">
               <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">Identity</h3>
               <p class="mt-1 text-xs text-amber-900/75 dark:text-amber-100/75">This name appears while you browse recipes.</p>
@@ -845,22 +880,26 @@ onBeforeUnmount(() => {
               </div>
             </section>
 
-            <section class="rounded-2xl border border-amber-500/25 bg-white/80 p-4 shadow-[0_6px_18px_-16px_rgba(120,53,15,0.45)] dark:border-amber-300/20 dark:bg-zinc-800/70">
+            <section class="w-full rounded-2xl border border-amber-500/25 bg-white/80 p-4 shadow-[0_6px_18px_-16px_rgba(120,53,15,0.45)] dark:border-amber-300/20 dark:bg-zinc-800/70">
               <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">Settings</h3>
-              <div class="mt-4 grid gap-4">
-                <label class="grid gap-1.5 text-sm text-amber-900/85 dark:text-amber-100/85">
-                  <span>{{ t("language") }}</span>
+              <div class="mt-3 grid gap-2">
+                <label class="grid min-h-14 gap-2 rounded-xl border border-amber-500/25 bg-amber-50/90 px-3 py-2 text-sm text-amber-900/85 dark:border-amber-300/20 dark:bg-zinc-900/70 dark:text-amber-100/85 md:grid-cols-[7rem_minmax(0,1fr)] md:items-center md:gap-3">
+                  <span class="font-medium">Language</span>
                   <USelect
                     :model-value="locale"
                     :items="languageItems"
                     value-key="value"
-                    class="w-full [&_button]:rounded-xl [&_button]:border-amber-500/25 [&_button]:bg-amber-50/90 [&_button]:text-amber-900 [&_button]:shadow-none [&_button]:ring-0 [&_button]:focus-visible:ring-2 [&_button]:focus-visible:ring-amber-500/40 dark:[&_button]:border-amber-300/20 dark:[&_button]:bg-zinc-900/70 dark:[&_button]:text-amber-100 dark:[&_button]:focus-visible:ring-amber-300/35 [&_span]:text-amber-900 dark:[&_span]:text-amber-100"
+                    color="neutral"
+                    variant="ghost"
+                    :highlight="false"
+                    class="w-full"
+                    :ui="profileLanguageSelectUi"
                     @update:model-value="setLanguage"
                   />
                 </label>
-                <div class="flex items-center justify-between gap-3 rounded-xl border border-amber-500/25 bg-amber-50/90 px-3 py-3 dark:border-amber-300/20 dark:bg-zinc-900/70 sm:py-2">
+                <div class="grid min-h-14 gap-2 rounded-xl border border-amber-500/25 bg-amber-50/90 px-3 py-2 dark:border-amber-300/20 dark:bg-zinc-900/70 md:grid-cols-[7rem_minmax(0,1fr)] md:items-center md:gap-3">
                   <p class="text-sm font-medium text-amber-900/85 dark:text-amber-100/85">Dark theme</p>
-                  <label class="relative inline-flex cursor-pointer items-center">
+                  <label class="relative inline-flex h-9 w-fit cursor-pointer items-center">
                     <input
                       class="peer sr-only"
                       type="checkbox"

@@ -21,9 +21,21 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  showNoResults: {
+    type: Boolean,
+    default: false,
+  },
+  noResultsCuisineLabel: {
+    type: String,
+    default: "",
+  },
+  noResultsMealTypeLabel: {
+    type: String,
+    default: "",
+  },
 });
 
-const emit = defineEmits(["select-recipe", "add-recipe", "edit-recipe", "delete-recipe", "toggle-favorite"]);
+const emit = defineEmits(["select-recipe", "add-recipe", "edit-recipe", "delete-recipe", "toggle-favorite", "clear-filters"]);
 const { t } = useI18n();
 const loadedImageKeys = reactive({});
 const preloadedDetailImageUrls = reactive({});
@@ -121,6 +133,10 @@ function addRecipe() {
   emit("add-recipe");
 }
 
+function clearFilters() {
+  emit("clear-filters");
+}
+
 function editRecipe(recipeId) {
   emit("edit-recipe", recipeId);
 }
@@ -193,6 +209,28 @@ function onCardKeydown(event, recipeId) {
     </div>
 
     <div :class="props.embedded ? 'grid items-start gap-3 xl:grid-cols-2' : 'mt-4 grid items-start gap-3 xl:grid-cols-2'">
+      <section
+        v-if="!props.embedded && props.showNoResults"
+        class="max-w-xl rounded-lg border border-dashed border-amber-500/25 bg-amber-50/40 px-4 py-4 text-sm text-amber-900 dark:border-amber-300/20 dark:bg-zinc-900/40 dark:text-amber-100"
+      >
+        <p class="text-base font-semibold text-amber-900 dark:text-amber-50">No recipes match your selected filters.</p>
+        <p class="mt-1 text-xs text-amber-900/70 dark:text-amber-100/70">
+          Try widening your filters or clear them to see all recipes.
+        </p>
+        <p class="mt-2 text-xs text-amber-900/80 dark:text-amber-100/80">
+          Cuisine: {{ props.noResultsCuisineLabel || t("filters.all") }}
+        </p>
+        <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
+          Meal type: {{ props.noResultsMealTypeLabel || t("filters.all") }}
+        </p>
+        <button
+          class="mt-3 inline-flex items-center justify-center rounded-md border border-amber-500/45 bg-transparent px-3 py-1.5 text-xs font-semibold text-amber-900 dark:border-amber-300/35 dark:text-amber-100"
+          type="button"
+          @click="clearFilters"
+        >
+          Clear filters
+        </button>
+      </section>
       <div
         v-for="recipe in recipes"
         :key="recipe.id"

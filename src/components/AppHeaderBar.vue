@@ -11,6 +11,18 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  guestName: {
+    type: String,
+    default: "",
+  },
+  guestAvatarSrc: {
+    type: String,
+    default: "",
+  },
+  guestAvatarAlt: {
+    type: String,
+    default: "Profile avatar",
+  },
 });
 
 const menuItems = [
@@ -44,7 +56,20 @@ function navigateTo(menu) {
         <p class="font-brand-name text-[2.65rem] leading-[0.95] text-amber-900 dark:text-amber-50">Let Me Cook</p>
         <p class="font-brand-rounded text-sm font-medium text-amber-900/75 dark:text-amber-100/75">Your FYP, but edible.</p>
       </button>
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-3">
+        <p
+          v-if="props.guestName"
+          class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-50/80 px-2.5 py-1 text-xs text-emerald-700 dark:border-emerald-300/20 dark:bg-emerald-950/30 dark:text-emerald-300"
+        >
+          <img
+            :src="props.guestAvatarSrc"
+            :alt="props.guestAvatarAlt"
+            class="h-4 w-4 rounded-full object-cover"
+            loading="lazy"
+          />
+          <span>Using app as {{ props.guestName }}</span>
+        </p>
+        <div class="flex items-center gap-1">
         <button
           v-for="item in menuItems"
           :key="item.key"
@@ -59,6 +84,7 @@ function navigateTo(menu) {
         >
           {{ item.label }}
         </button>
+        </div>
       </div>
     </nav>
 

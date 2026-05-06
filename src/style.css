@@ -59,3 +59,47 @@ body {
   letter-spacing: 0.006em;
   text-transform: uppercase;
 }
+
+button {
+  transform: translateY(0) scale(1);
+  transition:
+    transform 140ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 140ms cubic-bezier(0.2, 0, 0, 1),
+    filter 140ms cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.015);
+    box-shadow: 0 3px 8px -7px rgb(0 0 0 / 32%);
+  }
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
+  filter: brightness(0.99);
+  box-shadow: 0 2px 5px -6px rgb(0 0 0 / 28%);
+  transition-duration: 90ms;
+}
+
+button:focus-visible {
+  box-shadow:
+    0 0 0 2px rgb(245 158 11 / 28%),
+    0 2px 8px -8px rgb(0 0 0 / 35%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+    transform: none;
+  }
+
+  button:hover:not(:disabled),
+  button:active:not(:disabled) {
+    transform: none;
+    filter: none;
+    box-shadow: none;
+  }
+}

@@ -15,11 +15,11 @@ defineProps({
     required: true,
   },
   selectedCuisine: {
-    type: String,
+    type: Array,
     required: true,
   },
   selectedMealType: {
-    type: String,
+    type: Array,
     required: true,
   },
 });
@@ -33,6 +33,44 @@ const emit = defineEmits([
 ]);
 
 const { t } = useI18n();
+
+function isCuisineSelected(selectedCuisine, option) {
+  return selectedCuisine.includes(option);
+}
+
+function isMealTypeSelected(selectedMealType, option) {
+  return selectedMealType.includes(option);
+}
+
+function toggleCuisine(selectedCuisine, option) {
+  if (option === "All") {
+    emit("update:selected-cuisine", []);
+    return;
+  }
+  if (selectedCuisine.includes(option)) {
+    emit(
+      "update:selected-cuisine",
+      selectedCuisine.filter((item) => item !== option),
+    );
+    return;
+  }
+  emit("update:selected-cuisine", [...selectedCuisine, option]);
+}
+
+function toggleMealType(selectedMealType, option) {
+  if (option === "All") {
+    emit("update:selected-meal-type", []);
+    return;
+  }
+  if (selectedMealType.includes(option)) {
+    emit(
+      "update:selected-meal-type",
+      selectedMealType.filter((item) => item !== option),
+    );
+    return;
+  }
+  emit("update:selected-meal-type", [...selectedMealType, option]);
+}
 
 function formatCuisine(option) {
   if (option === "All") return t("filters.all");
@@ -104,12 +142,14 @@ function getMealTypeEmoji(option) {
               :key="option"
               class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
               :class="
-                selectedCuisine === option
+                option === 'All'
+                  ? selectedCuisine.length === 0
+                  : isCuisineSelected(selectedCuisine, option)
                   ? 'border-amber-300 bg-amber-500/30 text-amber-50'
                   : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
               "
               type="button"
-              @click="emit('update:selected-cuisine', option)"
+              @click="toggleCuisine(selectedCuisine, option)"
             >
               {{ formatCuisine(option) }}
             </button>
@@ -125,12 +165,14 @@ function getMealTypeEmoji(option) {
               :key="option"
               class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
               :class="
-                selectedMealType === option
+                option === 'All'
+                  ? selectedMealType.length === 0
+                  : isMealTypeSelected(selectedMealType, option)
                   ? 'border-amber-300 bg-amber-500/30 text-amber-50'
                   : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
               "
               type="button"
-              @click="emit('update:selected-meal-type', option)"
+              @click="toggleMealType(selectedMealType, option)"
             >
               <span v-if="getMealTypeEmoji(option)" class="mr-1.5" aria-hidden="true">{{ getMealTypeEmoji(option) }}</span>
               {{ formatMealType(option) }}
