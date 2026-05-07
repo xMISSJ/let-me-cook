@@ -13,18 +13,19 @@
   <body>
     <div id="app"></div>
     <script>
-      // Restore client-side route redirected through 404.html on GitHub Pages.
+      // Restore client-side route redirected through older GitHub Pages 404 builds.
       (function redirectFrom404() {
         const query = window.location.search;
         if (!query.startsWith("?/")) return;
-        const decodedPath = query
-          .slice(2)
-          .replace(/~and~/g, "&");
-        const cleanUrl =
-          window.location.pathname +
-          decodedPath +
-          window.location.hash;
-        window.history.replaceState(null, "", cleanUrl);
+        const decodedPath = query.slice(2).replace(/~and~/g, "&");
+        const queryStart = decodedPath.indexOf("&");
+        const routePath =
+          queryStart === -1
+            ? decodedPath
+            : decodedPath.slice(0, queryStart) + "?" + decodedPath.slice(queryStart + 1);
+        const normalizedRoutePath = routePath.startsWith("/") ? routePath : "/" + routePath;
+
+        window.history.replaceState(null, "", window.location.pathname + "#" + normalizedRoutePath + window.location.hash);
       })();
     </script>
     <script type="module" src="/src/main.js"></script>

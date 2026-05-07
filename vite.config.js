@@ -23,6 +23,17 @@ export default defineConfig({
             variant: "ghost",
           },
         },
+        fileUpload: {
+          slots: {
+            base: "min-h-16 w-full rounded-lg border border-amber-500/40 bg-white px-2.5 py-2 text-sm text-amber-900 shadow-none transition-colors hover:bg-amber-100/60 hover:border-amber-500/55 focus-visible:ring-1 focus-visible:ring-amber-500/30 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700 dark:hover:border-amber-300/45 dark:focus-visible:ring-amber-300/25",
+            avatar: "bg-amber-100 text-amber-700 ring-1 ring-amber-500/25 dark:bg-amber-400/15 dark:text-amber-200 dark:ring-amber-300/25 [&_svg]:text-amber-700 dark:[&_svg]:text-amber-200",
+            icon: "text-amber-700 dark:text-amber-300",
+          },
+          defaultVariants: {
+            color: "neutral",
+            variant: "outline",
+          },
+        },
       },
     }),
   ],
