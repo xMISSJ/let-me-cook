@@ -27,13 +27,15 @@
           <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-amber-500/35 md:hidden" aria-hidden="true" />
       <div class="mb-4 flex items-center justify-between">
         <h2 class="text-lg font-semibold text-amber-900 dark:text-amber-50">{{ t("filters.title") }}</h2>
-        <button
-          class="inline-flex items-center justify-center cursor-pointer rounded-md px-2 py-1 text-sm text-amber-700 hover:bg-amber-200 hover:text-amber-900 dark:text-amber-300 dark:hover:bg-zinc-800 dark:hover:text-amber-100"
-          type="button"
+        <UButton
+          class="cursor-pointer"
+          color="neutral"
+          variant="ghost"
+          size="sm"
           @click="emit('close')"
         >
           {{ t("filters.close") }}
-        </button>
+        </UButton>
       </div>
 
       <div class="grid gap-4">
@@ -42,10 +44,12 @@
             {{ t("filters.cuisine") }}
           </p>
           <div class="flex flex-wrap gap-2">
-            <button
+            <UButton
               v-for="option in cuisineOptions"
               :key="option"
-              class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
+              class="cursor-pointer rounded-full text-sm font-medium transition"
+              color="neutral"
+              variant="outline"
               :class="
                 option === 'All'
                   ? selectedCuisine.length === 0
@@ -53,11 +57,10 @@
                   ? 'border-amber-300 bg-amber-500/30 text-amber-50'
                   : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
               "
-              type="button"
               @click="toggleCuisine(selectedCuisine, option)"
             >
               {{ formatCuisine(option) }}
-            </button>
+            </UButton>
           </div>
         </div>
         <div class="grid gap-2">
@@ -65,10 +68,12 @@
             {{ t("filters.mealType") }}
           </p>
           <div class="flex flex-wrap gap-2">
-            <button
+            <UButton
               v-for="option in mealTypeOptions"
               :key="option"
-              class="cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition"
+              class="cursor-pointer rounded-full text-sm font-medium transition"
+              color="neutral"
+              variant="outline"
               :class="
                 option === 'All'
                   ? selectedMealType.length === 0
@@ -76,31 +81,31 @@
                   ? 'border-amber-300 bg-amber-500/30 text-amber-50'
                   : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
               "
-              type="button"
               @click="toggleMealType(selectedMealType, option)"
             >
               <span v-if="getMealTypeEmoji(option)" class="mr-1.5" aria-hidden="true">{{ getMealTypeEmoji(option) }}</span>
               {{ formatMealType(option) }}
-            </button>
+            </UButton>
           </div>
         </div>
       </div>
 
       <div class="mt-5 flex flex-wrap justify-end gap-2">
-        <button
-          class="inline-flex items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
-          type="button"
+        <UButton
+          class="cursor-pointer"
+          color="neutral"
+          variant="outline"
           @click="emit('clear')"
         >
           {{ t("filters.clear") }}
-        </button>
-        <button
-          class="inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400"
-          type="button"
+        </UButton>
+        <UButton
+          class="cursor-pointer"
+          color="primary"
           @click="emit('apply')"
         >
           {{ t("filters.apply") }}
-        </button>
+        </UButton>
       </div>
         </section>
       </Transition>

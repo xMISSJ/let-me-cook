@@ -261,7 +261,9 @@ export async function listRecipes() {
   }
 
   const mergedById = new Map();
-  [...remoteRecipes, ...localRecipes].forEach((recipe) => {
+  // Prefer remote rows when both remote/local copies exist for the same id.
+  // This prevents stale local fallback edits from shadowing synced server updates.
+  [...localRecipes, ...remoteRecipes].forEach((recipe) => {
     mergedById.set(String(recipe.id), recipe);
   });
   return [...mergedById.values()].sort((a, b) => String(b.id).localeCompare(String(a.id)));

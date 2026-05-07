@@ -217,37 +217,33 @@
         </div>
       </div>
       <div class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
-        <label for="recipe-image-input">{{ t("addRecipeForm.image") }}</label>
-        <div class="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-white px-2.5 py-2 text-sm text-amber-900 dark:bg-zinc-800 dark:text-amber-100">
-          <input
-            id="recipe-image-input"
-            ref="imageInput"
-            class="sr-only"
-            type="file"
+        <label>{{ t("addRecipeForm.image") }}</label>
+        <div class="grid gap-2">
+          <UFileUpload
+            v-model="selectedImage"
             accept="image/png,image/jpeg,image/webp,image/gif"
-            @change="onImageChange"
+            :multiple="false"
+            :preview="false"
+            class="w-full rounded-lg border border-amber-500/40 bg-white px-2.5 py-2 text-sm text-amber-900 dark:bg-zinc-800 dark:text-amber-100"
+            @update:model-value="imageRemoved = false"
           />
-          <label
-            for="recipe-image-input"
-            class="inline-flex cursor-pointer items-center justify-center rounded-md bg-amber-500 px-3 py-1 text-xs font-semibold text-zinc-950 hover:bg-amber-400"
-          >
-            {{ t("addRecipeForm.chooseImage") }}
-          </label>
-          <span class="min-w-0 flex-1 truncate text-xs text-amber-900/85 dark:text-amber-100/85">
+          <div class="flex items-center gap-2">
+            <span class="min-w-0 flex-1 truncate text-xs text-amber-900/85 dark:text-amber-100/85">
             {{ displayImageName }}
-          </span>
-          <button
-            v-if="hasSelectedOrExistingImage"
-            class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-rose-500/45 bg-white text-rose-700 hover:bg-rose-50 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
-            type="button"
-            :aria-label="t('addRecipeForm.removeImage')"
-            :title="t('addRecipeForm.removeImage')"
-            @click="removeSelectedImage"
-          >
-            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
-            </svg>
-          </button>
+            </span>
+            <button
+              v-if="hasSelectedOrExistingImage"
+              class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-rose-500/45 bg-white text-rose-700 hover:bg-rose-50 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
+              type="button"
+              :aria-label="t('addRecipeForm.removeImage')"
+              :title="t('addRecipeForm.removeImage')"
+              @click="removeSelectedImage"
+            >
+              <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
       <p v-if="error" class="text-sm font-medium text-rose-300">{{ error }}</p>
@@ -304,7 +300,6 @@ const form = reactive({
 const error = ref("");
 const selectedImage = ref(null);
 const imageRemoved = ref(false);
-const imageInput = ref(null);
 const hasSelectedOrExistingImage = computed(() =>
   Boolean(selectedImage.value || (isUserProvidedRecipeImage(props.initialRecipe?.imageUrl) && !imageRemoved.value)),
 );
@@ -372,9 +367,6 @@ function fillForm(recipe) {
   form.stepsList = Array.isArray(recipe?.steps) && recipe.steps.length > 0 ? [...recipe.steps] : [""];
   selectedImage.value = null;
   imageRemoved.value = false;
-  if (imageInput.value) {
-    imageInput.value.value = "";
-  }
 }
 
 watch(
@@ -387,14 +379,6 @@ watch(
 
 function resetForm() {
   fillForm(props.initialRecipe);
-}
-
-function onImageChange(event) {
-  const [file] = event.target.files ?? [];
-  selectedImage.value = file ?? null;
-  if (file) {
-    imageRemoved.value = false;
-  }
 }
 
 function extractImageName(url) {
@@ -410,9 +394,6 @@ function extractImageName(url) {
 function removeSelectedImage() {
   selectedImage.value = null;
   imageRemoved.value = true;
-  if (imageInput.value) {
-    imageInput.value.value = "";
-  }
 }
 
 function addIngredient() {
