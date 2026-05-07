@@ -47,9 +47,9 @@
       </div>
     </div>
     <UButton
-      class="cursor-pointer rounded-full"
+      class="cursor-pointer rounded-full border border-amber-500/45 bg-amber-50 px-4 py-2 text-amber-900 shadow-sm transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-md dark:border-amber-300/35 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
       color="neutral"
-      variant="outline"
+      variant="ghost"
       @click="$emit('toggle-desktop-settings')"
     >
       {{ t("profile.settingsTitle") }}

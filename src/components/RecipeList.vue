@@ -88,54 +88,30 @@
         @keydown="onCardKeydown($event, recipe.id)"
       >
         <button
-          class="absolute right-2 bottom-2 z-10 inline-flex h-8 w-8 items-center justify-center text-rose-500 transition-transform duration-200 ease-out active:scale-95 lg:hidden"
+          class="absolute right-2 bottom-2 z-10 inline-flex h-11 w-11 items-center justify-center transition-[transform,color] duration-200 ease-out lg:hover:scale-105 active:scale-95"
+          :class="isFavorite(recipe.id) ? 'text-rose-500 lg:hover:text-rose-400' : 'text-white lg:hover:text-amber-50'"
           type="button"
           :aria-label="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
           :title="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
           @click.stop="toggleFavorite(recipe.id)"
         >
-          <svg viewBox="-24 -24 560 560" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="h-5.5 w-5.5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path
               v-if="isFavorite(recipe.id)"
-              d="M461.2 314c-22.6 27.4-122 109.4-173.7 151.4-18.4 15-44.7 15-63.1 0-51.7-42-151-124-173.7-151.4C16.1 272.3 0 232.6 0 189.4c0-42.2 14.4-81 40.6-109.4C67.2 51.3 103.5 35.4 143 35.4c29.6 0 56.6 9.4 80.4 27.8 12.4 9.7 23.4 21.1 32.5 34 9.2-12.8 20.1-24.3 32.5-34 23.8-18.5 50.9-27.8 80.5-27.8 39.6 0 75.9 15.9 102.4 44.6 26.1 28.4 40.6 67.1 40.6 109.4.1 43.2-16 82.9-50.7 124.6z"
-              fill="#f43f5e"
+              d="M12 21s-6.716-4.263-9.193-8.116C.877 9.882 1.36 6.2 4.147 4.464c2.07-1.29 4.608-.877 6.173.904L12 7.082l1.68-1.714c1.564-1.781 4.101-2.194 6.173-.904 2.787 1.736 3.27 5.418 1.34 8.42C18.716 16.737 12 21 12 21Z"
+              fill="currentColor"
             />
             <path
               v-else
-              d="M256 478c-13.3 0-26.3-4.5-36.6-12.9C166 421.6 73.1 344.7 51.1 318.2 16.2 276.1 0 236 0 192c0-43 14.8-82.7 41.7-111.9C69.1 50.4 106.7 34 147.4 34c30.7 0 58.7 9.7 83.4 28.9 9.3 7.1 17.7 15.3 25.1 24.3 7.5-9 15.9-17.1 25.1-24.3C305.8 43.7 333.9 34 364.5 34c40.8 0 78.3 16.4 105.8 46.1C497.2 109.3 512 149 512 192c0 44-16.2 84.1-51.1 126.2-22 26.5-114.9 103.4-168.3 146.8-10.3 8.4-23.3 13-36.6 13zM147.4 54c-34.6-.2-67.7 14.2-91.1 39.7C32.9 119.1 20 154 20 192c0 39.1 14.8 75.2 46.5 113.4 15.3 18.4 75.6 71 165.5 144.1 14 11.3 34 11.3 48 0 89.9-73.1 150.2-125.6 165.5-144.1C477.2 267.2 492 231.1 492 192c0-37.9-12.9-72.8-36.4-98.3-23.4-25.5-56.5-39.9-91.1-39.7-26.1 0-50.1 8.3-71.1 24.7-11.2 8.8-21.1 19.1-29.3 30.6-3.2 4.5-9.5 5.5-14 2.2-.8-.6-1.6-1.4-2.2-2.2-8.2-11.6-18.1-21.8-29.2-30.6C197.5 62.3 173.6 54 147.4 54z"
-              fill="none"
-              stroke="rgba(255,255,255,0.45)"
-              stroke-width="20"
+              d="M12 21s-6.716-4.263-9.193-8.116C.877 9.882 1.36 6.2 4.147 4.464c2.07-1.29 4.608-.877 6.173.904L12 7.082l1.68-1.714c1.564-1.781 4.101-2.194 6.173-.904 2.787 1.736 3.27 5.418 1.34 8.42C18.716 16.737 12 21 12 21Z"
+              stroke="currentColor"
+              stroke-width="1.8"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
           </svg>
         </button>
         <div class="absolute right-2 top-2 z-10 hidden items-center gap-1 lg:flex">
-          <button
-            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/55 text-rose-500 transition-[box-shadow,background-color,filter] duration-200 ease-out lg:hover:bg-black/65 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-900/90 dark:lg:hover:bg-zinc-700"
-            type="button"
-            :aria-label="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
-            :title="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
-            @click.stop="toggleFavorite(recipe.id)"
-          >
-            <svg viewBox="-24 -24 560 560" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path
-                v-if="isFavorite(recipe.id)"
-                d="M461.2 314c-22.6 27.4-122 109.4-173.7 151.4-18.4 15-44.7 15-63.1 0-51.7-42-151-124-173.7-151.4C16.1 272.3 0 232.6 0 189.4c0-42.2 14.4-81 40.6-109.4C67.2 51.3 103.5 35.4 143 35.4c29.6 0 56.6 9.4 80.4 27.8 12.4 9.7 23.4 21.1 32.5 34 9.2-12.8 20.1-24.3 32.5-34 23.8-18.5 50.9-27.8 80.5-27.8 39.6 0 75.9 15.9 102.4 44.6 26.1 28.4 40.6 67.1 40.6 109.4.1 43.2-16 82.9-50.7 124.6z"
-                fill="#f43f5e"
-              />
-              <path
-                v-else
-                d="M256 478c-13.3 0-26.3-4.5-36.6-12.9C166 421.6 73.1 344.7 51.1 318.2 16.2 276.1 0 236 0 192c0-43 14.8-82.7 41.7-111.9C69.1 50.4 106.7 34 147.4 34c30.7 0 58.7 9.7 83.4 28.9 9.3 7.1 17.7 15.3 25.1 24.3 7.5-9 15.9-17.1 25.1-24.3C305.8 43.7 333.9 34 364.5 34c40.8 0 78.3 16.4 105.8 46.1C497.2 109.3 512 149 512 192c0 44-16.2 84.1-51.1 126.2-22 26.5-114.9 103.4-168.3 146.8-10.3 8.4-23.3 13-36.6 13zM147.4 54c-34.6-.2-67.7 14.2-91.1 39.7C32.9 119.1 20 154 20 192c0 39.1 14.8 75.2 46.5 113.4 15.3 18.4 75.6 71 165.5 144.1 14 11.3 34 11.3 48 0 89.9-73.1 150.2-125.6 165.5-144.1C477.2 267.2 492 231.1 492 192c0-37.9-12.9-72.8-36.4-98.3-23.4-25.5-56.5-39.9-91.1-39.7-26.1 0-50.1 8.3-71.1 24.7-11.2 8.8-21.1 19.1-29.3 30.6-3.2 4.5-9.5 5.5-14 2.2-.8-.6-1.6-1.4-2.2-2.2-8.2-11.6-18.1-21.8-29.2-30.6C197.5 62.3 173.6 54 147.4 54z"
-                fill="none"
-                stroke="rgba(255,255,255,0.45)"
-                stroke-width="20"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-500/40 bg-white/90 text-amber-900 transition-[box-shadow,background-color,filter] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-900/90 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
             type="button"
