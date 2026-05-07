@@ -2,6 +2,46 @@ import { getSupabaseClient } from "./supabaseClient";
 import { seedRecipes } from "./seedRecipes";
 const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 let unsplashDisabledForSession = false;
+const LOCAL_RECIPES_STORAGE_KEY = "let-me-cook-local-recipes";
+let imageUrlColumnSupported = null;
+
+function readLocalRecipes() {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LOCAL_RECIPES_STORAGE_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalRecipes(recipes) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(LOCAL_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
+}
+
+function shouldUseLocalFallback(error) {
+  const message = String(error?.message ?? error ?? "").toLowerCase();
+  return (
+    message.includes("row-level security") ||
+    message.includes("permission denied") ||
+    message.includes("jwt") ||
+    message.includes("missing supabase config") ||
+    message.includes("failed to fetch") ||
+    message.includes("network")
+  );
+}
+
+function isMissingImageUrlColumnError(error) {
+  const message = String(error?.message ?? error ?? "").toLowerCase();
+  return message.includes("image_url") && message.includes("could not find");
+}
+
+function removeImageUrlField(payload) {
+  const nextPayload = { ...payload };
+  delete nextPayload.image_url;
+  return nextPayload;
+}
 
 function getBestSpoonacularImageUrl(url) {
   if (!url || typeof url !== "string") return "";
@@ -148,19 +188,35 @@ export async function seedRecipesIfEmpty() {
     }),
   );
 
-  const { error } = await supabase.from("recipes").insert(payload);
+  let { error } = await supabase.from("recipes").insert(payload);
+  if (error && isMissingImageUrlColumnError(error)) {
+    imageUrlColumnSupported = false;
+    const fallbackPayload = payload.map(removeImageUrlField);
+    ({ error } = await supabase.from("recipes").insert(fallbackPayload));
+  }
   if (error) throw toReadableError(error);
 }
 
 export async function listRecipes() {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase.from("recipes").select("*").order("id", { ascending: false });
-  if (error) throw toReadableError(error);
-  return (data ?? []).map(normalizeRecipe);
+  const localRecipes = readLocalRecipes();
+  let remoteRecipes = [];
+  try {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase.from("recipes").select("*").order("id", { ascending: false });
+    if (error) throw toReadableError(error);
+    remoteRecipes = (data ?? []).map(normalizeRecipe);
+  } catch (error) {
+    if (!shouldUseLocalFallback(error)) throw error;
+  }
+
+  const mergedById = new Map();
+  [...remoteRecipes, ...localRecipes].forEach((recipe) => {
+    mergedById.set(String(recipe.id), recipe);
+  });
+  return [...mergedById.values()].sort((a, b) => String(b.id).localeCompare(String(a.id)));
 }
 
 export async function createRecipe(recipe) {
-  const supabase = getSupabaseClient();
   const insertPayload = {
     user_id: recipe.userId ?? null,
     title: recipe.title,
@@ -176,10 +232,45 @@ export async function createRecipe(recipe) {
     image_url: recipe.imageUrl ?? null,
     editor_name: recipe.editorName ?? null,
   };
-  const { data, error } = await supabase.from("recipes").insert(insertPayload).select("*").single();
-
-  if (error) throw toReadableError(error);
-  return normalizeRecipe(data);
+  try {
+    const supabase = getSupabaseClient();
+    let activeInsertPayload = insertPayload;
+    if (imageUrlColumnSupported === false) {
+      activeInsertPayload = removeImageUrlField(insertPayload);
+    }
+    let { data, error } = await supabase.from("recipes").insert(activeInsertPayload).select("*").single();
+    if (error && isMissingImageUrlColumnError(error)) {
+      imageUrlColumnSupported = false;
+      ({ data, error } = await supabase.from("recipes").insert(removeImageUrlField(insertPayload)).select("*").single());
+    }
+    if (error) throw toReadableError(error);
+    if (imageUrlColumnSupported === null) {
+      imageUrlColumnSupported = true;
+    }
+    return normalizeRecipe(data);
+  } catch (error) {
+    if (!shouldUseLocalFallback(error)) throw error;
+    const localRecipe = {
+      id: `local-${Date.now()}`,
+      userId: recipe.userId ?? null,
+      createdAt: new Date().toISOString(),
+      title: recipe.title,
+      description: recipe.description,
+      thumbnail: recipe.thumbnail ?? "🍽️",
+      cuisine: recipe.cuisine,
+      mealType: recipe.mealType,
+      difficulty: recipe.difficulty,
+      cookTimeMinutes: recipe.cookTimeMinutes,
+      servings: recipe.servings,
+      ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+      steps: Array.isArray(recipe.steps) ? recipe.steps : [],
+      imageUrl: recipe.imageUrl ?? "",
+      editorName: recipe.editorName ?? "",
+    };
+    const localRecipes = readLocalRecipes();
+    writeLocalRecipes([localRecipe, ...localRecipes.filter((item) => String(item.id) !== String(localRecipe.id))]);
+    return localRecipe;
+  }
 }
 
 export async function updateRecipe(recipeId, recipe) {
@@ -201,14 +292,30 @@ export async function updateRecipe(recipeId, recipe) {
   if ("userId" in recipe) {
     updatePayload.user_id = recipe.userId ?? null;
   }
-  const { data, error } = await supabase
+  let activeUpdatePayload = updatePayload;
+  if (imageUrlColumnSupported === false) {
+    activeUpdatePayload = removeImageUrlField(updatePayload);
+  }
+  let { data, error } = await supabase
     .from("recipes")
-    .update(updatePayload)
+    .update(activeUpdatePayload)
     .eq("id", recipeId)
     .select("*")
     .single();
+  if (error && isMissingImageUrlColumnError(error)) {
+    imageUrlColumnSupported = false;
+    ({ data, error } = await supabase
+      .from("recipes")
+      .update(removeImageUrlField(updatePayload))
+      .eq("id", recipeId)
+      .select("*")
+      .single());
+  }
 
   if (error) throw toReadableError(error);
+  if (imageUrlColumnSupported === null) {
+    imageUrlColumnSupported = true;
+  }
   return normalizeRecipe(data);
 }
 
@@ -286,14 +393,22 @@ export async function fetchRecipeImageFromSpoonacular(recipe) {
 }
 
 export async function backfillMissingRecipeImages(limit = 20) {
+  if (imageUrlColumnSupported === false) return 0;
   if (!UNSPLASH_ACCESS_KEY) return 0;
 
   const supabase = getSupabaseClient();
   const { data, error } = await supabase.from("recipes").select("*").order("id", { ascending: false }).limit(limit);
 
-  if (error) throw toReadableError(error);
+  if (error) {
+    if (isMissingImageUrlColumnError(error)) {
+      imageUrlColumnSupported = false;
+      return 0;
+    }
+    throw toReadableError(error);
+  }
   if (!Array.isArray(data) || data.length === 0) return 0;
   if (!("image_url" in data[0])) return 0;
+  imageUrlColumnSupported = true;
 
   let updatedCount = 0;
   const rowsMissingImage = data.filter((row) => !row.image_url);

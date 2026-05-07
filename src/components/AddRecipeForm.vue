@@ -1,5 +1,5 @@
 <template>
-  <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-4 py-4 shadow-sm sm:px-5 dark:bg-zinc-900">
+  <section class="min-h-dvh rounded-none border-0 bg-transparent px-4 py-4 shadow-none sm:min-h-0 sm:rounded-2xl sm:border sm:border-amber-500/30 sm:bg-amber-50 sm:px-5 sm:shadow-sm dark:sm:bg-zinc-900">
     <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">
       {{ props.initialRecipe ? t("addRecipeForm.editTitle") : t("addRecipeForm.title") }}
     </h2>
@@ -146,16 +146,16 @@
           <div
             v-for="(item, index) in form.stepsList"
             :key="`step-${index}`"
-            class="grid gap-2 sm:flex sm:items-start"
+            class="grid grid-cols-[auto_minmax(0,1fr)] gap-2 sm:flex sm:items-start"
           >
-            <span class="shrink-0 text-xs font-semibold text-amber-700 sm:pt-2 dark:text-amber-300">{{ index + 1 }}.</span>
+            <span class="shrink-0 self-center text-xs font-semibold text-amber-700 sm:self-auto sm:pt-2 dark:text-amber-300">{{ index + 1 }}.</span>
             <input
               v-model="form.stepsList[index]"
               class="min-w-0 rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 sm:flex-1 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
               :placeholder="t('addRecipeForm.stepPlaceholder', { number: index + 1 })"
               type="text"
             />
-            <div class="flex gap-2 sm:contents">
+            <div class="col-start-2 flex gap-2 sm:contents">
               <button
                 class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
                 type="button"
@@ -352,6 +352,7 @@ function removeStep(index) {
 }
 
 function handleSubmit() {
+  error.value = "";
   const title = form.title.trim();
   const description = form.description.trim();
   const cuisine = form.cuisine;
@@ -391,11 +392,5 @@ function handleSubmit() {
     steps,
     imageFile: selectedImage.value,
   });
-
-  error.value = "";
-  if (!props.initialRecipe) {
-    resetForm();
-    emit("cancel");
-  }
 }
 </script>

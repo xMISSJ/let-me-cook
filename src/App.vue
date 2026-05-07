@@ -328,11 +328,11 @@
 
     <div
       v-if="isAddModalOpen"
-      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-amber-100 p-0 dark:bg-zinc-950 sm:items-center sm:bg-black/70 sm:p-4"
+      class="fixed inset-0 z-[60] overflow-y-auto bg-amber-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:bg-black/70 sm:p-4"
       @click.self="closeAddRecipeModal"
       @keydown.capture="stopModalClipboardShortcuts"
     >
-      <div class="h-dvh w-full overflow-y-auto sm:h-auto sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl">
+      <div class="min-h-dvh w-full sm:min-h-0 sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:overflow-y-auto sm:rounded-2xl">
         <AddRecipeForm @save-recipe="addRecipe" @cancel="closeAddRecipeModal" />
       </div>
     </div>
@@ -800,22 +800,27 @@ function inferRecipeEmoji(recipe, fallback = "🍽️") {
 
 async function addRecipe(recipe) {
   actionError.value = "";
-  let imageUrl = "";
-  if (recipe.imageFile) {
-    imageUrl = await uploadRecipeImage(recipe.imageFile, null);
-  } else {
-    imageUrl = await fetchRecipeImageFromSpoonacular(recipe);
+  try {
+    let imageUrl = "";
+    if (recipe.imageFile) {
+      imageUrl = await uploadRecipeImage(recipe.imageFile, null);
+    } else {
+      imageUrl = await fetchRecipeImageFromSpoonacular(recipe);
+    }
+    const created = await createRecipe({
+      thumbnail: inferRecipeEmoji(recipe),
+      ...recipe,
+      userId: null,
+      imageUrl,
+      editorName: activeEditorName.value,
+    });
+    recipes.value.unshift(created);
+    router.push("/");
+    closeAddRecipeModal();
+  } catch (error) {
+    console.warn("Unable to add recipe", error);
+    actionError.value = "Could not save recipe. Please try again.";
   }
-  const created = await createRecipe({
-    thumbnail: inferRecipeEmoji(recipe),
-    ...recipe,
-    userId: null,
-    imageUrl,
-    editorName: activeEditorName.value,
-  });
-  recipes.value.unshift(created);
-  router.push("/");
-  closeAddRecipeModal();
 }
 
 function openEditRecipeModal() {
