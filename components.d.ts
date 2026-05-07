@@ -25,9 +25,6 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StepsCard: typeof import('./src/components/StepsCard.vue')['default']
-    UApp: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/App.vue')['default']
-    UButton: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Button.vue')['default']
-    UInput: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Input.vue')['default']
     USelect: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Select.vue')['default']
   }
 }
