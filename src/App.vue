@@ -353,6 +353,23 @@
       </div>
     </div>
     </main>
+    <Transition
+      enter-active-class="transition-all duration-250 ease-out"
+      enter-from-class="opacity-0 translate-y-2"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition-all duration-200 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 translate-y-1"
+    >
+      <div
+        v-if="showRealtimeSyncToast"
+        class="pointer-events-none fixed right-4 bottom-4 z-[70] rounded-lg border border-emerald-500/30 bg-emerald-50/95 px-3 py-2 text-xs font-semibold text-emerald-900 shadow-md dark:border-emerald-300/30 dark:bg-zinc-900/95 dark:text-emerald-200"
+        role="status"
+        aria-live="polite"
+      >
+        Recipes synced across devices
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -378,7 +395,7 @@ import {
   updateRecipe,
   uploadRecipeImage,
 } from "./data/recipesDb";
-import { isSupabaseConfigured } from "./data/supabaseClient";
+import { getSupabaseClient, isSupabaseConfigured } from "./data/supabaseClient";
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -387,6 +404,7 @@ const recipes = ref([]);
 const isLoadingRecipes = ref(true);
 const recipeLoadError = ref("");
 const actionError = ref("");
+const showRealtimeSyncToast = ref(false);
 const theme = ref("dark");
 const guestName = ref("");
 const pendingGuestName = ref("");
@@ -593,6 +611,9 @@ const editingRecipe = computed(() =>
 );
 const canManageSelectedRecipe = computed(() => canManageRecipe(selectedRecipe.value));
 const loadingSpinnerSrc = `${import.meta.env.BASE_URL}favicon.svg`;
+let recipesRealtimeChannel = null;
+let recipesRealtimeRefreshTimer = null;
+let realtimeSyncToastTimer = null;
 
 function canManageRecipe(recipe) {
   return Boolean(recipe);
@@ -626,6 +647,45 @@ async function refreshRecipes() {
     recipeLoadError.value = "Please try again.";
   } finally {
     isLoadingRecipes.value = false;
+  }
+}
+
+function scheduleRealtimeRecipesRefresh() {
+  if (recipesRealtimeRefreshTimer) return;
+  recipesRealtimeRefreshTimer = window.setTimeout(() => {
+    recipesRealtimeRefreshTimer = null;
+    showRealtimeSyncToast.value = true;
+    if (realtimeSyncToastTimer) {
+      window.clearTimeout(realtimeSyncToastTimer);
+    }
+    realtimeSyncToastTimer = window.setTimeout(() => {
+      showRealtimeSyncToast.value = false;
+      realtimeSyncToastTimer = null;
+    }, 2200);
+    void refreshRecipes();
+  }, 250);
+}
+
+function subscribeToRecipeRealtimeChanges() {
+  if (!isSupabaseConfigured() || recipesRealtimeChannel) return;
+  try {
+    const supabase = getSupabaseClient();
+    recipesRealtimeChannel = supabase
+      .channel("public:recipes:changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "recipes" },
+        () => {
+          scheduleRealtimeRecipesRefresh();
+        },
+      )
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          console.warn("Recipe realtime channel error");
+        }
+      });
+  } catch (error) {
+    console.warn("Unable to subscribe to recipe realtime updates", error);
   }
 }
 
@@ -669,6 +729,7 @@ onMounted(() => {
   }, 4200);
 
   void refreshRecipes();
+  subscribeToRecipeRealtimeChanges();
 });
 
 watch(
@@ -979,6 +1040,19 @@ watch([isAddModalOpen, isEditModalOpen, isFilterModalOpen], () => {
 onBeforeUnmount(() => {
   if (mascotAutoHideTimer) {
     window.clearTimeout(mascotAutoHideTimer);
+  }
+  if (recipesRealtimeRefreshTimer) {
+    window.clearTimeout(recipesRealtimeRefreshTimer);
+    recipesRealtimeRefreshTimer = null;
+  }
+  if (realtimeSyncToastTimer) {
+    window.clearTimeout(realtimeSyncToastTimer);
+    realtimeSyncToastTimer = null;
+  }
+  if (recipesRealtimeChannel && isSupabaseConfigured()) {
+    const supabase = getSupabaseClient();
+    supabase.removeChannel(recipesRealtimeChannel);
+    recipesRealtimeChannel = null;
   }
   document.body.style.overflow = "";
   document.documentElement.style.overflow = "";

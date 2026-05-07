@@ -88,7 +88,7 @@
         @keydown="onCardKeydown($event, recipe.id)"
       >
         <button
-          class="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/55 text-rose-500 transition-[box-shadow,background-color,filter] duration-200 ease-out active:brightness-95 lg:hidden dark:bg-zinc-900/90"
+          class="absolute right-2 bottom-2 z-10 inline-flex h-8 w-8 items-center justify-center text-rose-500 transition-transform duration-200 ease-out active:scale-95 lg:hidden"
           type="button"
           :aria-label="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
           :title="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
@@ -213,7 +213,7 @@
             {{ recipe.thumbnail || "🍽️" }}
           </div>
           <div class="min-w-0 flex-1">
-            <h3 class="min-w-0 break-words text-pretty font-semibold text-amber-900 line-clamp-2 pr-10 dark:text-amber-50 lg:pr-20">{{ recipe.title }}</h3>
+            <h3 class="min-w-0 break-words text-pretty font-semibold text-amber-900 line-clamp-2 pr-2 dark:text-amber-50 lg:pr-20">{{ recipe.title }}</h3>
             <p class="mt-1 hidden text-xs text-amber-900/75 dark:text-amber-100/75 md:line-clamp-2 md:block">
               {{ recipe.description || t("overview.tapToView") }}
             </p>
