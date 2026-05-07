@@ -9,24 +9,25 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Let Me Cook</title>
-    <script type="module" crossorigin src="/let-me-cook/assets/index-3gaxa90B.js"></script>
-    <link rel="stylesheet" crossorigin href="/let-me-cook/assets/index-CGmwWBIH.css">
+    <script type="module" crossorigin src="/let-me-cook/assets/index-ZM92Accz.js"></script>
+    <link rel="stylesheet" crossorigin href="/let-me-cook/assets/index-C0siaJuD.css">
   </head>
   <body>
     <div id="app"></div>
     <script>
-      // Restore client-side route redirected through 404.html on GitHub Pages.
+      // Restore client-side route redirected through older GitHub Pages 404 builds.
       (function redirectFrom404() {
         const query = window.location.search;
         if (!query.startsWith("?/")) return;
-        const decodedPath = query
-          .slice(2)
-          .replace(/~and~/g, "&");
-        const cleanUrl =
-          window.location.pathname +
-          decodedPath +
-          window.location.hash;
-        window.history.replaceState(null, "", cleanUrl);
+        const decodedPath = query.slice(2).replace(/~and~/g, "&");
+        const queryStart = decodedPath.indexOf("&");
+        const routePath =
+          queryStart === -1
+            ? decodedPath
+            : decodedPath.slice(0, queryStart) + "?" + decodedPath.slice(queryStart + 1);
+        const normalizedRoutePath = routePath.startsWith("/") ? routePath : "/" + routePath;
+
+        window.history.replaceState(null, "", window.location.pathname + "#" + normalizedRoutePath + window.location.hash);
       })();
     </script>
   </body>
