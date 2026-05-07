@@ -1,76 +1,3 @@
-<script setup>
-import { computed, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import {
-  fetchRecipeImageFromSpoonacular,
-  getRecipeImageDetailUrl,
-  getRecipeImageThumbnailUrl,
-} from "../data/recipesDb";
-
-const props = defineProps({
-  recipe: {
-    type: Object,
-    required: true,
-  },
-  canManage: {
-    type: Boolean,
-    default: false,
-  },
-  isFavorite: {
-    type: Boolean,
-    default: false,
-  },
-});
-
-const emit = defineEmits(["back", "edit", "delete", "toggle-favorite"]);
-const { t } = useI18n();
-const detailTab = ref("ingredients");
-const fetchedFallbackImageUrl = ref("");
-const hasImageLoadError = ref(false);
-const isDetailImageLoaded = ref(false);
-
-const detailImageUrl = computed(() => getRecipeImageDetailUrl(props.recipe.imageUrl || fetchedFallbackImageUrl.value));
-const detailThumbUrl = computed(() => getRecipeImageThumbnailUrl(props.recipe.imageUrl || fetchedFallbackImageUrl.value));
-
-watch(
-  () => props.recipe?.id,
-  async () => {
-    fetchedFallbackImageUrl.value = "";
-    hasImageLoadError.value = false;
-    if (props.recipe?.imageUrl) return;
-    fetchedFallbackImageUrl.value = await fetchRecipeImageFromSpoonacular(props.recipe);
-  },
-  { immediate: true },
-);
-
-watch(
-  detailImageUrl,
-  () => {
-    hasImageLoadError.value = false;
-    isDetailImageLoaded.value = false;
-  },
-);
-
-function handleDetailImageLoad() {
-  isDetailImageLoaded.value = true;
-}
-
-function handleDetailImageError() {
-  hasImageLoadError.value = true;
-  isDetailImageLoaded.value = false;
-}
-
-function getMealTypeEmoji(recipe) {
-  const mealType = String(recipe?.mealType ?? "").toLowerCase();
-  if (mealType === "breakfast") return "🍳";
-  if (mealType === "lunch") return "🥪";
-  if (mealType === "dinner") return "🍽️";
-  if (mealType === "snack") return "🍿";
-  if (mealType === "dessert") return "🍰";
-  return "🍽️";
-}
-</script>
-
 <template>
   <section
     class="overflow-hidden bg-white dark:bg-zinc-950 xl:mx-auto xl:my-8 xl:max-w-6xl xl:rounded-3xl xl:border xl:border-amber-500/25 xl:bg-amber-50/85 xl:shadow-[0_28px_70px_-38px_rgba(120,53,15,0.55)] dark:xl:border-amber-300/20 dark:xl:bg-zinc-900"
@@ -129,10 +56,16 @@ function getMealTypeEmoji(recipe) {
           >
             <svg viewBox="0 0 512 512" class="mr-1.5 h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path
-                d="M256 436a54.62 54.62 0 0 1-29.53-8.64c-25-16.07-73.08-49.05-113.75-89.32C62.81 288.58 37.5 242 37.5 199.56c0-29.49 8.72-56.51 25.22-78.13a115.2 115.2 0 0 1 137.89-35.75c21.18 9.14 40.07 24.55 55.39 45 15.32-20.5 34.21-35.91 55.39-45a115.2 115.2 0 0 1 137.89 35.75c16.5 21.62 25.22 48.64 25.22 78.13 0 42.44-25.31 89-75.22 138.44-40.67 40.27-88.73 73.25-113.75 89.32A54.62 54.62 0 0 1 256 436zM154.16 101.06a89.41 89.41 0 0 0-23.42 3.1 90.93 90.93 0 0 0-48.15 32.44c-13.14 17.22-20.09 39-20.09 63 0 35.52 22.81 76.12 67.81 120.68 39 38.66 85.47 70.5 109.67 86a29.72 29.72 0 0 0 32 0c24.2-15.54 70.63-47.38 109.67-86 45-44.56 67.81-85.16 67.81-120.68 0-24-6.95-45.74-20.09-63a90.93 90.93 0 0 0-48.15-32.44c-34.17-9.28-82.18.42-114.48 55.48a12.49 12.49 0 0 1-21.56 0c-25.38-43.34-60.54-58.58-91.02-58.58z"
-                :fill="isFavorite ? '#f43f5e' : 'rgba(255,255,255,0.2)'"
-                :stroke="isFavorite ? '#f43f5e' : 'rgba(255,255,255,0.9)'"
-                stroke-width="1.8"
+                v-if="isFavorite"
+                d="M461.2 314c-22.6 27.4-122 109.4-173.7 151.4-18.4 15-44.7 15-63.1 0-51.7-42-151-124-173.7-151.4C16.1 272.3 0 232.6 0 189.4c0-42.2 14.4-81 40.6-109.4C67.2 51.3 103.5 35.4 143 35.4c29.6 0 56.6 9.4 80.4 27.8 12.4 9.7 23.4 21.1 32.5 34 9.2-12.8 20.1-24.3 32.5-34 23.8-18.5 50.9-27.8 80.5-27.8 39.6 0 75.9 15.9 102.4 44.6 26.1 28.4 40.6 67.1 40.6 109.4.1 43.2-16 82.9-50.7 124.6z"
+                fill="#f43f5e"
+              />
+              <path
+                v-else
+                d="M256 478c-13.3 0-26.3-4.5-36.6-12.9C166 421.6 73.1 344.7 51.1 318.2 16.2 276.1 0 236 0 192c0-43 14.8-82.7 41.7-111.9C69.1 50.4 106.7 34 147.4 34c30.7 0 58.7 9.7 83.4 28.9 9.3 7.1 17.7 15.3 25.1 24.3 7.5-9 15.9-17.1 25.1-24.3C305.8 43.7 333.9 34 364.5 34c40.8 0 78.3 16.4 105.8 46.1C497.2 109.3 512 149 512 192c0 44-16.2 84.1-51.1 126.2-22 26.5-114.9 103.4-168.3 146.8-10.3 8.4-23.3 13-36.6 13zM147.4 54c-34.6-.2-67.7 14.2-91.1 39.7C32.9 119.1 20 154 20 192c0 39.1 14.8 75.2 46.5 113.4 15.3 18.4 75.6 71 165.5 144.1 14 11.3 34 11.3 48 0 89.9-73.1 150.2-125.6 165.5-144.1C477.2 267.2 492 231.1 492 192c0-37.9-12.9-72.8-36.4-98.3-23.4-25.5-56.5-39.9-91.1-39.7-26.1 0-50.1 8.3-71.1 24.7-11.2 8.8-21.1 19.1-29.3 30.6-3.2 4.5-9.5 5.5-14 2.2-.8-.6-1.6-1.4-2.2-2.2-8.2-11.6-18.1-21.8-29.2-30.6C197.5 62.3 173.6 54 147.4 54z"
+                fill="none"
+                stroke="rgba(255,255,255,0.45)"
+                stroke-width="20"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               />
@@ -148,10 +81,16 @@ function getMealTypeEmoji(recipe) {
           >
             <svg viewBox="0 0 512 512" class="h-4 w-4" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path
-                d="M256 436a54.62 54.62 0 0 1-29.53-8.64c-25-16.07-73.08-49.05-113.75-89.32C62.81 288.58 37.5 242 37.5 199.56c0-29.49 8.72-56.51 25.22-78.13a115.2 115.2 0 0 1 137.89-35.75c21.18 9.14 40.07 24.55 55.39 45 15.32-20.5 34.21-35.91 55.39-45a115.2 115.2 0 0 1 137.89 35.75c16.5 21.62 25.22 48.64 25.22 78.13 0 42.44-25.31 89-75.22 138.44-40.67 40.27-88.73 73.25-113.75 89.32A54.62 54.62 0 0 1 256 436zM154.16 101.06a89.41 89.41 0 0 0-23.42 3.1 90.93 90.93 0 0 0-48.15 32.44c-13.14 17.22-20.09 39-20.09 63 0 35.52 22.81 76.12 67.81 120.68 39 38.66 85.47 70.5 109.67 86a29.72 29.72 0 0 0 32 0c24.2-15.54 70.63-47.38 109.67-86 45-44.56 67.81-85.16 67.81-120.68 0-24-6.95-45.74-20.09-63a90.93 90.93 0 0 0-48.15-32.44c-34.17-9.28-82.18.42-114.48 55.48a12.49 12.49 0 0 1-21.56 0c-25.38-43.34-60.54-58.58-91.02-58.58z"
-                :fill="isFavorite ? '#f43f5e' : 'rgba(255,255,255,0.2)'"
-                :stroke="isFavorite ? '#f43f5e' : 'rgba(255,255,255,0.9)'"
-                stroke-width="1.8"
+                v-if="isFavorite"
+                d="M461.2 314c-22.6 27.4-122 109.4-173.7 151.4-18.4 15-44.7 15-63.1 0-51.7-42-151-124-173.7-151.4C16.1 272.3 0 232.6 0 189.4c0-42.2 14.4-81 40.6-109.4C67.2 51.3 103.5 35.4 143 35.4c29.6 0 56.6 9.4 80.4 27.8 12.4 9.7 23.4 21.1 32.5 34 9.2-12.8 20.1-24.3 32.5-34 23.8-18.5 50.9-27.8 80.5-27.8 39.6 0 75.9 15.9 102.4 44.6 26.1 28.4 40.6 67.1 40.6 109.4.1 43.2-16 82.9-50.7 124.6z"
+                fill="#f43f5e"
+              />
+              <path
+                v-else
+                d="M256 478c-13.3 0-26.3-4.5-36.6-12.9C166 421.6 73.1 344.7 51.1 318.2 16.2 276.1 0 236 0 192c0-43 14.8-82.7 41.7-111.9C69.1 50.4 106.7 34 147.4 34c30.7 0 58.7 9.7 83.4 28.9 9.3 7.1 17.7 15.3 25.1 24.3 7.5-9 15.9-17.1 25.1-24.3C305.8 43.7 333.9 34 364.5 34c40.8 0 78.3 16.4 105.8 46.1C497.2 109.3 512 149 512 192c0 44-16.2 84.1-51.1 126.2-22 26.5-114.9 103.4-168.3 146.8-10.3 8.4-23.3 13-36.6 13zM147.4 54c-34.6-.2-67.7 14.2-91.1 39.7C32.9 119.1 20 154 20 192c0 39.1 14.8 75.2 46.5 113.4 15.3 18.4 75.6 71 165.5 144.1 14 11.3 34 11.3 48 0 89.9-73.1 150.2-125.6 165.5-144.1C477.2 267.2 492 231.1 492 192c0-37.9-12.9-72.8-36.4-98.3-23.4-25.5-56.5-39.9-91.1-39.7-26.1 0-50.1 8.3-71.1 24.7-11.2 8.8-21.1 19.1-29.3 30.6-3.2 4.5-9.5 5.5-14 2.2-.8-.6-1.6-1.4-2.2-2.2-8.2-11.6-18.1-21.8-29.2-30.6C197.5 62.3 173.6 54 147.4 54z"
+                fill="none"
+                stroke="rgba(255,255,255,0.45)"
+                stroke-width="20"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               />
@@ -292,3 +231,76 @@ function getMealTypeEmoji(recipe) {
     </div>
   </section>
 </template>
+
+<script setup>
+import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import {
+  fetchRecipeImageFromSpoonacular,
+  getRecipeImageDetailUrl,
+  getRecipeImageThumbnailUrl,
+} from "../data/recipesDb";
+
+const props = defineProps({
+  recipe: {
+    type: Object,
+    required: true,
+  },
+  canManage: {
+    type: Boolean,
+    default: false,
+  },
+  isFavorite: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const emit = defineEmits(["back", "edit", "delete", "toggle-favorite"]);
+const { t } = useI18n();
+const detailTab = ref("ingredients");
+const fetchedFallbackImageUrl = ref("");
+const hasImageLoadError = ref(false);
+const isDetailImageLoaded = ref(false);
+
+const detailImageUrl = computed(() => getRecipeImageDetailUrl(props.recipe.imageUrl || fetchedFallbackImageUrl.value));
+const detailThumbUrl = computed(() => getRecipeImageThumbnailUrl(props.recipe.imageUrl || fetchedFallbackImageUrl.value));
+
+watch(
+  () => props.recipe?.id,
+  async () => {
+    fetchedFallbackImageUrl.value = "";
+    hasImageLoadError.value = false;
+    if (props.recipe?.imageUrl) return;
+    fetchedFallbackImageUrl.value = await fetchRecipeImageFromSpoonacular(props.recipe);
+  },
+  { immediate: true },
+);
+
+watch(
+  detailImageUrl,
+  () => {
+    hasImageLoadError.value = false;
+    isDetailImageLoaded.value = false;
+  },
+);
+
+function handleDetailImageLoad() {
+  isDetailImageLoaded.value = true;
+}
+
+function handleDetailImageError() {
+  hasImageLoadError.value = true;
+  isDetailImageLoaded.value = false;
+}
+
+function getMealTypeEmoji(recipe) {
+  const mealType = String(recipe?.mealType ?? "").toLowerCase();
+  if (mealType === "breakfast") return "🍳";
+  if (mealType === "lunch") return "🥪";
+  if (mealType === "dinner") return "🍽️";
+  if (mealType === "snack") return "🍿";
+  if (mealType === "dessert") return "🍰";
+  return "🍽️";
+}
+</script>

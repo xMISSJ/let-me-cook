@@ -1,16 +1,3 @@
-<script setup>
-import { useI18n } from "vue-i18n";
-
-defineProps({
-  recipe: {
-    type: Object,
-    required: true,
-  },
-});
-
-const { t } = useI18n();
-</script>
-
 <template>
   <div
     class="inline-flex items-center gap-3 whitespace-nowrap rounded-lg border border-amber-500/30 bg-amber-100/70 px-2.5 py-1.5 text-xs dark:bg-zinc-900/70"
@@ -54,3 +41,16 @@ const { t } = useI18n();
     </div>
   </div>
 </template>
+
+<script setup>
+import { useI18n } from "vue-i18n";
+
+defineProps({
+  recipe: {
+    type: Object,
+    required: true,
+  },
+});
+
+const { t } = useI18n();
+</script>

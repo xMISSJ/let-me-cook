@@ -1,175 +1,3 @@
-<script setup>
-import { reactive, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
-
-const props = defineProps({
-  initialRecipe: {
-    type: Object,
-    default: null,
-  },
-  submitLabel: {
-    type: String,
-    default: "",
-  },
-});
-
-const emit = defineEmits(["save-recipe", "cancel"]);
-const { t } = useI18n();
-
-const form = reactive({
-  title: "",
-  description: "",
-  cuisine: "Italian",
-  mealType: "Dinner",
-  difficulty: "Easy",
-  cookTimeMinutes: 20,
-  servings: 2,
-  ingredientsList: [""],
-  stepsList: [""],
-});
-
-const error = ref("");
-const selectedImage = ref(null);
-
-const cuisineItems = [
-  { label: () => t("cuisine.Italian"), value: "Italian" },
-  { label: () => t("cuisine.Chinese"), value: "Chinese" },
-  { label: () => t("cuisine.Japanese"), value: "Japanese" },
-  { label: () => t("cuisine.Mexican"), value: "Mexican" },
-  { label: () => t("cuisine.Indian"), value: "Indian" },
-  { label: () => t("cuisine.French"), value: "French" },
-  { label: () => t("cuisine.Thai"), value: "Thai" },
-  { label: () => t("cuisine.Mediterranean"), value: "Mediterranean" },
-  { label: () => t("cuisine.Spanish"), value: "Spanish" },
-  { label: () => t("cuisine.Greek"), value: "Greek" },
-  { label: () => t("cuisine.Korean"), value: "Korean" },
-  { label: () => t("cuisine.MiddleEastern"), value: "Middle Eastern" },
-  { label: () => t("cuisine.Vietnamese"), value: "Vietnamese" },
-  { label: () => t("cuisine.Turkish"), value: "Turkish" },
-  { label: () => t("cuisine.Lebanese"), value: "Lebanese" },
-  { label: () => t("cuisine.American"), value: "American" },
-  { label: () => t("cuisine.International"), value: "International" },
-];
-
-const mealTypeItems = [
-  { label: () => t("mealType.Breakfast"), value: "Breakfast" },
-  { label: () => t("mealType.Lunch"), value: "Lunch" },
-  { label: () => t("mealType.Dinner"), value: "Dinner" },
-  { label: () => t("mealType.Snack"), value: "Snack" },
-  { label: () => t("mealType.Dessert"), value: "Dessert" },
-];
-
-const difficultyItems = [
-  { label: () => t("difficulty.Easy"), value: "Easy" },
-  { label: () => t("difficulty.Medium"), value: "Medium" },
-  { label: () => t("difficulty.Hard"), value: "Hard" },
-];
-
-function fillForm(recipe) {
-  form.title = recipe?.title ?? "";
-  form.description = recipe?.description ?? "";
-  form.cuisine = recipe?.cuisine ?? "Italian";
-  form.mealType = recipe?.mealType ?? "Dinner";
-  form.difficulty = recipe?.difficulty ?? "Easy";
-  form.cookTimeMinutes = recipe?.cookTimeMinutes ?? 20;
-  form.servings = recipe?.servings ?? 2;
-  form.ingredientsList = Array.isArray(recipe?.ingredients) && recipe.ingredients.length > 0 ? [...recipe.ingredients] : [""];
-  form.stepsList = Array.isArray(recipe?.steps) && recipe.steps.length > 0 ? [...recipe.steps] : [""];
-  selectedImage.value = null;
-}
-
-watch(
-  () => props.initialRecipe,
-  (recipe) => {
-    fillForm(recipe);
-  },
-  { immediate: true },
-);
-
-function resetForm() {
-  fillForm(props.initialRecipe);
-}
-
-function onImageChange(event) {
-  const [file] = event.target.files ?? [];
-  selectedImage.value = file ?? null;
-}
-
-function addIngredient() {
-  form.ingredientsList.push("");
-}
-
-function insertIngredientAfter(index) {
-  form.ingredientsList.splice(index + 1, 0, "");
-}
-
-function removeIngredient(index) {
-  form.ingredientsList.splice(index, 1);
-  if (form.ingredientsList.length === 0) form.ingredientsList.push("");
-}
-
-function addStep() {
-  form.stepsList.push("");
-}
-
-function insertStepAfter(index) {
-  form.stepsList.splice(index + 1, 0, "");
-}
-
-function removeStep(index) {
-  form.stepsList.splice(index, 1);
-  if (form.stepsList.length === 0) form.stepsList.push("");
-}
-
-function handleSubmit() {
-  const title = form.title.trim();
-  const description = form.description.trim();
-  const cuisine = form.cuisine;
-  const mealType = form.mealType;
-  const difficulty = form.difficulty;
-  const cookTimeMinutes = Number(form.cookTimeMinutes);
-  const servings = Number(form.servings);
-  const ingredients = form.ingredientsList.map((item) => item.trim()).filter(Boolean);
-  const steps = form.stepsList.map((item) => item.trim()).filter(Boolean);
-
-  if (!title || !description || ingredients.length === 0 || steps.length === 0) {
-    error.value = t("addRecipeForm.requiredError");
-    return;
-  }
-
-  if (
-    !Number.isFinite(cookTimeMinutes) ||
-    cookTimeMinutes <= 0 ||
-    cookTimeMinutes > 1440 ||
-    !Number.isFinite(servings) ||
-    servings <= 0 ||
-    servings > 100
-  ) {
-    error.value = t("addRecipeForm.invalidNumbersError");
-    return;
-  }
-
-  emit("save-recipe", {
-    title,
-    description,
-    cuisine,
-    mealType,
-    difficulty,
-    cookTimeMinutes,
-    servings,
-    ingredients,
-    steps,
-    imageFile: selectedImage.value,
-  });
-
-  error.value = "";
-  if (!props.initialRecipe) {
-    resetForm();
-    emit("cancel");
-  }
-}
-</script>
-
 <template>
   <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-4 py-4 shadow-sm sm:px-5 dark:bg-zinc-900">
     <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">
@@ -399,3 +227,175 @@ function handleSubmit() {
     </form>
   </section>
 </template>
+
+<script setup>
+import { reactive, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+
+const props = defineProps({
+  initialRecipe: {
+    type: Object,
+    default: null,
+  },
+  submitLabel: {
+    type: String,
+    default: "",
+  },
+});
+
+const emit = defineEmits(["save-recipe", "cancel"]);
+const { t } = useI18n();
+
+const form = reactive({
+  title: "",
+  description: "",
+  cuisine: "Italian",
+  mealType: "Dinner",
+  difficulty: "Easy",
+  cookTimeMinutes: 20,
+  servings: 2,
+  ingredientsList: [""],
+  stepsList: [""],
+});
+
+const error = ref("");
+const selectedImage = ref(null);
+
+const cuisineItems = [
+  { label: () => t("cuisine.Italian"), value: "Italian" },
+  { label: () => t("cuisine.Chinese"), value: "Chinese" },
+  { label: () => t("cuisine.Japanese"), value: "Japanese" },
+  { label: () => t("cuisine.Mexican"), value: "Mexican" },
+  { label: () => t("cuisine.Indian"), value: "Indian" },
+  { label: () => t("cuisine.French"), value: "French" },
+  { label: () => t("cuisine.Thai"), value: "Thai" },
+  { label: () => t("cuisine.Mediterranean"), value: "Mediterranean" },
+  { label: () => t("cuisine.Spanish"), value: "Spanish" },
+  { label: () => t("cuisine.Greek"), value: "Greek" },
+  { label: () => t("cuisine.Korean"), value: "Korean" },
+  { label: () => t("cuisine.MiddleEastern"), value: "Middle Eastern" },
+  { label: () => t("cuisine.Vietnamese"), value: "Vietnamese" },
+  { label: () => t("cuisine.Turkish"), value: "Turkish" },
+  { label: () => t("cuisine.Lebanese"), value: "Lebanese" },
+  { label: () => t("cuisine.American"), value: "American" },
+  { label: () => t("cuisine.International"), value: "International" },
+];
+
+const mealTypeItems = [
+  { label: () => t("mealType.Breakfast"), value: "Breakfast" },
+  { label: () => t("mealType.Lunch"), value: "Lunch" },
+  { label: () => t("mealType.Dinner"), value: "Dinner" },
+  { label: () => t("mealType.Snack"), value: "Snack" },
+  { label: () => t("mealType.Dessert"), value: "Dessert" },
+];
+
+const difficultyItems = [
+  { label: () => t("difficulty.Easy"), value: "Easy" },
+  { label: () => t("difficulty.Medium"), value: "Medium" },
+  { label: () => t("difficulty.Hard"), value: "Hard" },
+];
+
+function fillForm(recipe) {
+  form.title = recipe?.title ?? "";
+  form.description = recipe?.description ?? "";
+  form.cuisine = recipe?.cuisine ?? "Italian";
+  form.mealType = recipe?.mealType ?? "Dinner";
+  form.difficulty = recipe?.difficulty ?? "Easy";
+  form.cookTimeMinutes = recipe?.cookTimeMinutes ?? 20;
+  form.servings = recipe?.servings ?? 2;
+  form.ingredientsList = Array.isArray(recipe?.ingredients) && recipe.ingredients.length > 0 ? [...recipe.ingredients] : [""];
+  form.stepsList = Array.isArray(recipe?.steps) && recipe.steps.length > 0 ? [...recipe.steps] : [""];
+  selectedImage.value = null;
+}
+
+watch(
+  () => props.initialRecipe,
+  (recipe) => {
+    fillForm(recipe);
+  },
+  { immediate: true },
+);
+
+function resetForm() {
+  fillForm(props.initialRecipe);
+}
+
+function onImageChange(event) {
+  const [file] = event.target.files ?? [];
+  selectedImage.value = file ?? null;
+}
+
+function addIngredient() {
+  form.ingredientsList.push("");
+}
+
+function insertIngredientAfter(index) {
+  form.ingredientsList.splice(index + 1, 0, "");
+}
+
+function removeIngredient(index) {
+  form.ingredientsList.splice(index, 1);
+  if (form.ingredientsList.length === 0) form.ingredientsList.push("");
+}
+
+function addStep() {
+  form.stepsList.push("");
+}
+
+function insertStepAfter(index) {
+  form.stepsList.splice(index + 1, 0, "");
+}
+
+function removeStep(index) {
+  form.stepsList.splice(index, 1);
+  if (form.stepsList.length === 0) form.stepsList.push("");
+}
+
+function handleSubmit() {
+  const title = form.title.trim();
+  const description = form.description.trim();
+  const cuisine = form.cuisine;
+  const mealType = form.mealType;
+  const difficulty = form.difficulty;
+  const cookTimeMinutes = Number(form.cookTimeMinutes);
+  const servings = Number(form.servings);
+  const ingredients = form.ingredientsList.map((item) => item.trim()).filter(Boolean);
+  const steps = form.stepsList.map((item) => item.trim()).filter(Boolean);
+
+  if (!title || !description || ingredients.length === 0 || steps.length === 0) {
+    error.value = t("addRecipeForm.requiredError");
+    return;
+  }
+
+  if (
+    !Number.isFinite(cookTimeMinutes) ||
+    cookTimeMinutes <= 0 ||
+    cookTimeMinutes > 1440 ||
+    !Number.isFinite(servings) ||
+    servings <= 0 ||
+    servings > 100
+  ) {
+    error.value = t("addRecipeForm.invalidNumbersError");
+    return;
+  }
+
+  emit("save-recipe", {
+    title,
+    description,
+    cuisine,
+    mealType,
+    difficulty,
+    cookTimeMinutes,
+    servings,
+    ingredients,
+    steps,
+    imageFile: selectedImage.value,
+  });
+
+  error.value = "";
+  if (!props.initialRecipe) {
+    resetForm();
+    emit("cancel");
+  }
+}
+</script>

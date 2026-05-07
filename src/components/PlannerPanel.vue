@@ -1,3 +1,268 @@
+<template>
+  <section class="w-full">
+    <div class="grid gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] lg:items-stretch">
+      <section class="h-full rounded-2xl border border-amber-500/30 bg-amber-50 px-3 py-3 shadow-sm dark:bg-zinc-900">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold text-amber-900 dark:text-amber-50 sm:text-xl">{{ t("planner.title") }}</h2>
+          <p class="mt-0.5 text-xs text-amber-900/85 dark:text-amber-100/85 sm:text-sm">
+            {{ t("planner.subtitle") }}
+          </p>
+        </div>
+        <button
+          class="inline-flex min-h-9 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-zinc-950 transition-colors lg:hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+          type="button"
+          :disabled="!plannerSelectedDate || !plannerSelectedRecipeId"
+          @click="savePlannerEntry"
+        >
+          {{ t("planner.savePlan") }}
+        </button>
+      </div>
+      <section class="mt-2.5 w-full rounded-xl border border-amber-500/30 bg-white p-2 dark:border-amber-300/20 dark:bg-zinc-800">
+        <div class="mb-2 flex items-center justify-between gap-2">
+          <button
+            class="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-amber-500/40 bg-white text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+            type="button"
+            :aria-label="t('planner.previousMonthAria')"
+            @click="shiftPlannerWeek(-1)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 512 512"
+              class="h-3.5 w-3.5"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M411.5 281h-298c-13.81 0-25-11.19-25-25s11.19-25 25-25h298c13.81 0 25 11.19 25 25s-11.19 25-25 25z" />
+              <path d="M227.99 399.25c-6.08 0-12.18-2.21-16.99-6.67L83.5 274.33a25 25 0 0 1 .25-36.89l131-118.25c10.25-9.25 26.06-8.44 35.31 1.81s8.44 26.06-1.81 35.31l-110.72 99.94L245 355.92c10.12 9.39 10.72 25.21 1.33 35.33-4.93 5.31-11.62 8-18.34 8z" />
+            </svg>
+          </button>
+          <p class="text-xs font-semibold text-amber-900 dark:text-amber-50 sm:text-sm">{{ plannerMobileWeekRangeLabel }}</p>
+          <button
+            class="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-amber-500/40 bg-white text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+            type="button"
+            :aria-label="t('planner.nextMonthAria')"
+            @click="shiftPlannerWeek(1)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 512 512"
+              class="h-3.5 w-3.5 rotate-180"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M411.5 281h-298c-13.81 0-25-11.19-25-25s11.19-25 25-25h298c13.81 0 25 11.19 25 25s-11.19 25-25 25z" />
+              <path d="M227.99 399.25c-6.08 0-12.18-2.21-16.99-6.67L83.5 274.33a25 25 0 0 1 .25-36.89l131-118.25c10.25-9.25 26.06-8.44 35.31 1.81s8.44 26.06-1.81 35.31l-110.72 99.94L245 355.92c10.12 9.39 10.72 25.21 1.33 35.33-4.93 5.31-11.62 8-18.34 8z" />
+            </svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-7 gap-1 sm:hidden">
+          <p
+            v-for="(label, index) in plannerWeekdayNarrowLabels"
+            :key="`mobile-${label}-${index}`"
+            class="pb-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-amber-900/65 dark:text-amber-100/65"
+          >
+            {{ label }}
+          </p>
+          <button
+            v-for="day in plannerMobileWeekDays"
+            :key="`mobile-${day.key}`"
+            class="relative min-h-14 rounded-lg border px-1 py-1 text-sm font-medium transition-[background-color,border-color,box-shadow,color] duration-200"
+            :class="plannerCalendarCellClass(day)"
+            type="button"
+            :title="plannerCalendarTooltip(day)"
+            @click="selectPlannerDate(day.date)"
+          >
+            <div class="flex h-full flex-col items-start justify-start text-left">
+              <span
+                class="inline-flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-[11px] font-semibold"
+                :class="plannerCalendarDayBadgeClass(day)"
+              >
+                {{ day.dayNumber }}
+              </span>
+              <div
+                v-if="day.hasPlan"
+                class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-md border p-0 text-center"
+                :class="plannerCalendarPlanChipClass(day)"
+              >
+                <span class="text-xs leading-none">{{ day.plannedRecipeThumbnail }}</span>
+              </div>
+            </div>
+            <span
+              v-if="day.isToday && !day.isSelected"
+              class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-300"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+
+        <div class="hidden grid-cols-7 gap-1 sm:grid">
+          <p
+            v-for="label in plannerWeekdayLabels"
+            :key="label"
+            class="pb-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-amber-900/65 dark:text-amber-100/65"
+          >
+            {{ label }}
+          </p>
+          <button
+            v-for="day in plannerMobileWeekDays"
+            :key="day.key"
+            class="relative min-h-14 rounded-lg border px-1 py-1 text-sm font-medium transition-[background-color,border-color,box-shadow,color] duration-200 sm:min-h-12 sm:rounded-md sm:px-0.5 sm:py-0.5 sm:text-xs"
+            :class="plannerCalendarCellClass(day)"
+            type="button"
+            :title="plannerCalendarTooltip(day)"
+            @click="selectPlannerDate(day.date)"
+          >
+            <div class="flex h-full flex-col items-start justify-start text-left">
+              <span
+                class="inline-flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-[11px] font-semibold sm:h-4.5 sm:min-w-4.5 sm:rounded sm:text-[10px]"
+                :class="plannerCalendarDayBadgeClass(day)"
+              >
+                {{ day.dayNumber }}
+              </span>
+              <div
+                v-if="day.hasPlan"
+                class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-md border p-0 text-center sm:mt-0.5 sm:h-5.5 sm:w-5.5 sm:rounded"
+                :class="plannerCalendarPlanChipClass(day)"
+              >
+                <span class="text-xs leading-none sm:text-[11px]">{{ day.plannedRecipeThumbnail }}</span>
+              </div>
+            </div>
+            <span
+              v-if="day.isToday && !day.isSelected"
+              class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-300 sm:right-0.5 sm:top-0.5"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      </section>
+      <div class="mt-2.5 grid gap-2.5">
+        <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-end md:gap-x-6">
+          <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
+            <span class="font-medium">{{ t("planner.dayLabel") }}</span>
+            <div class="relative">
+              <span class="pointer-events-none absolute inset-y-0 left-2 inline-flex items-center text-amber-700 dark:text-amber-200">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="h-4 w-4" fill="currentColor" aria-hidden="true">
+                  <path d="M56.562 17.372C56.246 12.117 51.858 8 46.573 8H44V6a2 2 0 0 0-4 0v2H24V6a2 2 0 0 0-4 0v2h-2.573c-5.286 0-9.674 4.117-9.989 9.372-.593 9.884-.582 19.91.033 29.799.312 5.022 4.335 9.045 9.357 9.357 5.033.313 10.102.469 15.171.469 5.068 0 10.138-.156 15.171-.469 5.022-.312 9.045-4.335 9.357-9.357.616-9.884.627-19.909.035-29.799zm-4.026 29.551a6.006 6.006 0 0 1-5.613 5.613c-9.902.615-19.944.615-29.846 0a6.006 6.006 0 0 1-5.613-5.613A241.309 241.309 0 0 1 11.147 24h41.707c.252 7.64.155 15.323-.318 22.923zM22 16a2 2 0 0 0 2-2v-2h16v2a2 2 0 0 0 4 0v-2h2.573c3.173 0 5.807 2.465 5.996 5.611.047.794.067 1.593.106 2.389h-41.35c.04-.796.059-1.595.106-2.389C11.62 14.465 14.253 12 17.427 12H20v2a2 2 0 0 0 2 2z" />
+                  <circle cx="22" cy="33" r="3" />
+                  <circle cx="32" cy="33" r="3" />
+                  <circle cx="22" cy="43" r="3" />
+                  <circle cx="42" cy="33" r="3" />
+                  <circle cx="42" cy="43" r="3" />
+                  <circle cx="32" cy="43" r="3" />
+                </svg>
+              </span>
+              <input
+                v-model="plannerSelectedDate"
+                type="date"
+                class="planner-date-input min-h-9 w-full appearance-none rounded-lg border border-amber-500/35 bg-white py-1.5 pl-8 pr-2.5 text-sm text-amber-900 outline-none transition-colors focus:border-amber-500 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
+              />
+            </div>
+          </label>
+          <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
+            <span class="font-medium">{{ t("planner.recipeLabel") }}</span>
+            <USelect
+              :model-value="plannerSelectedRecipeId || undefined"
+              :items="plannerRecipeOptions"
+              value-key="value"
+              label-key="label"
+              color="neutral"
+              variant="ghost"
+              :highlight="false"
+              class="w-full"
+              :placeholder="t('planner.chooseRecipe')"
+              :ui="plannerRecipeSelectUi"
+              @update:model-value="plannerSelectedRecipeId = $event ?? ''"
+            />
+          </label>
+        </div>
+      </div>
+      </section>
+
+      <div class="grid h-full auto-rows-fr gap-3">
+        <section
+          v-if="plannerSelectedDate"
+          class="h-full rounded-2xl border border-amber-500/30 bg-amber-50 px-3 py-3 shadow-sm dark:bg-zinc-900"
+        >
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">
+                {{ t("planner.planForDate", { date: formatPlannerDate(plannerSelectedDate) }) }}
+              </h3>
+              <p class="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">
+                {{ selectedDatePlan ? t("planner.dayPlanned") : t("planner.noPlanForDay") }}
+              </p>
+            </div>
+            <button
+              v-if="selectedDatePlan"
+              class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/45 bg-white px-3 py-2 text-xs font-semibold text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+              type="button"
+              @click="clearPlannerEntry(plannerSelectedDate)"
+            >
+              {{ t("planner.clearDay") }}
+            </button>
+          </div>
+
+          <div
+            v-if="selectedDatePlan"
+            class="mt-2.5 flex items-center justify-between gap-2.5 rounded-xl border border-amber-500/30 bg-white px-2.5 py-2.5 dark:bg-zinc-800"
+          >
+            <button
+              class="flex min-w-0 cursor-pointer items-center gap-3 text-left"
+              type="button"
+              @click="openPlannedRecipe(selectedDatePlan.recipe.id)"
+            >
+              <span class="text-xl">{{ selectedDatePlan.recipe.thumbnail || "🍽️" }}</span>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-amber-900 dark:text-amber-50">{{ selectedDatePlan.recipe.title }}</p>
+                <p class="mt-0.5 text-xs text-amber-900/75 dark:text-amber-100/75">
+                  {{ t(`cuisine.${selectedDatePlan.recipe.cuisine}`, selectedDatePlan.recipe.cuisine) }} -
+                  {{ t(`mealType.${selectedDatePlan.recipe.mealType}`, selectedDatePlan.recipe.mealType) }}
+                </p>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <section class="h-full rounded-2xl border border-amber-500/30 bg-amber-50 px-3 py-3 shadow-sm dark:bg-zinc-900">
+          <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">{{ t("planner.upcomingPlans") }}</h3>
+          <p v-if="plannedMeals.length === 0" class="mt-2 text-sm text-amber-900/80 dark:text-amber-100/80">
+            {{ t("planner.noPlannedRecipes") }}
+          </p>
+          <div v-else class="mt-3 grid gap-2">
+            <div
+              v-for="entry in plannedMeals"
+              :key="entry.date"
+              class="flex items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-white px-3 py-2.5 dark:bg-zinc-800"
+            >
+              <div class="min-w-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-amber-900/70 dark:text-amber-100/70">
+                  {{ formatPlannerDate(entry.date) }}
+                </p>
+                <button
+                  class="mt-0.5 inline-flex min-w-0 cursor-pointer items-center gap-1.5 text-sm font-semibold text-amber-900 dark:text-amber-50"
+                  type="button"
+                  @click="openPlannedRecipe(entry.recipe.id)"
+                >
+                  <span>{{ entry.recipe.thumbnail || "🍽️" }}</span>
+                  <span class="truncate">{{ entry.recipe.title }}</span>
+                </button>
+              </div>
+              <button
+                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/45 bg-white px-2.5 py-1.5 text-xs font-semibold text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+                type="button"
+                @click="clearPlannerEntry(entry.date)"
+              >
+                {{ t("planner.remove") }}
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+</template>
+
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -343,271 +608,6 @@ function openPlannedRecipe(recipeId) {
   emit("open-recipe", recipeId);
 }
 </script>
-
-<template>
-  <section class="w-full">
-    <div class="grid gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] lg:items-stretch">
-      <section class="h-full rounded-2xl border border-amber-500/30 bg-amber-50 px-3 py-3 shadow-sm dark:bg-zinc-900">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <h2 class="text-lg font-semibold text-amber-900 dark:text-amber-50 sm:text-xl">{{ t("planner.title") }}</h2>
-          <p class="mt-0.5 text-xs text-amber-900/85 dark:text-amber-100/85 sm:text-sm">
-            {{ t("planner.subtitle") }}
-          </p>
-        </div>
-        <button
-          class="inline-flex min-h-9 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-zinc-950 transition-colors lg:hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
-          type="button"
-          :disabled="!plannerSelectedDate || !plannerSelectedRecipeId"
-          @click="savePlannerEntry"
-        >
-          {{ t("planner.savePlan") }}
-        </button>
-      </div>
-      <section class="mt-2.5 w-full rounded-xl border border-amber-500/30 bg-white p-2 dark:border-amber-300/20 dark:bg-zinc-800">
-        <div class="mb-2 flex items-center justify-between gap-2">
-          <button
-            class="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-amber-500/40 bg-white text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
-            type="button"
-            :aria-label="t('planner.previousMonthAria')"
-            @click="shiftPlannerWeek(-1)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-              class="h-3.5 w-3.5"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M411.5 281h-298c-13.81 0-25-11.19-25-25s11.19-25 25-25h298c13.81 0 25 11.19 25 25s-11.19 25-25 25z" />
-              <path d="M227.99 399.25c-6.08 0-12.18-2.21-16.99-6.67L83.5 274.33a25 25 0 0 1 .25-36.89l131-118.25c10.25-9.25 26.06-8.44 35.31 1.81s8.44 26.06-1.81 35.31l-110.72 99.94L245 355.92c10.12 9.39 10.72 25.21 1.33 35.33-4.93 5.31-11.62 8-18.34 8z" />
-            </svg>
-          </button>
-          <p class="text-xs font-semibold text-amber-900 dark:text-amber-50 sm:text-sm">{{ plannerMobileWeekRangeLabel }}</p>
-          <button
-            class="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-amber-500/40 bg-white text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
-            type="button"
-            :aria-label="t('planner.nextMonthAria')"
-            @click="shiftPlannerWeek(1)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-              class="h-3.5 w-3.5 rotate-180"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M411.5 281h-298c-13.81 0-25-11.19-25-25s11.19-25 25-25h298c13.81 0 25 11.19 25 25s-11.19 25-25 25z" />
-              <path d="M227.99 399.25c-6.08 0-12.18-2.21-16.99-6.67L83.5 274.33a25 25 0 0 1 .25-36.89l131-118.25c10.25-9.25 26.06-8.44 35.31 1.81s8.44 26.06-1.81 35.31l-110.72 99.94L245 355.92c10.12 9.39 10.72 25.21 1.33 35.33-4.93 5.31-11.62 8-18.34 8z" />
-            </svg>
-          </button>
-        </div>
-        <div class="grid grid-cols-7 gap-1 sm:hidden">
-          <p
-            v-for="(label, index) in plannerWeekdayNarrowLabels"
-            :key="`mobile-${label}-${index}`"
-            class="pb-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-amber-900/65 dark:text-amber-100/65"
-          >
-            {{ label }}
-          </p>
-          <button
-            v-for="day in plannerMobileWeekDays"
-            :key="`mobile-${day.key}`"
-            class="relative min-h-14 rounded-lg border px-1 py-1 text-sm font-medium transition-[background-color,border-color,box-shadow,color] duration-200"
-            :class="plannerCalendarCellClass(day)"
-            type="button"
-            :title="plannerCalendarTooltip(day)"
-            @click="selectPlannerDate(day.date)"
-          >
-            <div class="flex h-full flex-col items-start justify-start text-left">
-              <span
-                class="inline-flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-[11px] font-semibold"
-                :class="plannerCalendarDayBadgeClass(day)"
-              >
-                {{ day.dayNumber }}
-              </span>
-              <div
-                v-if="day.hasPlan"
-                class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-md border p-0 text-center"
-                :class="plannerCalendarPlanChipClass(day)"
-              >
-                <span class="text-xs leading-none">{{ day.plannedRecipeThumbnail }}</span>
-              </div>
-            </div>
-            <span
-              v-if="day.isToday && !day.isSelected"
-              class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-300"
-              aria-hidden="true"
-            />
-          </button>
-        </div>
-
-        <div class="hidden grid-cols-7 gap-1 sm:grid">
-          <p
-            v-for="label in plannerWeekdayLabels"
-            :key="label"
-            class="pb-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-amber-900/65 dark:text-amber-100/65"
-          >
-            {{ label }}
-          </p>
-          <button
-            v-for="day in plannerMobileWeekDays"
-            :key="day.key"
-            class="relative min-h-14 rounded-lg border px-1 py-1 text-sm font-medium transition-[background-color,border-color,box-shadow,color] duration-200 sm:min-h-12 sm:rounded-md sm:px-0.5 sm:py-0.5 sm:text-xs"
-            :class="plannerCalendarCellClass(day)"
-            type="button"
-            :title="plannerCalendarTooltip(day)"
-            @click="selectPlannerDate(day.date)"
-          >
-            <div class="flex h-full flex-col items-start justify-start text-left">
-              <span
-                class="inline-flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-[11px] font-semibold sm:h-4.5 sm:min-w-4.5 sm:rounded sm:text-[10px]"
-                :class="plannerCalendarDayBadgeClass(day)"
-              >
-                {{ day.dayNumber }}
-              </span>
-              <div
-                v-if="day.hasPlan"
-                class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-md border p-0 text-center sm:mt-0.5 sm:h-5.5 sm:w-5.5 sm:rounded"
-                :class="plannerCalendarPlanChipClass(day)"
-              >
-                <span class="text-xs leading-none sm:text-[11px]">{{ day.plannedRecipeThumbnail }}</span>
-              </div>
-            </div>
-            <span
-              v-if="day.isToday && !day.isSelected"
-              class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-300 sm:right-0.5 sm:top-0.5"
-              aria-hidden="true"
-            />
-          </button>
-        </div>
-      </section>
-      <div class="mt-2.5 grid gap-2.5">
-        <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-end md:gap-x-6">
-          <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
-            <span class="font-medium">{{ t("planner.dayLabel") }}</span>
-            <div class="relative">
-              <span class="pointer-events-none absolute inset-y-0 left-2 inline-flex items-center text-amber-700 dark:text-amber-200">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="h-4 w-4" fill="currentColor" aria-hidden="true">
-                  <path d="M56.562 17.372C56.246 12.117 51.858 8 46.573 8H44V6a2 2 0 0 0-4 0v2H24V6a2 2 0 0 0-4 0v2h-2.573c-5.286 0-9.674 4.117-9.989 9.372-.593 9.884-.582 19.91.033 29.799.312 5.022 4.335 9.045 9.357 9.357 5.033.313 10.102.469 15.171.469 5.068 0 10.138-.156 15.171-.469 5.022-.312 9.045-4.335 9.357-9.357.616-9.884.627-19.909.035-29.799zm-4.026 29.551a6.006 6.006 0 0 1-5.613 5.613c-9.902.615-19.944.615-29.846 0a6.006 6.006 0 0 1-5.613-5.613A241.309 241.309 0 0 1 11.147 24h41.707c.252 7.64.155 15.323-.318 22.923zM22 16a2 2 0 0 0 2-2v-2h16v2a2 2 0 0 0 4 0v-2h2.573c3.173 0 5.807 2.465 5.996 5.611.047.794.067 1.593.106 2.389h-41.35c.04-.796.059-1.595.106-2.389C11.62 14.465 14.253 12 17.427 12H20v2a2 2 0 0 0 2 2z" />
-                  <circle cx="22" cy="33" r="3" />
-                  <circle cx="32" cy="33" r="3" />
-                  <circle cx="22" cy="43" r="3" />
-                  <circle cx="42" cy="33" r="3" />
-                  <circle cx="42" cy="43" r="3" />
-                  <circle cx="32" cy="43" r="3" />
-                </svg>
-              </span>
-              <input
-                v-model="plannerSelectedDate"
-                type="date"
-                class="planner-date-input min-h-9 w-full appearance-none rounded-lg border border-amber-500/35 bg-white py-1.5 pl-8 pr-2.5 text-sm text-amber-900 outline-none transition-colors focus:border-amber-500 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
-              />
-            </div>
-          </label>
-          <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
-            <span class="font-medium">{{ t("planner.recipeLabel") }}</span>
-            <USelect
-              :model-value="plannerSelectedRecipeId || undefined"
-              :items="plannerRecipeOptions"
-              value-key="value"
-              label-key="label"
-              color="neutral"
-              variant="ghost"
-              :highlight="false"
-              class="w-full"
-              :placeholder="t('planner.chooseRecipe')"
-              :ui="plannerRecipeSelectUi"
-              @update:model-value="plannerSelectedRecipeId = $event ?? ''"
-            />
-          </label>
-        </div>
-      </div>
-      </section>
-
-      <div class="grid h-full auto-rows-fr gap-3">
-        <section
-          v-if="plannerSelectedDate"
-          class="h-full rounded-2xl border border-amber-500/30 bg-amber-50 px-3 py-3 shadow-sm dark:bg-zinc-900"
-        >
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">
-                {{ t("planner.planForDate", { date: formatPlannerDate(plannerSelectedDate) }) }}
-              </h3>
-              <p class="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">
-                {{ selectedDatePlan ? t("planner.dayPlanned") : t("planner.noPlanForDay") }}
-              </p>
-            </div>
-            <button
-              v-if="selectedDatePlan"
-              class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/45 bg-white px-3 py-2 text-xs font-semibold text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
-              type="button"
-              @click="clearPlannerEntry(plannerSelectedDate)"
-            >
-              {{ t("planner.clearDay") }}
-            </button>
-          </div>
-
-          <div
-            v-if="selectedDatePlan"
-            class="mt-2.5 flex items-center justify-between gap-2.5 rounded-xl border border-amber-500/30 bg-white px-2.5 py-2.5 dark:bg-zinc-800"
-          >
-            <button
-              class="flex min-w-0 cursor-pointer items-center gap-3 text-left"
-              type="button"
-              @click="openPlannedRecipe(selectedDatePlan.recipe.id)"
-            >
-              <span class="text-xl">{{ selectedDatePlan.recipe.thumbnail || "🍽️" }}</span>
-              <div class="min-w-0">
-                <p class="truncate text-sm font-semibold text-amber-900 dark:text-amber-50">{{ selectedDatePlan.recipe.title }}</p>
-                <p class="mt-0.5 text-xs text-amber-900/75 dark:text-amber-100/75">
-                  {{ t(`cuisine.${selectedDatePlan.recipe.cuisine}`, selectedDatePlan.recipe.cuisine) }} -
-                  {{ t(`mealType.${selectedDatePlan.recipe.mealType}`, selectedDatePlan.recipe.mealType) }}
-                </p>
-              </div>
-            </button>
-          </div>
-        </section>
-
-        <section class="h-full rounded-2xl border border-amber-500/30 bg-amber-50 px-3 py-3 shadow-sm dark:bg-zinc-900">
-          <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">{{ t("planner.upcomingPlans") }}</h3>
-          <p v-if="plannedMeals.length === 0" class="mt-2 text-sm text-amber-900/80 dark:text-amber-100/80">
-            {{ t("planner.noPlannedRecipes") }}
-          </p>
-          <div v-else class="mt-3 grid gap-2">
-            <div
-              v-for="entry in plannedMeals"
-              :key="entry.date"
-              class="flex items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-white px-3 py-2.5 dark:bg-zinc-800"
-            >
-              <div class="min-w-0">
-                <p class="text-xs font-medium uppercase tracking-wide text-amber-900/70 dark:text-amber-100/70">
-                  {{ formatPlannerDate(entry.date) }}
-                </p>
-                <button
-                  class="mt-0.5 inline-flex min-w-0 cursor-pointer items-center gap-1.5 text-sm font-semibold text-amber-900 dark:text-amber-50"
-                  type="button"
-                  @click="openPlannedRecipe(entry.recipe.id)"
-                >
-                  <span>{{ entry.recipe.thumbnail || "🍽️" }}</span>
-                  <span class="truncate">{{ entry.recipe.title }}</span>
-                </button>
-              </div>
-              <button
-                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/45 bg-white px-2.5 py-1.5 text-xs font-semibold text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
-                type="button"
-                @click="clearPlannerEntry(entry.date)"
-              >
-                {{ t("planner.remove") }}
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  </section>
-</template>
 
 <style scoped>
 .planner-date-input::-webkit-calendar-picker-indicator {

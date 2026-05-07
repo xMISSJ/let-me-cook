@@ -1,64 +1,3 @@
-<script setup>
-import { useI18n } from "vue-i18n";
-
-defineOptions({
-  name: "ProfilePanel",
-});
-
-defineProps({
-  profileHeading: {
-    type: String,
-    required: true,
-  },
-  selectedProfileAvatar: {
-    type: Object,
-    required: true,
-  },
-  profileAvatarOptions: {
-    type: Array,
-    required: true,
-  },
-  pendingProfileAvatar: {
-    type: String,
-    required: true,
-  },
-  pendingGuestName: {
-    type: String,
-    default: "",
-  },
-  locale: {
-    type: String,
-    required: true,
-  },
-  languageItems: {
-    type: Array,
-    required: true,
-  },
-  theme: {
-    type: String,
-    required: true,
-  },
-});
-
-const profileLanguageSelectUi = {
-  base: "min-h-9 rounded-lg border border-amber-500/20 bg-transparent px-2 text-amber-900 shadow-none transition-colors hover:border-amber-500/30 hover:bg-amber-100/40 focus-visible:ring-1 focus-visible:ring-amber-500/30 data-[state=open]:border-amber-500/30 data-[state=open]:bg-amber-100/40 dark:border-amber-300/15 dark:text-amber-100 dark:hover:border-amber-300/25 dark:hover:bg-zinc-800/70 dark:focus-visible:ring-amber-300/25 dark:data-[state=open]:border-amber-300/25 dark:data-[state=open]:bg-zinc-800/70",
-  trailingIcon: "text-amber-800/70 dark:text-amber-100/70",
-  value: "text-amber-900/90 dark:text-amber-100/90",
-  placeholder: "text-amber-900/55 dark:text-amber-100/55",
-  content: "rounded-xl border border-amber-500/25 bg-amber-50 p-1 shadow-lg shadow-amber-900/10 dark:border-amber-300/20 dark:bg-zinc-900 dark:shadow-black/35",
-  item: "rounded-lg text-amber-900/90 hover:bg-amber-100 dark:text-amber-100/90 dark:hover:bg-zinc-800 data-highlighted:not-data-disabled:bg-amber-100 dark:data-highlighted:not-data-disabled:bg-zinc-800",
-};
-
-const emit = defineEmits([
-  "update:pendingGuestName",
-  "select-profile-avatar",
-  "save-guest-name",
-  "set-language",
-  "toggle-theme",
-]);
-const { t } = useI18n();
-</script>
-
 <template>
   <section
     class="overflow-hidden rounded-3xl border border-amber-500/30 bg-amber-50 px-4 py-4 shadow-sm sm:px-5 sm:py-5 lg:rounded-2xl lg:px-7 lg:py-6 dark:bg-zinc-900"
@@ -134,7 +73,7 @@ const { t } = useI18n();
         </div>
       </section>
 
-      <section class="w-full rounded-2xl border border-amber-500/25 bg-white/80 p-4 shadow-[0_6px_18px_-16px_rgba(120,53,15,0.45)] dark:border-amber-300/20 dark:bg-zinc-800/70">
+      <section class="w-full rounded-2xl border border-amber-500/25 bg-white/80 p-4 shadow-[0_6px_18px_-16px_rgba(120,53,15,0.45)] dark:border-amber-300/20 dark:bg-zinc-800/70 lg:hidden">
         <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">{{ t("profile.settingsTitle") }}</h3>
         <div class="mt-3 grid gap-2">
           <label class="grid min-h-14 gap-2 rounded-xl border border-amber-500/25 bg-amber-50/90 px-3 py-2 text-sm text-amber-900/85 dark:border-amber-300/20 dark:bg-zinc-900/70 dark:text-amber-100/85 md:grid-cols-[7rem_minmax(0,1fr)] md:items-center md:gap-3">
@@ -174,3 +113,64 @@ const { t } = useI18n();
     </div>
   </section>
 </template>
+
+<script setup>
+import { useI18n } from "vue-i18n";
+
+defineOptions({
+  name: "ProfilePanel",
+});
+
+defineProps({
+  profileHeading: {
+    type: String,
+    required: true,
+  },
+  selectedProfileAvatar: {
+    type: Object,
+    required: true,
+  },
+  profileAvatarOptions: {
+    type: Array,
+    required: true,
+  },
+  pendingProfileAvatar: {
+    type: String,
+    required: true,
+  },
+  pendingGuestName: {
+    type: String,
+    default: "",
+  },
+  locale: {
+    type: String,
+    required: true,
+  },
+  languageItems: {
+    type: Array,
+    required: true,
+  },
+  theme: {
+    type: String,
+    required: true,
+  },
+});
+
+const profileLanguageSelectUi = {
+  base: "min-h-9 rounded-lg border border-amber-500/20 bg-transparent px-2 text-amber-900 shadow-none transition-colors hover:border-amber-500/30 hover:bg-amber-100/40 focus-visible:ring-1 focus-visible:ring-amber-500/30 data-[state=open]:border-amber-500/30 data-[state=open]:bg-amber-100/40 dark:border-amber-300/15 dark:text-amber-100 dark:hover:border-amber-300/25 dark:hover:bg-zinc-800/70 dark:focus-visible:ring-amber-300/25 dark:data-[state=open]:border-amber-300/25 dark:data-[state=open]:bg-zinc-800/70",
+  trailingIcon: "text-amber-800/70 dark:text-amber-100/70",
+  value: "text-amber-900/90 dark:text-amber-100/90",
+  placeholder: "text-amber-900/55 dark:text-amber-100/55",
+  content: "rounded-xl border border-amber-500/25 bg-amber-50 p-1 shadow-lg shadow-amber-900/10 dark:border-amber-300/20 dark:bg-zinc-900 dark:shadow-black/35",
+  item: "rounded-lg text-amber-900/90 hover:bg-amber-100 dark:text-amber-100/90 dark:hover:bg-zinc-800 data-highlighted:not-data-disabled:bg-amber-100 dark:data-highlighted:not-data-disabled:bg-zinc-800",
+};
+
+const emit = defineEmits([
+  "update:pendingGuestName",
+  "select-profile-avatar",
+  "save-guest-name",
+  "set-language",
+  "toggle-theme",
+]);
+const { t } = useI18n();
+</script>

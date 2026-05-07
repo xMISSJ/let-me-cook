@@ -1,3 +1,361 @@
+<template>
+  <div>
+    <main
+      class="font-description-preview box-border min-h-dvh bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
+      :class="isRecipePage ? 'px-0 py-0 pb-24 md:pb-0' : 'px-4 py-8 pb-24 md:px-6 md:pb-8 xl:px-10'"
+    >
+    <div
+      class="mx-auto w-full"
+      :class="isRecipePage ? 'max-w-none' : 'grid max-w-7xl gap-4'"
+    >
+      <p v-if="!isRecipePage && actionError" class="text-xs text-rose-700 dark:text-rose-300">{{ actionError }}</p>
+      <div v-if="!isRecipePage">
+        <AppHeaderBar
+          :active-menu="currentMenu"
+          :guest-name="guestName"
+          :guest-avatar-src="selectedProfileAvatar.src"
+          :guest-avatar-alt="selectedProfileAvatar.alt"
+          @navigate="navigateToMenu"
+        />
+      </div>
+
+      <section
+        v-if="recipeLoadError"
+        class="rounded-2xl border border-rose-500/40 bg-rose-50 px-5 py-4 text-rose-900 shadow-sm dark:bg-zinc-900 dark:text-rose-100"
+      >
+        <p class="text-sm font-semibold">{{ t("status.failedToLoadRecipes") }}</p>
+        <p class="mt-1 break-words text-sm opacity-90">{{ recipeLoadError }}</p>
+        <button
+          class="mt-3 inline-flex items-center justify-center cursor-pointer rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-zinc-950 lg:hover:bg-rose-400"
+          type="button"
+          @click="refreshRecipes"
+        >
+          {{ t("common.retry") }}
+        </button>
+      </section>
+
+      <template v-if="isRecipePage">
+        <section
+          v-if="isLoadingRecipes"
+          class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-amber-100/95 dark:bg-zinc-950/95"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <img
+            :src="loadingSpinnerSrc"
+            alt=""
+            class="h-16 w-16 animate-spin rounded-full shadow-lg [animation-duration:1.2s]"
+            aria-hidden="true"
+          />
+          <p class="text-sm font-semibold text-amber-900/80 dark:text-amber-100/80">{{ t("status.loadingRecipe") }}</p>
+        </section>
+        <RecipeDetailCard
+          v-else-if="selectedRecipe"
+          :recipe="selectedRecipe"
+          :can-manage="canManageSelectedRecipe"
+          :is-favorite="isFavoriteRecipe(selectedRecipe.id)"
+          @back="goToOverview"
+          @edit="openEditRecipeModal"
+          @delete="removeSelectedRecipe"
+          @toggle-favorite="toggleFavoriteRecipe(selectedRecipe.id)"
+        />
+        <section
+          v-else
+          class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
+        >
+          <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("details.noneTitle") }}</h2>
+          <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
+            {{ t("details.noneText") }}
+          </p>
+          <button
+            class="mt-4 inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 lg:hover:bg-amber-400"
+            type="button"
+            @click="goToOverview"
+          >
+            {{ t("details.goToOverview") }}
+          </button>
+        </section>
+      </template>
+      <Transition name="menu-panel" mode="out-in">
+        <section v-if="!isRecipePage && currentMenu === 'overview'" key="menu-overview" class="grid gap-4">
+          <OverviewToolbar
+            :filtered-count="filteredRecipes.length"
+            :total-count="recipes.length"
+            @edit-filters="openFilterModal"
+          />
+          <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
+            <div class="min-w-0 grid gap-4">
+              <RecipeList
+                :recipes="filteredRecipes"
+                :favorite-recipe-ids="favoriteRecipeIds"
+                :is-loading="isLoadingRecipes"
+                :show-no-results="!isLoadingRecipes && recipes.length > 0 && filteredRecipes.length === 0 && hasActiveFilters"
+                :no-results-cuisine-label="selectedCuisineLabels.length === 0 ? t('filters.all') : selectedCuisineLabels.join(', ')"
+                :no-results-meal-type-label="selectedMealTypeLabels.length === 0 ? t('filters.all') : selectedMealTypeLabels.join(', ')"
+                @select-recipe="openRecipe"
+                @add-recipe="openAddRecipeModal"
+                @edit-recipe="openEditRecipeModalById"
+                @delete-recipe="removeRecipeById"
+                @toggle-favorite="toggleFavoriteRecipe"
+                @clear-filters="clearFilters"
+              />
+            </div>
+
+            <aside class="hidden min-w-0 h-fit rounded-2xl border border-amber-500/30 bg-amber-50 p-4 shadow-sm md:grid md:gap-4 dark:bg-zinc-900">
+              <section class="grid gap-2">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-amber-900/75 dark:text-amber-100/75">{{ t("overview.panelTitle") }}</h3>
+              </section>
+
+              <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
+                {{ t("overview.showing", { filtered: filteredRecipes.length, total: recipes.length }) }}
+              </p>
+
+              <section class="grid gap-2 rounded-xl border border-amber-500/30 bg-white p-3 dark:bg-zinc-800">
+                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.activeFiltersTitle") }}</h3>
+                <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
+                  {{ t("filters.cuisine") }}:
+                  <span class="font-semibold">{{ selectedCuisineLabels.length === 0 ? t("filters.all") : selectedCuisineLabels.join(", ") }}</span>
+                </p>
+                <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
+                  {{ t("filters.mealType") }}:
+                  <span class="font-semibold">{{ selectedMealTypeLabels.length === 0 ? t("filters.all") : selectedMealTypeLabels.join(", ") }}</span>
+                </p>
+                <button
+                  class="mt-1 inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-md active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
+                  type="button"
+                  @click="openFilterModal"
+                >
+                  {{ t("overview.editFilters") }}
+                </button>
+              </section>
+
+              <section class="grid gap-3 rounded-xl border border-amber-500/30 bg-white p-3 dark:bg-zinc-800">
+                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.recentPicksTitle") }}</h3>
+                <p v-if="recentRecipes.length === 0" class="text-xs text-amber-900/75 dark:text-amber-100/75">
+                  {{ t("overview.recentPicksEmpty") }}
+                </p>
+                <button
+                  v-for="recipe in recentRecipes"
+                  :key="recipe.id"
+                  class="group min-w-0 grid cursor-pointer gap-2 rounded-lg border border-amber-500/30 bg-white/70 px-3 py-2.5 text-left transition-[box-shadow,background-color,border-color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-50 lg:hover:border-amber-400/70 lg:hover:bg-amber-200 lg:hover:shadow-sm lg:hover:shadow-amber-900/10 dark:bg-zinc-800/70 dark:focus-visible:ring-amber-300/60 dark:focus-visible:ring-offset-zinc-800 dark:lg:hover:border-amber-300/50 dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/25"
+                  type="button"
+                  @click="openRecipe(recipe.id)"
+                >
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="text-sm font-semibold leading-snug break-words text-amber-900 dark:text-amber-50">
+                        {{ recipe.title }}
+                      </p>
+                      <div class="mt-1 flex flex-wrap items-center gap-1 text-[11px] font-medium text-amber-900/80 dark:text-amber-100/80">
+                        <span class="-ml-px rounded-md bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
+                          {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
+                        </span>
+                        <span class="rounded-md bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
+                          {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
+                        </span>
+                      </div>
+                    </div>
+                    <span class="shrink-0 text-base opacity-80">{{ recipe.thumbnail || "🍽️" }}</span>
+                  </div>
+
+                  <div class="flex items-center justify-between gap-3 text-[11px] text-amber-900/80 dark:text-amber-100/80">
+                    <span class="inline-flex items-center gap-1 font-semibold text-amber-900/75 dark:text-amber-100/75">
+                      {{ t("common.open") }}
+                      <span class="inline-block transition-transform duration-200 ease-out lg:group-hover:translate-x-0.5" aria-hidden="true">→</span>
+                    </span>
+                    <div class="flex items-center gap-3">
+                    <span>{{ recipe.cookTimeMinutes }} min</span>
+                    <span>{{ t("common.servingsCount", { count: recipe.servings }) }}</span>
+                    </div>
+                  </div>
+
+                </button>
+              </section>
+
+            </aside>
+          </div>
+        </section>
+
+        <section v-else-if="!isRecipePage && currentMenu === 'favorites'" key="menu-favorites" class="grid gap-4">
+          <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("favorites.title") }}</h2>
+                <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">
+                  {{ t("favorites.subtitle") }}
+                </p>
+              </div>
+              <button
+                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
+                type="button"
+                @click="navigateToMenu('overview')"
+              >
+                {{ t("favorites.browseAll") }}
+              </button>
+            </div>
+            <section
+              v-if="favoriteRecipes.length === 0"
+              class="mt-4 rounded-xl border border-amber-500/30 bg-white px-5 py-6 text-center dark:bg-zinc-800"
+            >
+              <h3 class="text-lg font-semibold text-amber-900 dark:text-amber-50">{{ t("favorites.emptyTitle") }}</h3>
+              <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
+                {{ t("favorites.emptyText") }}
+              </p>
+            </section>
+
+            <RecipeList
+              v-else
+              class="mt-4"
+              :recipes="favoriteRecipes"
+              :favorite-recipe-ids="favoriteRecipeIds"
+              :embedded="true"
+              @select-recipe="openRecipe"
+              @add-recipe="openAddRecipeModal"
+              @edit-recipe="openEditRecipeModalById"
+              @delete-recipe="removeRecipeById"
+              @toggle-favorite="toggleFavoriteRecipe"
+            />
+          </section>
+        </section>
+
+        <PlannerPanel
+          v-else-if="!isRecipePage && currentMenu === 'planner'"
+          key="menu-planner"
+          :recipes="recipes"
+          @open-recipe="openRecipe"
+        />
+
+        <ProfilePanel
+          v-else-if="!isRecipePage && currentMenu === 'profile'"
+          key="menu-profile"
+          :profile-heading="profileHeading"
+          :selected-profile-avatar="selectedProfileAvatar"
+          :profile-avatar-options="PROFILE_AVATAR_OPTIONS"
+          :pending-profile-avatar="pendingProfileAvatar"
+          :pending-guest-name="pendingGuestName"
+          :locale="locale"
+          :language-items="languageItems"
+          :theme="theme"
+          @update:pending-guest-name="pendingGuestName = $event"
+          @select-profile-avatar="selectProfileAvatar"
+          @save-guest-name="saveGuestName"
+          @set-language="setLanguage"
+          @toggle-theme="toggleTheme"
+        />
+      </Transition>
+    </div>
+
+    <div v-if="!isRecipePage" class="fixed right-6 bottom-8 z-40 hidden lg:block">
+      <Transition
+        enter-active-class="transition-all duration-400 ease-out"
+        enter-from-class="opacity-0 translate-y-2 scale-95"
+        enter-to-class="opacity-100 translate-y-0 scale-100"
+        leave-active-class="transition-all duration-300 ease-in"
+        leave-from-class="opacity-100 translate-y-0 scale-100"
+        leave-to-class="opacity-0 -translate-y-1 scale-95"
+      >
+        <button
+          v-if="showSettingsMascot"
+          class="absolute right-0 bottom-12 w-48 cursor-pointer rounded-xl border border-amber-500/35 bg-amber-50/95 px-3 py-2 text-left shadow-md dark:border-amber-300/25 dark:bg-zinc-900/95"
+          type="button"
+          @click="dismissSettingsMascot"
+        >
+          <span
+            class="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-r border-b border-amber-500/35 bg-amber-50/95 dark:border-amber-300/25 dark:bg-zinc-900/95"
+            aria-hidden="true"
+          />
+          <div class="flex items-center gap-2">
+            <span class="text-xl [animation:bobble_1.8s_ease-in-out_infinite]">🐻‍❄️</span>
+            <p class="text-xs font-semibold text-amber-900 dark:text-amber-100">Hi there~!</p>
+          </div>
+          <p class="mt-1 text-[11px] text-amber-900/80 dark:text-amber-100/80">
+            Your settings are here.
+          </p>
+        </button>
+      </Transition>
+      <div v-if="isDesktopSettingsOpen" class="font-sans absolute right-0 bottom-12 w-48 rounded-xl border border-amber-500/25 bg-amber-50/95 p-2 shadow-lg dark:border-amber-300/20 dark:bg-zinc-900/95">
+        <USelect
+          :model-value="locale"
+          :items="languageItems"
+          value-key="value"
+          color="neutral"
+          variant="ghost"
+          :highlight="false"
+          class="w-full"
+          :ui="desktopQuickSettingsSelectUi"
+          @update:model-value="setLanguage"
+        />
+        <div class="mt-2 h-9 flex items-center justify-between rounded-lg border border-amber-500/20 bg-transparent px-2 py-1.5 dark:border-amber-300/15 dark:bg-transparent">
+          <span class="font-sans text-sm font-normal text-amber-900/90 dark:text-amber-100/90">{{ t("profile.darkThemeLabel") }}</span>
+          <label class="relative inline-flex h-7 w-fit cursor-pointer items-center">
+            <input
+              class="peer sr-only"
+              type="checkbox"
+              :checked="theme === 'dark'"
+              :aria-label="t('profile.toggleDarkThemeAria')"
+              @change="toggleTheme"
+            />
+            <span
+              class="h-4.5 w-8 rounded-full bg-amber-300/80 transition peer-checked:bg-amber-500 dark:bg-zinc-700 dark:peer-checked:bg-amber-400"
+            />
+            <span
+              class="absolute left-0.5 h-3.5 w-3.5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-3.5 dark:bg-zinc-950"
+            />
+          </label>
+        </div>
+      </div>
+      <button
+        class="inline-flex cursor-pointer items-center justify-center rounded-full border border-amber-500/35 bg-amber-50/95 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-900 shadow-sm transition hover:bg-amber-100 dark:border-amber-300/30 dark:bg-zinc-900/95 dark:text-amber-100 dark:hover:bg-zinc-800"
+        type="button"
+        @click="toggleDesktopSettings"
+      >
+        {{ t("profile.settingsTitle") }}
+      </button>
+    </div>
+
+    <FilterModal
+      :is-open="isFilterModalOpen"
+      :cuisine-options="cuisineOptions"
+      :meal-type-options="mealTypeOptions"
+      :selected-cuisine="selectedCuisine"
+      :selected-meal-type="selectedMealType"
+      @close="closeFilterModal"
+      @clear="clearFilters"
+      @apply="applyFilters"
+      @update:selected-cuisine="selectedCuisine = $event"
+      @update:selected-meal-type="selectedMealType = $event"
+    />
+
+    <div
+      v-if="isAddModalOpen"
+      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-amber-100 p-0 dark:bg-zinc-950 sm:items-center sm:bg-black/70 sm:p-4"
+      @click.self="closeAddRecipeModal"
+      @keydown.capture="stopModalClipboardShortcuts"
+    >
+      <div class="h-dvh w-full overflow-y-auto sm:h-auto sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl">
+        <AddRecipeForm @save-recipe="addRecipe" @cancel="closeAddRecipeModal" />
+      </div>
+    </div>
+
+    <div
+      v-if="isEditModalOpen && editingRecipe"
+      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/70 p-0 sm:items-center sm:p-4"
+      @click.self="closeEditRecipeModal"
+      @keydown.capture="stopModalClipboardShortcuts"
+    >
+      <div class="h-dvh w-full overflow-y-auto sm:h-auto sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl">
+        <AddRecipeForm
+          :initial-recipe="editingRecipe"
+          submit-label="Save Recipe"
+          @save-recipe="saveEditedRecipe"
+          @cancel="closeEditRecipeModal"
+        />
+      </div>
+    </div>
+    </main>
+  </div>
+</template>
+
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -105,6 +463,9 @@ const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const editingRecipeId = ref(null);
 const isFilterModalOpen = ref(false);
+const isDesktopSettingsOpen = ref(false);
+const showSettingsMascot = ref(false);
+let mascotAutoHideTimer = null;
 const selectedCuisine = ref([]);
 const selectedMealType = ref([]);
 const recentRecipeIds = ref([]);
@@ -200,6 +561,14 @@ const languageItems = [
   { label: "Nederlands", value: "nl" },
   { label: "中文", value: "zh" },
 ];
+const desktopQuickSettingsSelectUi = {
+  base: 'h-9 rounded-md border border-amber-500/20 bg-transparent px-2 py-1.5 text-xs text-amber-900 shadow-none transition-colors hover:border-amber-500/35 hover:bg-amber-100/40 focus-visible:ring-1 focus-visible:ring-amber-500/30 data-[state=open]:border-amber-500/35 data-[state=open]:bg-amber-100/40 dark:border-amber-300/15 dark:text-amber-100 dark:hover:border-amber-300/25 dark:hover:bg-zinc-800/70 dark:focus-visible:ring-amber-300/25 dark:data-[state=open]:border-amber-300/25 dark:data-[state=open]:bg-zinc-800/70',
+  trailingIcon: 'text-amber-800/70 dark:text-amber-100/70',
+  value: 'text-amber-900/90 dark:text-amber-100/90',
+  placeholder: 'text-amber-900/55 dark:text-amber-100/55',
+  content: 'rounded-xl border border-amber-500/25 bg-amber-50 p-1 shadow-lg shadow-amber-900/10 dark:border-amber-300/20 dark:bg-zinc-900 dark:shadow-black/35',
+  item: 'rounded-lg text-amber-900/90 hover:bg-amber-100 dark:text-amber-100/90 dark:hover:bg-zinc-800 data-highlighted:not-data-disabled:bg-amber-100 dark:data-highlighted:not-data-disabled:bg-zinc-800',
+};
 const activeEditorName = computed(() => guestName.value.trim() || t("common.guest"));
 const profileHeading = computed(() => {
   const normalizedName = guestName.value.trim();
@@ -294,6 +663,11 @@ onMounted(() => {
     console.warn("Supabase is not fully configured.");
   }
 
+  showSettingsMascot.value = true;
+  mascotAutoHideTimer = window.setTimeout(() => {
+    showSettingsMascot.value = false;
+  }, 4200);
+
   void refreshRecipes();
 });
 
@@ -306,16 +680,20 @@ watch(
 );
 
 function openRecipe(recipeId) {
+  isDesktopSettingsOpen.value = false;
   recentRecipeIds.value = [recipeId, ...recentRecipeIds.value.filter((id) => id !== recipeId)].slice(0, 3);
   localStorage.setItem("let-me-cook-recent-recipe-ids", JSON.stringify(recentRecipeIds.value));
   router.push(`/recipe/${recipeId}`);
 }
 
 function goToOverview() {
+  isDesktopSettingsOpen.value = false;
   router.push("/");
 }
 
 function navigateToMenu(menu) {
+  isDesktopSettingsOpen.value = false;
+  showSettingsMascot.value = false;
   if (menu === "planner") {
     router.push("/planner");
     return;
@@ -346,6 +724,15 @@ function openFilterModal() {
 
 function closeFilterModal() {
   isFilterModalOpen.value = false;
+}
+
+function dismissSettingsMascot() {
+  showSettingsMascot.value = false;
+}
+
+function toggleDesktopSettings() {
+  showSettingsMascot.value = false;
+  isDesktopSettingsOpen.value = !isDesktopSettingsOpen.value;
 }
 
 function clearFilters() {
@@ -566,300 +953,13 @@ watch([isAddModalOpen, isEditModalOpen, isFilterModalOpen], () => {
 });
 
 onBeforeUnmount(() => {
+  if (mascotAutoHideTimer) {
+    window.clearTimeout(mascotAutoHideTimer);
+  }
   document.body.style.overflow = "";
   document.documentElement.style.overflow = "";
 });
 </script>
-
-<template>
-  <div>
-    <main
-      class="font-description-preview box-border min-h-dvh bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
-      :class="isRecipePage ? 'px-0 py-0 pb-24 md:pb-0' : 'px-4 py-8 pb-24 md:px-6 md:pb-8 xl:px-10'"
-    >
-    <div
-      class="mx-auto w-full"
-      :class="isRecipePage ? 'max-w-none' : 'grid max-w-7xl gap-4'"
-    >
-      <p v-if="!isRecipePage && actionError" class="text-xs text-rose-700 dark:text-rose-300">{{ actionError }}</p>
-      <div v-if="!isRecipePage">
-        <AppHeaderBar
-          :active-menu="currentMenu"
-          :guest-name="guestName"
-          :guest-avatar-src="selectedProfileAvatar.src"
-          :guest-avatar-alt="selectedProfileAvatar.alt"
-          @navigate="navigateToMenu"
-        />
-      </div>
-
-      <section
-        v-if="recipeLoadError"
-        class="rounded-2xl border border-rose-500/40 bg-rose-50 px-5 py-4 text-rose-900 shadow-sm dark:bg-zinc-900 dark:text-rose-100"
-      >
-        <p class="text-sm font-semibold">{{ t("status.failedToLoadRecipes") }}</p>
-        <p class="mt-1 break-words text-sm opacity-90">{{ recipeLoadError }}</p>
-        <button
-          class="mt-3 inline-flex items-center justify-center cursor-pointer rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-zinc-950 lg:hover:bg-rose-400"
-          type="button"
-          @click="refreshRecipes"
-        >
-          {{ t("common.retry") }}
-        </button>
-      </section>
-
-      <template v-if="isRecipePage">
-        <section
-          v-if="isLoadingRecipes"
-          class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-amber-100/95 dark:bg-zinc-950/95"
-          aria-live="polite"
-          aria-busy="true"
-        >
-          <img
-            :src="loadingSpinnerSrc"
-            alt=""
-            class="h-16 w-16 animate-spin rounded-full shadow-lg [animation-duration:1.2s]"
-            aria-hidden="true"
-          />
-          <p class="text-sm font-semibold text-amber-900/80 dark:text-amber-100/80">{{ t("status.loadingRecipe") }}</p>
-        </section>
-        <RecipeDetailCard
-          v-else-if="selectedRecipe"
-          :recipe="selectedRecipe"
-          :can-manage="canManageSelectedRecipe"
-          :is-favorite="isFavoriteRecipe(selectedRecipe.id)"
-          @back="goToOverview"
-          @edit="openEditRecipeModal"
-          @delete="removeSelectedRecipe"
-          @toggle-favorite="toggleFavoriteRecipe(selectedRecipe.id)"
-        />
-        <section
-          v-else
-          class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
-        >
-          <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("details.noneTitle") }}</h2>
-          <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
-            {{ t("details.noneText") }}
-          </p>
-          <button
-            class="mt-4 inline-flex items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 lg:hover:bg-amber-400"
-            type="button"
-            @click="goToOverview"
-          >
-            {{ t("details.goToOverview") }}
-          </button>
-        </section>
-      </template>
-      <Transition name="menu-panel" mode="out-in">
-        <section v-if="!isRecipePage && currentMenu === 'overview'" key="menu-overview" class="grid gap-4">
-          <OverviewToolbar
-            :filtered-count="filteredRecipes.length"
-            :total-count="recipes.length"
-            @edit-filters="openFilterModal"
-          />
-          <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
-            <div class="min-w-0 grid gap-4">
-              <RecipeList
-                :recipes="filteredRecipes"
-                :favorite-recipe-ids="favoriteRecipeIds"
-                :is-loading="isLoadingRecipes"
-                :show-no-results="!isLoadingRecipes && recipes.length > 0 && filteredRecipes.length === 0 && hasActiveFilters"
-                :no-results-cuisine-label="selectedCuisineLabels.length === 0 ? t('filters.all') : selectedCuisineLabels.join(', ')"
-                :no-results-meal-type-label="selectedMealTypeLabels.length === 0 ? t('filters.all') : selectedMealTypeLabels.join(', ')"
-                @select-recipe="openRecipe"
-                @add-recipe="openAddRecipeModal"
-                @edit-recipe="openEditRecipeModalById"
-                @delete-recipe="removeRecipeById"
-                @toggle-favorite="toggleFavoriteRecipe"
-                @clear-filters="clearFilters"
-              />
-            </div>
-
-            <aside class="hidden min-w-0 h-fit rounded-2xl border border-amber-500/30 bg-amber-50 p-4 shadow-sm md:grid md:gap-4 dark:bg-zinc-900">
-              <section class="grid gap-2">
-                <h3 class="text-sm font-semibold uppercase tracking-wide text-amber-900/75 dark:text-amber-100/75">{{ t("overview.panelTitle") }}</h3>
-              </section>
-
-              <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
-                {{ t("overview.showing", { filtered: filteredRecipes.length, total: recipes.length }) }}
-              </p>
-
-              <section class="grid gap-2 rounded-xl border border-amber-500/30 bg-white p-3 dark:bg-zinc-800">
-                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.activeFiltersTitle") }}</h3>
-                <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
-                  {{ t("filters.cuisine") }}:
-                  <span class="font-semibold">{{ selectedCuisineLabels.length === 0 ? t("filters.all") : selectedCuisineLabels.join(", ") }}</span>
-                </p>
-                <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
-                  {{ t("filters.mealType") }}:
-                  <span class="font-semibold">{{ selectedMealTypeLabels.length === 0 ? t("filters.all") : selectedMealTypeLabels.join(", ") }}</span>
-                </p>
-                <button
-                  class="mt-1 inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-md active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
-                  type="button"
-                  @click="openFilterModal"
-                >
-                  {{ t("overview.editFilters") }}
-                </button>
-              </section>
-
-              <section class="grid gap-3 rounded-xl border border-amber-500/30 bg-white p-3 dark:bg-zinc-800">
-                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.recentPicksTitle") }}</h3>
-                <p v-if="recentRecipes.length === 0" class="text-xs text-amber-900/75 dark:text-amber-100/75">
-                  {{ t("overview.recentPicksEmpty") }}
-                </p>
-                <button
-                  v-for="recipe in recentRecipes"
-                  :key="recipe.id"
-                  class="group grid cursor-pointer gap-2 rounded-lg border border-amber-500/30 bg-white/70 px-3 py-2.5 text-left transition-[box-shadow,background-color,border-color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-50 lg:hover:border-amber-400/70 lg:hover:bg-amber-200 lg:hover:shadow-sm lg:hover:shadow-amber-900/10 dark:bg-zinc-800/70 dark:focus-visible:ring-amber-300/60 dark:focus-visible:ring-offset-zinc-800 dark:lg:hover:border-amber-300/50 dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/25"
-                  type="button"
-                  @click="openRecipe(recipe.id)"
-                >
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="min-w-0">
-                      <p class="truncate text-sm font-semibold text-amber-900 dark:text-amber-50">
-                        {{ recipe.title }}
-                      </p>
-                      <div class="mt-1 flex flex-wrap items-center gap-1 text-[11px] font-medium text-amber-900/80 dark:text-amber-100/80">
-                        <span class="rounded-full bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
-                          {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
-                        </span>
-                        <span class="rounded-full bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
-                          {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
-                        </span>
-                      </div>
-                    </div>
-                    <span class="shrink-0 text-base opacity-80">{{ recipe.thumbnail || "🍽️" }}</span>
-                  </div>
-
-                  <div class="flex items-center justify-between gap-3 text-[11px] text-amber-900/80 dark:text-amber-100/80">
-                    <span class="inline-flex items-center gap-1 font-semibold text-amber-900/75 dark:text-amber-100/75">
-                      {{ t("common.open") }}
-                      <span class="inline-block transition-transform duration-200 ease-out lg:group-hover:translate-x-0.5" aria-hidden="true">→</span>
-                    </span>
-                    <div class="flex items-center gap-3">
-                    <span>{{ recipe.cookTimeMinutes }} min</span>
-                    <span>{{ t("common.servingsCount", { count: recipe.servings }) }}</span>
-                    </div>
-                  </div>
-
-                </button>
-              </section>
-
-            </aside>
-          </div>
-        </section>
-
-        <section v-else-if="!isRecipePage && currentMenu === 'favorites'" key="menu-favorites" class="grid gap-4">
-          <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("favorites.title") }}</h2>
-                <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">
-                  {{ t("favorites.subtitle") }}
-                </p>
-              </div>
-              <button
-                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
-                type="button"
-                @click="navigateToMenu('overview')"
-              >
-                {{ t("favorites.browseAll") }}
-              </button>
-            </div>
-            <section
-              v-if="favoriteRecipes.length === 0"
-              class="mt-4 rounded-xl border border-amber-500/30 bg-white px-5 py-6 text-center dark:bg-zinc-800"
-            >
-              <h3 class="text-lg font-semibold text-amber-900 dark:text-amber-50">{{ t("favorites.emptyTitle") }}</h3>
-              <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
-                {{ t("favorites.emptyText") }}
-              </p>
-            </section>
-
-            <RecipeList
-              v-else
-              class="mt-4"
-              :recipes="favoriteRecipes"
-              :favorite-recipe-ids="favoriteRecipeIds"
-              :embedded="true"
-              @select-recipe="openRecipe"
-              @add-recipe="openAddRecipeModal"
-              @edit-recipe="openEditRecipeModalById"
-              @delete-recipe="removeRecipeById"
-              @toggle-favorite="toggleFavoriteRecipe"
-            />
-          </section>
-        </section>
-
-        <PlannerPanel
-          v-else-if="!isRecipePage && currentMenu === 'planner'"
-          key="menu-planner"
-          :recipes="recipes"
-          @open-recipe="openRecipe"
-        />
-
-        <ProfilePanel
-          v-else-if="!isRecipePage && currentMenu === 'profile'"
-          key="menu-profile"
-          :profile-heading="profileHeading"
-          :selected-profile-avatar="selectedProfileAvatar"
-          :profile-avatar-options="PROFILE_AVATAR_OPTIONS"
-          :pending-profile-avatar="pendingProfileAvatar"
-          :pending-guest-name="pendingGuestName"
-          :locale="locale"
-          :language-items="languageItems"
-          :theme="theme"
-          @update:pending-guest-name="pendingGuestName = $event"
-          @select-profile-avatar="selectProfileAvatar"
-          @save-guest-name="saveGuestName"
-          @set-language="setLanguage"
-          @toggle-theme="toggleTheme"
-        />
-      </Transition>
-    </div>
-
-    <FilterModal
-      :is-open="isFilterModalOpen"
-      :cuisine-options="cuisineOptions"
-      :meal-type-options="mealTypeOptions"
-      :selected-cuisine="selectedCuisine"
-      :selected-meal-type="selectedMealType"
-      @close="closeFilterModal"
-      @clear="clearFilters"
-      @apply="applyFilters"
-      @update:selected-cuisine="selectedCuisine = $event"
-      @update:selected-meal-type="selectedMealType = $event"
-    />
-
-    <div
-      v-if="isAddModalOpen"
-      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-amber-100 p-0 dark:bg-zinc-950 sm:items-center sm:bg-black/70 sm:p-4"
-      @click.self="closeAddRecipeModal"
-      @keydown.capture="stopModalClipboardShortcuts"
-    >
-      <div class="h-dvh w-full overflow-y-auto sm:h-auto sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl">
-        <AddRecipeForm @save-recipe="addRecipe" @cancel="closeAddRecipeModal" />
-      </div>
-    </div>
-
-    <div
-      v-if="isEditModalOpen && editingRecipe"
-      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/70 p-0 sm:items-center sm:p-4"
-      @click.self="closeEditRecipeModal"
-      @keydown.capture="stopModalClipboardShortcuts"
-    >
-      <div class="h-dvh w-full overflow-y-auto sm:h-auto sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl">
-        <AddRecipeForm
-          :initial-recipe="editingRecipe"
-          submit-label="Save Recipe"
-          @save-recipe="saveEditedRecipe"
-          @cancel="closeEditRecipeModal"
-        />
-      </div>
-    </div>
-    </main>
-  </div>
-</template>
 
 <style scoped>
 .menu-panel-enter-active,
@@ -873,5 +973,15 @@ onBeforeUnmount(() => {
 .menu-panel-leave-to {
   opacity: 0;
   transform: translateY(8px);
+}
+
+@keyframes bobble {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
 }
 </style>

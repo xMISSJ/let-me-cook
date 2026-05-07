@@ -1,98 +1,3 @@
-<script setup>
-import { useI18n } from "vue-i18n";
-
-defineProps({
-  isOpen: {
-    type: Boolean,
-    required: true,
-  },
-  cuisineOptions: {
-    type: Array,
-    required: true,
-  },
-  mealTypeOptions: {
-    type: Array,
-    required: true,
-  },
-  selectedCuisine: {
-    type: Array,
-    required: true,
-  },
-  selectedMealType: {
-    type: Array,
-    required: true,
-  },
-});
-
-const emit = defineEmits([
-  "close",
-  "clear",
-  "apply",
-  "update:selected-cuisine",
-  "update:selected-meal-type",
-]);
-
-const { t } = useI18n();
-
-function isCuisineSelected(selectedCuisine, option) {
-  return selectedCuisine.includes(option);
-}
-
-function isMealTypeSelected(selectedMealType, option) {
-  return selectedMealType.includes(option);
-}
-
-function toggleCuisine(selectedCuisine, option) {
-  if (option === "All") {
-    emit("update:selected-cuisine", []);
-    return;
-  }
-  if (selectedCuisine.includes(option)) {
-    emit(
-      "update:selected-cuisine",
-      selectedCuisine.filter((item) => item !== option),
-    );
-    return;
-  }
-  emit("update:selected-cuisine", [...selectedCuisine, option]);
-}
-
-function toggleMealType(selectedMealType, option) {
-  if (option === "All") {
-    emit("update:selected-meal-type", []);
-    return;
-  }
-  if (selectedMealType.includes(option)) {
-    emit(
-      "update:selected-meal-type",
-      selectedMealType.filter((item) => item !== option),
-    );
-    return;
-  }
-  emit("update:selected-meal-type", [...selectedMealType, option]);
-}
-
-function formatCuisine(option) {
-  if (option === "All") return t("filters.all");
-  return t(`cuisine.${option}`, option);
-}
-
-function formatMealType(option) {
-  if (option === "All") return t("filters.all");
-  return t(`mealType.${option}`, option);
-}
-
-function getMealTypeEmoji(option) {
-  const mealType = String(option ?? "").toLowerCase();
-  if (mealType === "breakfast") return "🍳";
-  if (mealType === "lunch") return "🥪";
-  if (mealType === "dinner") return "🍽️";
-  if (mealType === "snack") return "🍿";
-  if (mealType === "dessert") return "🍰";
-  return "";
-}
-</script>
-
 <template>
   <Transition
     enter-active-class="transition-opacity duration-250 ease-out"
@@ -202,3 +107,98 @@ function getMealTypeEmoji(option) {
     </div>
   </Transition>
 </template>
+
+<script setup>
+import { useI18n } from "vue-i18n";
+
+defineProps({
+  isOpen: {
+    type: Boolean,
+    required: true,
+  },
+  cuisineOptions: {
+    type: Array,
+    required: true,
+  },
+  mealTypeOptions: {
+    type: Array,
+    required: true,
+  },
+  selectedCuisine: {
+    type: Array,
+    required: true,
+  },
+  selectedMealType: {
+    type: Array,
+    required: true,
+  },
+});
+
+const emit = defineEmits([
+  "close",
+  "clear",
+  "apply",
+  "update:selected-cuisine",
+  "update:selected-meal-type",
+]);
+
+const { t } = useI18n();
+
+function isCuisineSelected(selectedCuisine, option) {
+  return selectedCuisine.includes(option);
+}
+
+function isMealTypeSelected(selectedMealType, option) {
+  return selectedMealType.includes(option);
+}
+
+function toggleCuisine(selectedCuisine, option) {
+  if (option === "All") {
+    emit("update:selected-cuisine", []);
+    return;
+  }
+  if (selectedCuisine.includes(option)) {
+    emit(
+      "update:selected-cuisine",
+      selectedCuisine.filter((item) => item !== option),
+    );
+    return;
+  }
+  emit("update:selected-cuisine", [...selectedCuisine, option]);
+}
+
+function toggleMealType(selectedMealType, option) {
+  if (option === "All") {
+    emit("update:selected-meal-type", []);
+    return;
+  }
+  if (selectedMealType.includes(option)) {
+    emit(
+      "update:selected-meal-type",
+      selectedMealType.filter((item) => item !== option),
+    );
+    return;
+  }
+  emit("update:selected-meal-type", [...selectedMealType, option]);
+}
+
+function formatCuisine(option) {
+  if (option === "All") return t("filters.all");
+  return t(`cuisine.${option}`, option);
+}
+
+function formatMealType(option) {
+  if (option === "All") return t("filters.all");
+  return t(`mealType.${option}`, option);
+}
+
+function getMealTypeEmoji(option) {
+  const mealType = String(option ?? "").toLowerCase();
+  if (mealType === "breakfast") return "🍳";
+  if (mealType === "lunch") return "🥪";
+  if (mealType === "dinner") return "🍽️";
+  if (mealType === "snack") return "🍿";
+  if (mealType === "dessert") return "🍰";
+  return "";
+}
+</script>

@@ -1,16 +1,3 @@
-<script setup>
-import { useI18n } from "vue-i18n";
-
-defineProps({
-  isDetailView: {
-    type: Boolean,
-    default: false,
-  },
-});
-
-const { t } = useI18n();
-</script>
-
 <template>
   <header
     class="rounded-2xl border border-amber-500/40 bg-amber-50 px-5 py-5 shadow-sm dark:bg-zinc-900"
@@ -30,3 +17,16 @@ const { t } = useI18n();
     </p>
   </header>
 </template>
+
+<script setup>
+import { useI18n } from "vue-i18n";
+
+defineProps({
+  isDetailView: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const { t } = useI18n();
+</script>

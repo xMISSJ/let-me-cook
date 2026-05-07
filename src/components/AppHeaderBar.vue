@@ -1,62 +1,16 @@
-<script setup>
-import { computed } from "vue";
-import { useI18n } from "vue-i18n";
-
-defineOptions({
-  name: "AppHeaderBar",
-});
-
-const emit = defineEmits(["navigate"]);
-const { t } = useI18n();
-const props = defineProps({
-  activeMenu: {
-    type: String,
-    required: true,
-  },
-  guestName: {
-    type: String,
-    default: "",
-  },
-  guestAvatarSrc: {
-    type: String,
-    default: "",
-  },
-  guestAvatarAlt: {
-    type: String,
-    default: "Profile avatar",
-  },
-});
-
-const menuItems = computed(() => [
-  { key: "overview", label: t("nav.recipes"), icon: "utensils" },
-  { key: "favorites", label: t("nav.favorites"), icon: "heart" },
-  { key: "planner", label: t("nav.planner"), icon: "calendar" },
-  { key: "profile", label: t("nav.profile"), icon: "user" },
-]);
-
-const activeMenuIndex = computed(() => {
-  const index = menuItems.value.findIndex((item) => item.key === props.activeMenu);
-  return index >= 0 ? index : 0;
-});
-
-function navigateTo(menu) {
-  emit("navigate", menu);
-}
-</script>
-
 <template>
   <div>
     <div class="md:hidden px-4 py-3.5">
       <button class="grid gap-0.5 text-left" type="button" @click="navigateTo('overview')">
         <p class="font-brand-name text-[2.15rem] leading-[0.95] text-amber-900 dark:text-amber-50">{{ t("appName") }}</p>
-        <p class="font-brand-rounded text-xs font-medium text-amber-900/75 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
+        <p class="font-brand-rounded text-lg font-medium text-amber-900/75 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
       </button>
     </div>
 
     <nav class="hidden items-center justify-between border-b border-amber-500/30 px-4 py-3 lg:px-5 md:flex">
       <button class="grid gap-0.5 text-left" type="button" @click="navigateTo('overview')">
         <p class="font-brand-name text-[2.65rem] leading-[0.95] text-amber-900 dark:text-amber-50">{{ t("appName") }}</p>
-        <p class="font-brand-rounded text-sm font-medium text-amber-900/75 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
+        <p class="font-brand-rounded text-xl font-medium text-amber-900/75 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
       </button>
       <div class="flex items-center gap-3">
         <p
@@ -75,16 +29,18 @@ function navigateTo(menu) {
         <button
           v-for="item in menuItems"
           :key="item.key"
-          class="cursor-pointer rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-[color,background-color,box-shadow] duration-200 ease-out"
+          class="group cursor-pointer rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-[color,background-color,box-shadow,transform] duration-200 ease-out lg:hover:-translate-y-0.5 lg:hover:shadow-sm"
           :class="
             props.activeMenu === item.key
               ? 'bg-amber-500/10 text-amber-800 dark:bg-amber-300/10 dark:text-amber-200'
-              : 'text-amber-900/70 lg:hover:text-amber-900 dark:text-amber-100/70 dark:lg:hover:text-amber-100'
+              : 'text-amber-900/70 lg:hover:bg-amber-500/5 lg:hover:text-amber-900 dark:text-amber-100/70 dark:lg:hover:bg-amber-100/5 dark:lg:hover:text-amber-100'
           "
           type="button"
           @click="navigateTo(item.key)"
         >
-          {{ item.label }}
+          <span class="inline-flex items-center gap-1.5">
+            <span>{{ item.label }}</span>
+          </span>
         </button>
         </div>
       </div>
@@ -155,7 +111,13 @@ function navigateTo(menu) {
             fill="currentColor"
             aria-hidden="true"
           >
-            <path d="M256 436a54.62 54.62 0 0 1-29.53-8.64c-25-16.07-73.08-49.05-113.75-89.32C62.81 288.58 37.5 242 37.5 199.56c0-29.49 8.72-56.51 25.22-78.13a115.2 115.2 0 0 1 137.89-35.75c21.18 9.14 40.07 24.55 55.39 45 15.32-20.5 34.21-35.91 55.39-45a115.2 115.2 0 0 1 137.89 35.75c16.5 21.62 25.22 48.64 25.22 78.13 0 42.44-25.31 89-75.22 138.44-40.67 40.27-88.73 73.25-113.75 89.32A54.62 54.62 0 0 1 256 436zM154.16 101.06a89.41 89.41 0 0 0-23.42 3.1 90.93 90.93 0 0 0-48.15 32.44c-13.14 17.22-20.09 39-20.09 63 0 35.52 22.81 76.12 67.81 120.68 39 38.66 85.47 70.5 109.67 86a29.72 29.72 0 0 0 32 0c24.2-15.54 70.63-47.38 109.67-86 45-44.56 67.81-85.16 67.81-120.68 0-24-6.95-45.74-20.09-63a90.93 90.93 0 0 0-48.15-32.44c-34.17-9.28-82.18.42-114.48 55.48a12.49 12.49 0 0 1-21.56 0c-25.38-43.34-60.54-58.58-91.02-58.58z" />
+            <path
+              :d="
+                props.activeMenu === item.key
+                  ? 'M461.2 314c-22.6 27.4-122 109.4-173.7 151.4-18.4 15-44.7 15-63.1 0-51.7-42-151-124-173.7-151.4C16.1 272.3 0 232.6 0 189.4c0-42.2 14.4-81 40.6-109.4C67.2 51.3 103.5 35.4 143 35.4c29.6 0 56.6 9.4 80.4 27.8 12.4 9.7 23.4 21.1 32.5 34 9.2-12.8 20.1-24.3 32.5-34 23.8-18.5 50.9-27.8 80.5-27.8 39.6 0 75.9 15.9 102.4 44.6 26.1 28.4 40.6 67.1 40.6 109.4.1 43.2-16 82.9-50.7 124.6z'
+                  : 'M461.2 314c-22.6 27.4-122 109.4-173.7 151.4-18.4 15-44.7 15-63.1 0-51.7-42-151-124-173.7-151.4C16.1 272.3 0 232.6 0 189.4c0-42.2 14.4-81 40.6-109.4C67.2 51.3 103.5 35.4 143 35.4c29.6 0 56.6 9.4 80.4 27.8 12.4 9.7 23.4 21.1 32.5 34 9.2-12.8 20.1-24.3 32.5-34 23.8-18.5 50.9-27.8 80.5-27.8 39.6 0 75.9 15.9 102.4 44.6 26.1 28.4 40.6 67.1 40.6 109.4.1 43.2-16 82.9-50.7 124.6z'
+              "
+            />
           </svg>
           <svg
             v-else
@@ -175,3 +137,49 @@ function navigateTo(menu) {
     </nav>
   </div>
 </template>
+
+<script setup>
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+defineOptions({
+  name: "AppHeaderBar",
+});
+
+const emit = defineEmits(["navigate"]);
+const { t } = useI18n();
+const props = defineProps({
+  activeMenu: {
+    type: String,
+    required: true,
+  },
+  guestName: {
+    type: String,
+    default: "",
+  },
+  guestAvatarSrc: {
+    type: String,
+    default: "",
+  },
+  guestAvatarAlt: {
+    type: String,
+    default: "Profile avatar",
+  },
+});
+
+const menuItems = computed(() => [
+  { key: "overview", label: t("nav.recipes"), icon: "utensils" },
+  { key: "favorites", label: t("nav.favorites"), icon: "heart" },
+  { key: "planner", label: t("nav.planner"), icon: "calendar" },
+  { key: "profile", label: t("nav.profile"), icon: "user" },
+]);
+
+const activeMenuIndex = computed(() => {
+  const index = menuItems.value.findIndex((item) => item.key === props.activeMenu);
+  return index >= 0 ? index : 0;
+});
+
+function navigateTo(menu) {
+  emit("navigate", menu);
+}
+</script>
