@@ -5,11 +5,11 @@
     <div class="relative">
       <div
         v-if="detailImageUrl && !hasImageLoadError"
-        class="relative h-64 w-full overflow-hidden sm:h-80 xl:h-[25rem]"
+        class="relative h-64 w-full overflow-hidden sm:h-80 xl:h-100"
       >
         <div
           v-if="!isDetailImageLoaded"
-          class="absolute inset-0 animate-pulse bg-gradient-to-br from-amber-200/70 via-amber-100/60 to-amber-300/50 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800"
+          class="absolute inset-0 animate-pulse bg-linear-to-br from-amber-200/70 via-amber-100/60 to-amber-300/50 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800"
         />
         <img
           :src="detailImageUrl"
@@ -22,7 +22,7 @@
       </div>
       <div
         v-else
-        class="flex h-64 w-full items-center justify-center bg-amber-100 text-7xl sm:h-80 xl:h-[25rem] dark:bg-zinc-900"
+        class="flex h-64 w-full items-center justify-center bg-amber-100 text-7xl sm:h-80 xl:h-100 dark:bg-zinc-900"
         aria-hidden="true"
       >
         {{ props.recipe.thumbnail || "🍽️" }}
@@ -131,42 +131,24 @@
 
       <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-7">
         <div>
-          <div class="grid grid-cols-3 gap-2 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
+          <div
+            class="relative grid rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900"
+            :style="{ gridTemplateColumns: `repeat(${detailTabs.length}, minmax(0, 1fr))` }"
+          >
+            <span
+              class="pointer-events-none absolute bottom-1 top-1 rounded-lg bg-white shadow transition-transform duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] dark:bg-zinc-800"
+              :style="{ width: `calc((100% - 0.5rem) / ${detailTabs.length})`, transform: `translateX(${activeDetailTabIndex * 100}%)` }"
+              aria-hidden="true"
+            />
             <button
-              class="rounded-lg px-2 py-2 text-sm font-semibold transition"
-              :class="
-                detailTab === 'ingredients'
-                  ? 'bg-white text-zinc-950 shadow dark:bg-zinc-800 dark:text-zinc-100'
-                  : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'
-              "
+              v-for="tab in detailTabs"
+              :key="tab.key"
+              class="relative z-10 rounded-lg px-2 py-2 text-sm font-semibold transition-colors duration-200 ease-out"
+              :class="detailTab === tab.key ? 'text-zinc-950 dark:text-zinc-100' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'"
               type="button"
-              @click="detailTab = 'ingredients'"
+              @click="detailTab = tab.key"
             >
-              {{ t("details.ingredients") }}
-            </button>
-            <button
-              class="rounded-lg px-2 py-2 text-sm font-semibold transition"
-              :class="
-                detailTab === 'instructions'
-                  ? 'bg-white text-zinc-950 shadow dark:bg-zinc-800 dark:text-zinc-100'
-                  : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'
-              "
-              type="button"
-              @click="detailTab = 'instructions'"
-            >
-              {{ t("details.steps") }}
-            </button>
-            <button
-              class="rounded-lg px-2 py-2 text-sm font-semibold transition"
-              :class="
-                detailTab === 'nutrition'
-                  ? 'bg-white text-zinc-950 shadow dark:bg-zinc-800 dark:text-zinc-100'
-                  : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'
-              "
-              type="button"
-              @click="detailTab = 'nutrition'"
-            >
-              {{ t("details.nutrition") }}
+              {{ tab.label }}
             </button>
           </div>
 
@@ -265,6 +247,15 @@ const isDetailImageLoaded = ref(false);
 
 const detailImageUrl = computed(() => getRecipeImageDetailUrl(props.recipe.imageUrl || fetchedFallbackImageUrl.value));
 const detailThumbUrl = computed(() => getRecipeImageThumbnailUrl(props.recipe.imageUrl || fetchedFallbackImageUrl.value));
+const detailTabs = computed(() => [
+  { key: "ingredients", label: t("details.ingredients") },
+  { key: "instructions", label: t("details.steps") },
+  { key: "nutrition", label: t("details.nutrition") },
+]);
+const activeDetailTabIndex = computed(() => {
+  const index = detailTabs.value.findIndex((tab) => tab.key === detailTab.value);
+  return index >= 0 ? index : 0;
+});
 
 watch(
   () => [props.recipe?.id, props.recipe?.imageUrl ?? ""],
