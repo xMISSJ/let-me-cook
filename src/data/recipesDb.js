@@ -5,6 +5,8 @@ const CONFIGURED_RECIPE_IMAGES_BUCKET = String(import.meta.env.VITE_SUPABASE_REC
 let unsplashDisabledForSession = false;
 const LOCAL_RECIPES_STORAGE_KEY = "let-me-cook-local-recipes";
 let imageUrlColumnSupported = null;
+let resolvedRecipeImagesBucket = "";
+const missingRecipeImageBuckets = new Set();
 
 function readLocalRecipes() {
   if (typeof window === "undefined") return [];
@@ -61,9 +63,6 @@ function upsertLocalRecipe(recipeId, recipe, fallback = {}) {
 function shouldUseLocalFallback(error) {
   const message = String(error?.message ?? error ?? "").toLowerCase();
   return (
-    message.includes("row-level security") ||
-    message.includes("permission denied") ||
-    message.includes("jwt") ||
     message.includes("missing supabase config") ||
     message.includes("failed to fetch") ||
     message.includes("network")
@@ -375,7 +374,7 @@ export async function updateRecipe(recipeId, recipe, fallback = {}) {
 
     if (error) throw toReadableError(error);
     if (!data) {
-      throw new Error("Row-level security blocked update or recipe no longer exists");
+      throw new Error("Could not persist recipe update. Check Supabase RLS UPDATE policy for this row.");
     }
     if (imageUrlColumnSupported === null) {
       imageUrlColumnSupported = true;
@@ -424,12 +423,15 @@ export async function uploadRecipeImage(file, userId) {
   const extension = file.name.split(".").pop() || "jpg";
   const owner = userId || "guest";
   const filePath = `${owner}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-  const candidateBuckets = [
+  const defaultCandidates = [
     CONFIGURED_RECIPE_IMAGES_BUCKET,
     "recipe-images",
     "recipe_images",
     "images",
   ].filter((value, index, list) => value && list.indexOf(value) === index);
+  const candidateBuckets = [resolvedRecipeImagesBucket, ...defaultCandidates]
+    .filter((value, index, list) => value && list.indexOf(value) === index)
+    .filter((bucket) => !missingRecipeImageBuckets.has(bucket));
 
   let lastError = null;
   for (const bucket of candidateBuckets) {
@@ -437,6 +439,7 @@ export async function uploadRecipeImage(file, userId) {
       upsert: false,
     });
     if (!uploadError) {
+      resolvedRecipeImagesBucket = bucket;
       const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
       return data.publicUrl;
     }
@@ -446,6 +449,7 @@ export async function uploadRecipeImage(file, userId) {
     if (!isMissingBucket) {
       throw normalizedError;
     }
+    missingRecipeImageBuckets.add(bucket);
     lastError = normalizedError;
   }
 

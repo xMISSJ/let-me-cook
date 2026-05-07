@@ -13,8 +13,10 @@ declare module 'vue' {
   export interface GlobalComponents {
     AddRecipeForm: typeof import('./src/components/AddRecipeForm.vue')['default']
     AppHeaderBar: typeof import('./src/components/AppHeaderBar.vue')['default']
+    DesktopSettingsFab: typeof import('./src/components/DesktopSettingsFab.vue')['default']
     FilterModal: typeof import('./src/components/FilterModal.vue')['default']
     IngredientsCard: typeof import('./src/components/IngredientsCard.vue')['default']
+    OverviewPanel: typeof import('./src/components/OverviewPanel.vue')['default']
     OverviewToolbar: typeof import('./src/components/OverviewToolbar.vue')['default']
     PlannerPanel: typeof import('./src/components/PlannerPanel.vue')['default']
     ProfilePanel: typeof import('./src/components/ProfilePanel.vue')['default']

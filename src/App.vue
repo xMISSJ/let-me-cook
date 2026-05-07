@@ -76,104 +76,25 @@
         </section>
       </template>
       <Transition name="menu-panel" mode="out-in">
-        <section v-if="!isRecipePage && currentMenu === 'overview'" key="menu-overview" class="grid gap-4">
-          <OverviewToolbar
-            :filtered-count="filteredRecipes.length"
-            :total-count="recipes.length"
-            @edit-filters="openFilterModal"
-          />
-          <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
-            <div class="min-w-0 grid gap-4">
-              <RecipeList
-                :recipes="filteredRecipes"
-                :favorite-recipe-ids="favoriteRecipeIds"
-                :is-loading="isLoadingRecipes"
-                :show-no-results="!isLoadingRecipes && recipes.length > 0 && filteredRecipes.length === 0 && hasActiveFilters"
-                :no-results-cuisine-label="selectedCuisineLabels.length === 0 ? t('filters.all') : selectedCuisineLabels.join(', ')"
-                :no-results-meal-type-label="selectedMealTypeLabels.length === 0 ? t('filters.all') : selectedMealTypeLabels.join(', ')"
-                @select-recipe="openRecipe"
-                @add-recipe="openAddRecipeModal"
-                @edit-recipe="openEditRecipeModalById"
-                @delete-recipe="removeRecipeById"
-                @toggle-favorite="toggleFavoriteRecipe"
-                @clear-filters="clearFilters"
-              />
-            </div>
-
-            <aside class="hidden min-w-0 h-fit rounded-2xl border border-amber-500/30 bg-amber-50 p-4 shadow-sm md:grid md:gap-4 dark:bg-zinc-900">
-              <section class="grid gap-2">
-                <h3 class="text-sm font-semibold uppercase tracking-wide text-amber-900/75 dark:text-amber-100/75">{{ t("overview.panelTitle") }}</h3>
-              </section>
-
-              <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
-                {{ t("overview.showing", { filtered: filteredRecipes.length, total: recipes.length }) }}
-              </p>
-
-              <section class="grid gap-2 rounded-xl border border-amber-500/30 bg-white p-3 dark:bg-zinc-800">
-                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.activeFiltersTitle") }}</h3>
-                <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
-                  {{ t("filters.cuisine") }}:
-                  <span class="font-semibold">{{ selectedCuisineLabels.length === 0 ? t("filters.all") : selectedCuisineLabels.join(", ") }}</span>
-                </p>
-                <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
-                  {{ t("filters.mealType") }}:
-                  <span class="font-semibold">{{ selectedMealTypeLabels.length === 0 ? t("filters.all") : selectedMealTypeLabels.join(", ") }}</span>
-                </p>
-                <button
-                  class="mt-1 inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-md active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
-                  type="button"
-                  @click="openFilterModal"
-                >
-                  {{ t("overview.editFilters") }}
-                </button>
-              </section>
-
-              <section class="grid gap-3 rounded-xl border border-amber-500/30 bg-white p-3 dark:bg-zinc-800">
-                <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-50">{{ t("overview.recentPicksTitle") }}</h3>
-                <p v-if="recentRecipes.length === 0" class="text-xs text-amber-900/75 dark:text-amber-100/75">
-                  {{ t("overview.recentPicksEmpty") }}
-                </p>
-                <button
-                  v-for="recipe in recentRecipes"
-                  :key="recipe.id"
-                  class="group min-w-0 grid cursor-pointer gap-2 rounded-lg border border-amber-500/30 bg-white/70 px-3 py-2.5 text-left transition-[box-shadow,background-color,border-color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-50 lg:hover:border-amber-400/70 lg:hover:bg-amber-200 lg:hover:shadow-sm lg:hover:shadow-amber-900/10 dark:bg-zinc-800/70 dark:focus-visible:ring-amber-300/60 dark:focus-visible:ring-offset-zinc-800 dark:lg:hover:border-amber-300/50 dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/25"
-                  type="button"
-                  @click="openRecipe(recipe.id)"
-                >
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="min-w-0">
-                      <p class="text-sm font-semibold leading-snug break-words text-amber-900 dark:text-amber-50">
-                        {{ recipe.title }}
-                      </p>
-                      <div class="mt-1 flex flex-wrap items-center gap-1 text-[11px] font-medium text-amber-900/80 dark:text-amber-100/80">
-                        <span class="-ml-px rounded-md bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
-                          {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
-                        </span>
-                        <span class="rounded-md bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
-                          {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
-                        </span>
-                      </div>
-                    </div>
-                    <span class="shrink-0 text-base opacity-80">{{ recipe.thumbnail || "🍽️" }}</span>
-                  </div>
-
-                  <div class="flex items-center justify-between gap-3 text-[11px] text-amber-900/80 dark:text-amber-100/80">
-                    <span class="inline-flex items-center gap-1 font-semibold text-amber-900/75 dark:text-amber-100/75">
-                      {{ t("common.open") }}
-                      <span class="inline-block transition-transform duration-200 ease-out lg:group-hover:translate-x-0.5" aria-hidden="true">→</span>
-                    </span>
-                    <div class="flex items-center gap-3">
-                    <span>{{ recipe.cookTimeMinutes }} min</span>
-                    <span>{{ t("common.servingsCount", { count: recipe.servings }) }}</span>
-                    </div>
-                  </div>
-
-                </button>
-              </section>
-
-            </aside>
-          </div>
-        </section>
+        <OverviewPanel
+          v-if="!isRecipePage && currentMenu === 'overview'"
+          key="menu-overview"
+          :filtered-recipes="filteredRecipes"
+          :recipes="recipes"
+          :favorite-recipe-ids="favoriteRecipeIds"
+          :is-loading-recipes="isLoadingRecipes"
+          :has-active-filters="hasActiveFilters"
+          :selected-cuisine-labels="selectedCuisineLabels"
+          :selected-meal-type-labels="selectedMealTypeLabels"
+          :recent-recipes="recentRecipes"
+          @open-filter-modal="openFilterModal"
+          @open-recipe="openRecipe"
+          @open-add-recipe-modal="openAddRecipeModal"
+          @open-edit-recipe-modal-by-id="openEditRecipeModalById"
+          @remove-recipe-by-id="removeRecipeById"
+          @toggle-favorite-recipe="toggleFavoriteRecipe"
+          @clear-filters="clearFilters"
+        />
 
         <section v-else-if="!isRecipePage && currentMenu === 'favorites'" key="menu-favorites" class="grid gap-4">
           <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
@@ -244,70 +165,18 @@
       </Transition>
     </div>
 
-    <div v-if="!isRecipePage" class="fixed right-6 bottom-8 z-40 hidden lg:block">
-      <Transition
-        enter-active-class="transition-all duration-400 ease-out"
-        enter-from-class="opacity-0 translate-y-2 scale-95"
-        enter-to-class="opacity-100 translate-y-0 scale-100"
-        leave-active-class="transition-all duration-300 ease-in"
-        leave-from-class="opacity-100 translate-y-0 scale-100"
-        leave-to-class="opacity-0 -translate-y-1 scale-95"
-      >
-        <button
-          v-if="showSettingsMascot"
-          class="absolute right-0 bottom-12 w-48 cursor-pointer rounded-xl border border-amber-500/35 bg-amber-50/95 px-3 py-2 text-left shadow-md dark:border-amber-300/25 dark:bg-zinc-900/95"
-          type="button"
-          @click="dismissSettingsMascot"
-        >
-          <span
-            class="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-r border-b border-amber-500/35 bg-amber-50/95 dark:border-amber-300/25 dark:bg-zinc-900/95"
-            aria-hidden="true"
-          />
-          <div class="flex items-center gap-2">
-            <span class="text-xl [animation:bobble_1.8s_ease-in-out_infinite]">🐻‍❄️</span>
-            <p class="text-xs font-semibold text-amber-900 dark:text-amber-100">Hi there~!</p>
-          </div>
-          <p class="mt-1 text-[11px] text-amber-900/80 dark:text-amber-100/80">
-            Your settings are here.
-          </p>
-        </button>
-      </Transition>
-      <div v-if="isDesktopSettingsOpen" class="font-sans absolute right-0 bottom-12 w-48 rounded-xl border border-amber-500/25 bg-amber-50/95 p-2 shadow-lg dark:border-amber-300/20 dark:bg-zinc-900/95">
-        <USelect
-          :model-value="locale"
-          :items="languageItems"
-          value-key="value"
-          :highlight="false"
-          class="w-full"
-          @update:model-value="setLanguage"
-        />
-        <div class="mt-2 h-9 flex items-center justify-between rounded-lg border border-amber-500/20 bg-transparent px-2 py-1.5 dark:border-amber-300/15 dark:bg-transparent">
-          <span class="font-sans text-sm font-normal text-amber-900/90 dark:text-amber-100/90">{{ t("profile.darkThemeLabel") }}</span>
-          <label class="relative inline-flex h-7 w-fit cursor-pointer items-center">
-            <input
-              class="peer sr-only"
-              type="checkbox"
-              :checked="theme === 'dark'"
-              :aria-label="t('profile.toggleDarkThemeAria')"
-              @change="toggleTheme"
-            />
-            <span
-              class="h-4.5 w-8 rounded-full bg-amber-300/80 transition peer-checked:bg-amber-500 dark:bg-zinc-700 dark:peer-checked:bg-amber-400"
-            />
-            <span
-              class="absolute left-0.5 h-3.5 w-3.5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-3.5 dark:bg-zinc-950"
-            />
-          </label>
-        </div>
-      </div>
-      <button
-        class="inline-flex cursor-pointer items-center justify-center rounded-full border border-amber-500/35 bg-amber-50/95 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-900 shadow-sm transition hover:bg-amber-100 dark:border-amber-300/30 dark:bg-zinc-900/95 dark:text-amber-100 dark:hover:bg-zinc-800"
-        type="button"
-        @click="toggleDesktopSettings"
-      >
-        {{ t("profile.settingsTitle") }}
-      </button>
-    </div>
+    <DesktopSettingsFab
+      v-if="!isRecipePage"
+      :locale="locale"
+      :language-items="languageItems"
+      :theme="theme"
+      :show-settings-mascot="showSettingsMascot"
+      :is-desktop-settings-open="isDesktopSettingsOpen"
+      @dismiss-settings-mascot="dismissSettingsMascot"
+      @set-language="setLanguage"
+      @toggle-theme="toggleTheme"
+      @toggle-desktop-settings="toggleDesktopSettings"
+    />
 
     <FilterModal
       :is-open="isFilterModalOpen"
@@ -408,12 +277,15 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import AddRecipeForm from "./components/AddRecipeForm.vue";
 import AppHeaderBar from "./components/AppHeaderBar.vue";
+import DesktopSettingsFab from "./components/DesktopSettingsFab.vue";
 import FilterModal from "./components/FilterModal.vue";
-import OverviewToolbar from "./components/OverviewToolbar.vue";
+import OverviewPanel from "./components/OverviewPanel.vue";
 import PlannerPanel from "./components/PlannerPanel.vue";
 import ProfilePanel from "./components/ProfilePanel.vue";
 import RecipeDetailCard from "./components/RecipeDetailCard.vue";
 import RecipeList from "./components/RecipeList.vue";
+import { useRecipeFilters } from "./composables/useRecipeFilters";
+import { DEFAULT_PROFILE_AVATAR_ID, PROFILE_AVATAR_OPTIONS } from "./constants/profileAvatars";
 import {
   backfillMissingRecipeImages,
   createRecipe,
@@ -426,6 +298,8 @@ import {
   uploadRecipeImage,
 } from "./data/recipesDb";
 import { getSupabaseClient, isSupabaseConfigured } from "./data/supabaseClient";
+import { buildProfileHeading } from "./utils/profileDisplay";
+import { inferRecipeEmoji } from "./utils/recipeDisplay";
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -438,69 +312,6 @@ const showRealtimeSyncToast = ref(false);
 const theme = ref("dark");
 const guestName = ref("");
 const pendingGuestName = ref("");
-const PROFILE_AVATAR_OPTIONS = [
-  {
-    id: "cute-chef-1",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=ChefMia&backgroundColor=fde68a,fbcfe8,c4b5fd",
-    alt: "Cute chef avatar 1",
-  },
-  {
-    id: "cute-chef-2",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=RosyChefMina&backgroundColor=bae6fd,bbf7d0,f9a8d4",
-    alt: "Cute chef avatar 2",
-  },
-  {
-    id: "cute-chef-3",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=PastryPixie&backgroundColor=fed7aa,fde68a,ddd6fe",
-    alt: "Cute chef avatar 3",
-  },
-  {
-    id: "cute-chef-4",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=FoodieFae&backgroundColor=bfdbfe,fbcfe8,bbf7d0",
-    alt: "Cute chef avatar 4",
-  },
-  {
-    id: "cute-chef-5",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=CupcakeChef&backgroundColor=fce7f3,fde68a,c7d2fe",
-    alt: "Cute chef avatar 5",
-  },
-  {
-    id: "cute-chef-6",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=SoupSprite&backgroundColor=bae6fd,fed7aa,d9f99d",
-    alt: "Cute chef avatar 6",
-  },
-  {
-    id: "cute-chef-7",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=StrawberryChefYuna&backgroundColor=fbcfe8,f9a8d4,ddd6fe",
-    alt: "Cute chef avatar 7",
-  },
-  {
-    id: "cute-chef-8",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=SunnySousAri&backgroundColor=ddd6fe,bbf7d0,fecaca",
-    alt: "Cute chef avatar 8",
-  },
-  {
-    id: "cute-chef-9",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=ChefLuna&backgroundColor=fde68a,bfdbfe,fbcfe8",
-    alt: "Cute chef avatar 9",
-  },
-  {
-    id: "cute-chef-10",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=PeachChefNia&backgroundColor=bbf7d0,c7d2fe,fed7aa",
-    alt: "Cute chef avatar 10",
-  },
-  {
-    id: "cute-chef-11",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=WhiskWren&backgroundColor=fbcfe8,bae6fd,fde68a",
-    alt: "Cute chef avatar 11",
-  },
-  {
-    id: "cute-chef-12",
-    src: "https://api.dicebear.com/9.x/thumbs/svg?seed=HoneyChefAiko&backgroundColor=fbcfe8,bfdbfe,fde68a",
-    alt: "Cute chef avatar 12",
-  },
-];
-const DEFAULT_PROFILE_AVATAR_ID = PROFILE_AVATAR_OPTIONS[0].id;
 const profileAvatar = ref(DEFAULT_PROFILE_AVATAR_ID);
 const pendingProfileAvatar = ref(DEFAULT_PROFILE_AVATAR_ID);
 const selectedProfileAvatar = computed(
@@ -530,69 +341,8 @@ const currentMenu = computed(() => {
   if (route.path.startsWith("/profile")) return "profile";
   return null;
 });
-const DEFAULT_CUISINES = [
-  "Italian",
-  "Chinese",
-  "Japanese",
-  "Mexican",
-  "Indian",
-  "French",
-  "Thai",
-  "Mediterranean",
-  "Spanish",
-  "Greek",
-  "Korean",
-  "Middle Eastern",
-  "Vietnamese",
-  "Turkish",
-  "Lebanese",
-  "American",
-  "International",
-];
-const cuisineOptions = computed(() => {
-  const normalizedDefaults = new Map(DEFAULT_CUISINES.map((cuisine) => [cuisine.toLowerCase(), cuisine]));
-  const discoveredCuisines = new Map();
-  recipes.value.forEach((recipe) => {
-    const rawCuisine = String(recipe?.cuisine ?? "").trim();
-    if (!rawCuisine) return;
-    const lower = rawCuisine.toLowerCase();
-    discoveredCuisines.set(lower, normalizedDefaults.get(lower) || rawCuisine);
-  });
-  const merged = [
-    ...DEFAULT_CUISINES,
-    ...[...discoveredCuisines.values()].filter((cuisine) => !DEFAULT_CUISINES.includes(cuisine)),
-  ];
-  return ["All", ...merged];
-});
-const DEFAULT_MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"];
-const mealTypeOptions = computed(() => {
-  const normalizedDefaults = new Map(DEFAULT_MEAL_TYPES.map((type) => [type.toLowerCase(), type]));
-  const discoveredTypes = new Map();
-  recipes.value.forEach((recipe) => {
-    const rawType = String(recipe?.mealType ?? "").trim();
-    if (!rawType) return;
-    const lower = rawType.toLowerCase();
-    discoveredTypes.set(lower, normalizedDefaults.get(lower) || rawType);
-  });
-  const merged = [...DEFAULT_MEAL_TYPES, ...[...discoveredTypes.values()].filter((type) => !DEFAULT_MEAL_TYPES.includes(type))];
-  return ["All", ...merged];
-});
-const filteredRecipes = computed(() =>
-  recipes.value.filter((recipe) => {
-    const cuisineMatch =
-      selectedCuisine.value.length === 0 || selectedCuisine.value.includes(recipe.cuisine);
-    const mealTypeMatch =
-      selectedMealType.value.length === 0 || selectedMealType.value.includes(recipe.mealType);
-    return cuisineMatch && mealTypeMatch;
-  }),
-);
-const hasActiveFilters = computed(() => selectedCuisine.value.length > 0 || selectedMealType.value.length > 0);
-const selectedCuisineLabels = computed(() =>
-  selectedCuisine.value.map((cuisine) => t(`cuisine.${cuisine}`, cuisine)),
-);
-const selectedMealTypeLabels = computed(() =>
-  selectedMealType.value.map((mealType) => t(`mealType.${mealType}`, mealType)),
-);
+const { cuisineOptions, mealTypeOptions, filteredRecipes, hasActiveFilters, selectedCuisineLabels, selectedMealTypeLabels } =
+  useRecipeFilters({ recipes, selectedCuisine, selectedMealType, t });
 const recentRecipes = computed(() => {
   const recipesById = new Map(recipes.value.map((recipe) => [String(recipe.id), recipe]));
   return recentRecipeIds.value
@@ -610,24 +360,7 @@ const languageItems = [
   { label: "中文", value: "zh" },
 ];
 const activeEditorName = computed(() => guestName.value.trim() || t("common.guest"));
-const profileHeading = computed(() => {
-  const normalizedName = guestName.value.trim();
-  const localizedProfileWordByLocale = {
-    en: "profile",
-    nl: "profiel",
-    zh: "个人资料",
-  };
-  const activeLocale = String(locale.value).split("-")[0];
-  const localizedProfileWord = localizedProfileWordByLocale[activeLocale] ?? "profile";
-  if (!normalizedName) {
-    return localizedProfileWord.charAt(0).toUpperCase() + localizedProfileWord.slice(1);
-  }
-  const capitalizedName = normalizedName.replace(/\b([a-z])/gi, (letter) => letter.toUpperCase());
-  if (activeLocale === "zh") {
-    return `${capitalizedName}的${localizedProfileWord}`;
-  }
-  return `${capitalizedName}'s ${localizedProfileWord}`;
-});
+const profileHeading = computed(() => buildProfileHeading(guestName.value, locale.value));
 const editingRecipe = computed(() =>
   recipes.value.find((recipe) => recipe.id === editingRecipeId.value) ?? null,
 );
@@ -826,64 +559,6 @@ function clearFilters() {
 
 function clearActionError() {
   actionError.value = "";
-}
-
-function inferRecipeEmoji(recipe, fallback = "🍽️") {
-  const text = [recipe?.title, recipe?.description, ...(Array.isArray(recipe?.ingredients) ? recipe.ingredients : [])]
-    .join(" ")
-    .toLowerCase();
-  const cuisine = String(recipe?.cuisine ?? "").toLowerCase();
-
-  const keywordEmojiPairs = [
-    [["pasta", "spaghetti", "lasagna", "ravioli"], "🍝"],
-    [["pizza", "flatbread"], "🍕"],
-    [["burger", "hamburger", "cheeseburger"], "🍔"],
-    [["sandwich", "toastie", "panini"], "🥪"],
-    [["taco", "burrito", "quesadilla", "nacho"], "🌮"],
-    [["ramen", "noodle", "udon", "pho"], "🍜"],
-    [["soup", "broth", "stew"], "🍲"],
-    [["rice", "risotto", "paella", "bowl"], "🍚"],
-    [["salad", "lettuce", "greens"], "🥗"],
-    [["egg", "omelette"], "🍳"],
-    [["chicken", "turkey"], "🍗"],
-    [["beef", "steak"], "🥩"],
-    [["fish", "salmon", "tuna", "cod"], "🐟"],
-    [["shrimp", "prawn"], "🦐"],
-    [["bread", "bagel", "bun"], "🍞"],
-    [["cake", "cupcake"], "🍰"],
-    [["cookie", "biscuit"], "🍪"],
-    [["ice cream", "gelato"], "🍨"],
-    [["chocolate", "brownie"], "🍫"],
-    [["fruit", "apple", "banana", "berry"], "🍓"],
-    [["potato", "fries"], "🥔"],
-    [["dumpling", "gyoza", "wonton"], "🥟"],
-    [["curry"], "🍛"],
-    [["sushi"], "🍣"],
-  ];
-
-  for (const [keywords, emoji] of keywordEmojiPairs) {
-    if (keywords.some((keyword) => text.includes(keyword))) return emoji;
-  }
-
-  const cuisineEmojiMap = {
-    italian: "🍝",
-    japanese: "🍣",
-    chinese: "🥢",
-    mexican: "🌮",
-    indian: "🍛",
-    thai: "🍜",
-    french: "🥖",
-    korean: "🍲",
-    greek: "🥙",
-    spanish: "🥘",
-    mediterranean: "🥙",
-    vietnamese: "🍜",
-    turkish: "🥙",
-    lebanese: "🥙",
-    american: "🍔",
-  };
-
-  return cuisineEmojiMap[cuisine] || fallback;
 }
 
 async function addRecipe(recipe) {
