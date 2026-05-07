@@ -10,6 +10,7 @@ const en = {
   },
   common: {
     retry: "Retry",
+    close: "Close",
     open: "Open",
     guest: "Guest",
     servingsCount: "{count} servings",

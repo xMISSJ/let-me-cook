@@ -1,6 +1,7 @@
 import { getSupabaseClient } from "./supabaseClient";
 import { seedRecipes } from "./seedRecipes";
 const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
+const CONFIGURED_RECIPE_IMAGES_BUCKET = String(import.meta.env.VITE_SUPABASE_RECIPE_IMAGES_BUCKET ?? "recipe-images").trim();
 let unsplashDisabledForSession = false;
 const LOCAL_RECIPES_STORAGE_KEY = "let-me-cook-local-recipes";
 let imageUrlColumnSupported = null;
@@ -82,6 +83,7 @@ function removeImageUrlField(payload) {
 
 function getBestSpoonacularImageUrl(url) {
   if (!url || typeof url !== "string") return "";
+  if (url.startsWith("data:image/")) return url;
   if (url.includes("images.unsplash.com")) return url;
   // Spoonacular commonly returns low-res "312x231" thumbnails from complexSearch.
   // Prefer larger known variants from Spoonacular/CDN.
@@ -115,6 +117,16 @@ export function getRecipeImageThumbnailUrl(url) {
 
 export function getRecipeImageDetailUrl(url) {
   return toUnsplashSizedUrl(url, { w: 1800, q: 85, fit: "max", fm: "jpg" });
+}
+
+/** True when the hero image was uploaded by the user (not Unsplash/MealDB/etc.). */
+export function isUserProvidedRecipeImage(url) {
+  if (!url || typeof url !== "string") return false;
+  return (
+    url.startsWith("data:image/") ||
+    url.includes("/storage/v1/object/public/") ||
+    url.includes("/storage/v1/object/sign/")
+  );
 }
 
 async function fetchRecipeImageFromMealDb(recipe) {
@@ -386,18 +398,69 @@ export async function deleteRecipe(recipeId) {
   if (error) throw toReadableError(error);
 }
 
+/** When Storage buckets are not set up, small files may be stored inline (see uploadRecipeImage). */
+const MAX_EMBEDDED_RECIPE_IMAGE_BYTES = 2 * 1024 * 1024;
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () => reject(new Error("Could not read image file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function isStorageBucketMissingError(uploadError, readableMessage) {
+  const msg = String(readableMessage ?? "").toLowerCase();
+  if (msg.includes("bucket not found")) return true;
+  if (!uploadError || typeof uploadError !== "object") return false;
+  const status = "statusCode" in uploadError ? uploadError.statusCode : uploadError.status;
+  if (status === 404 && msg.includes("bucket")) return true;
+  return false;
+}
+
 export async function uploadRecipeImage(file, userId) {
   const supabase = getSupabaseClient();
   const extension = file.name.split(".").pop() || "jpg";
   const owner = userId || "guest";
   const filePath = `${owner}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-  const { error: uploadError } = await supabase.storage.from("recipe-images").upload(filePath, file, {
-    upsert: false,
-  });
-  if (uploadError) throw toReadableError(uploadError);
+  const candidateBuckets = [
+    CONFIGURED_RECIPE_IMAGES_BUCKET,
+    "recipe-images",
+    "recipe_images",
+    "images",
+  ].filter((value, index, list) => value && list.indexOf(value) === index);
 
-  const { data } = supabase.storage.from("recipe-images").getPublicUrl(filePath);
-  return data.publicUrl;
+  let lastError = null;
+  for (const bucket of candidateBuckets) {
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
+      upsert: false,
+    });
+    if (!uploadError) {
+      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+      return data.publicUrl;
+    }
+
+    const normalizedError = toReadableError(uploadError);
+    const isMissingBucket = isStorageBucketMissingError(uploadError, normalizedError.message);
+    if (!isMissingBucket) {
+      throw normalizedError;
+    }
+    lastError = normalizedError;
+  }
+
+  if (lastError) {
+    if (file.size > MAX_EMBEDDED_RECIPE_IMAGE_BYTES) {
+      throw new Error(
+        `Could not upload image because no storage bucket was found and the file is too large to save without Storage (${Math.round(file.size / 1024)} KB; max ${MAX_EMBEDDED_RECIPE_IMAGE_BYTES / 1024 / 1024} MB embedded). Create a public Supabase bucket named "${CONFIGURED_RECIPE_IMAGES_BUCKET}" or set VITE_SUPABASE_RECIPE_IMAGES_BUCKET to your existing bucket.`,
+      );
+    }
+    console.warn(
+      `[let-me-cook] No recipe image Storage bucket found; saving image inline in the database. Add bucket "${CONFIGURED_RECIPE_IMAGES_BUCKET}" for normal uploads.`,
+    );
+    return readFileAsDataUrl(file);
+  }
+  throw new Error("Could not upload image.");
 }
 
 export async function fetchRecipeImageFromSpoonacular(recipe) {

@@ -8,7 +8,6 @@
       class="mx-auto w-full"
       :class="isRecipePage ? 'max-w-none' : 'grid max-w-7xl gap-4'"
     >
-      <p v-if="!isRecipePage && actionError" class="text-xs text-rose-700 dark:text-rose-300">{{ actionError }}</p>
       <div v-if="!isRecipePage">
         <AppHeaderBar
           :active-menu="currentMenu"
@@ -278,11 +277,8 @@
           :model-value="locale"
           :items="languageItems"
           value-key="value"
-          color="neutral"
-          variant="ghost"
           :highlight="false"
           class="w-full"
-          :ui="desktopQuickSettingsSelectUi"
           @update:model-value="setLanguage"
         />
         <div class="mt-2 h-9 flex items-center justify-between rounded-lg border border-amber-500/20 bg-transparent px-2 py-1.5 dark:border-amber-300/15 dark:bg-transparent">
@@ -328,28 +324,32 @@
 
     <div
       v-if="isAddModalOpen"
-      class="fixed inset-0 z-[60] overflow-y-auto bg-amber-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:bg-black/70 sm:p-4"
+      class="fixed inset-0 z-[60] overflow-y-auto bg-amber-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
       @click.self="closeAddRecipeModal"
       @keydown.capture="stopModalClipboardShortcuts"
     >
-      <div class="min-h-dvh w-full sm:min-h-0 sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:overflow-y-auto sm:rounded-2xl">
+      <div class="w-full sm:w-full sm:max-w-2xl sm:rounded-2xl sm:overflow-hidden">
+        <div class="sm:max-h-[calc(100dvh-2rem)] sm:overflow-y-auto">
         <AddRecipeForm @save-recipe="addRecipe" @cancel="closeAddRecipeModal" />
+        </div>
       </div>
     </div>
 
     <div
       v-if="isEditModalOpen && editingRecipe"
-      class="fixed inset-0 z-[60] overflow-y-auto bg-amber-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:bg-black/70 sm:p-4"
+      class="fixed inset-0 z-[60] overflow-y-auto bg-amber-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
       @click.self="closeEditRecipeModal"
       @keydown.capture="stopModalClipboardShortcuts"
     >
-      <div class="h-dvh w-full overflow-y-auto sm:h-auto sm:w-full sm:max-w-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl">
+      <div class="w-full sm:w-full sm:max-w-2xl sm:rounded-2xl sm:overflow-hidden">
+        <div class="sm:max-h-[calc(100dvh-2rem)] sm:overflow-y-auto">
         <AddRecipeForm
           :initial-recipe="editingRecipe"
           submit-label="Save Recipe"
           @save-recipe="saveEditedRecipe"
           @cancel="closeEditRecipeModal"
         />
+        </div>
       </div>
     </div>
     </main>
@@ -368,6 +368,35 @@
         aria-live="polite"
       >
         Recipes synced across devices
+      </div>
+    </Transition>
+    <Transition
+      enter-active-class="transition-all duration-250 ease-out"
+      enter-from-class="opacity-0 -translate-y-2 md:translate-y-2"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition-all duration-200 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 -translate-y-1 md:translate-y-1"
+    >
+      <div
+        v-if="actionError"
+        class="fixed inset-x-4 top-4 z-[80] rounded-lg border border-rose-500/40 bg-rose-50/95 px-3 py-2 text-sm font-medium text-rose-900 shadow-md backdrop-blur dark:border-rose-300/35 dark:bg-zinc-900/95 dark:text-rose-200 md:inset-x-auto md:right-4 md:top-auto md:bottom-4 md:w-[24rem]"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <p class="min-w-0 break-words">{{ actionError }}</p>
+          <button
+            class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-rose-500/45 bg-white text-rose-700 hover:bg-rose-100 dark:bg-zinc-800 dark:text-rose-300 dark:hover:bg-zinc-700"
+            type="button"
+            :aria-label="t('common.close')"
+            @click="clearActionError"
+          >
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
       </div>
     </Transition>
   </div>
@@ -390,6 +419,7 @@ import {
   createRecipe,
   deleteRecipe,
   fetchRecipeImageFromSpoonacular,
+  isUserProvidedRecipeImage,
   listRecipes,
   seedRecipesIfEmpty,
   updateRecipe,
@@ -579,14 +609,6 @@ const languageItems = [
   { label: "Nederlands", value: "nl" },
   { label: "中文", value: "zh" },
 ];
-const desktopQuickSettingsSelectUi = {
-  base: 'h-9 rounded-md border border-amber-500/20 bg-transparent px-2 py-1.5 text-xs text-amber-900 shadow-none transition-colors hover:border-amber-500/35 hover:bg-amber-100/40 focus-visible:ring-1 focus-visible:ring-amber-500/30 data-[state=open]:border-amber-500/35 data-[state=open]:bg-amber-100/40 dark:border-amber-300/15 dark:text-amber-100 dark:hover:border-amber-300/25 dark:hover:bg-zinc-800/70 dark:focus-visible:ring-amber-300/25 dark:data-[state=open]:border-amber-300/25 dark:data-[state=open]:bg-zinc-800/70',
-  trailingIcon: 'text-amber-800/70 dark:text-amber-100/70',
-  value: 'text-amber-900/90 dark:text-amber-100/90',
-  placeholder: 'text-amber-900/55 dark:text-amber-100/55',
-  content: 'rounded-xl border border-amber-500/25 bg-amber-50 p-1 shadow-lg shadow-amber-900/10 dark:border-amber-300/20 dark:bg-zinc-900 dark:shadow-black/35',
-  item: 'rounded-lg text-amber-900/90 hover:bg-amber-100 dark:text-amber-100/90 dark:hover:bg-zinc-800 data-highlighted:not-data-disabled:bg-amber-100 dark:data-highlighted:not-data-disabled:bg-zinc-800',
-};
 const activeEditorName = computed(() => guestName.value.trim() || t("common.guest"));
 const profileHeading = computed(() => {
   const normalizedName = guestName.value.trim();
@@ -614,6 +636,7 @@ const loadingSpinnerSrc = `${import.meta.env.BASE_URL}favicon.svg`;
 let recipesRealtimeChannel = null;
 let recipesRealtimeRefreshTimer = null;
 let realtimeSyncToastTimer = null;
+let actionErrorToastTimer = null;
 
 function canManageRecipe(recipe) {
   return Boolean(recipe);
@@ -801,6 +824,10 @@ function clearFilters() {
   selectedMealType.value = [];
 }
 
+function clearActionError() {
+  actionError.value = "";
+}
+
 function inferRecipeEmoji(recipe, fallback = "🍽️") {
   const text = [recipe?.title, recipe?.description, ...(Array.isArray(recipe?.ingredients) ? recipe.ingredients : [])]
     .join(" ")
@@ -921,9 +948,10 @@ async function saveEditedRecipe(recipe) {
     if (recipe.imageFile) {
       imageUrl = await uploadRecipeImage(recipe.imageFile, null);
     } else if (recipe.imageRemoved) {
-      const fetchedImageUrl = await fetchRecipeImageFromSpoonacular(recipe);
-      imageUrl = fetchedImageUrl || "";
-    } else if (didTitleChange || !imageUrl) {
+      imageUrl = (await fetchRecipeImageFromSpoonacular(recipe)) || "";
+    } else if (!imageUrl) {
+      imageUrl = (await fetchRecipeImageFromSpoonacular(recipe)) || "";
+    } else if (didTitleChange && !isUserProvidedRecipeImage(imageUrl)) {
       const fetchedImageUrl = await fetchRecipeImageFromSpoonacular(recipe);
       if (fetchedImageUrl) {
         imageUrl = fetchedImageUrl;
@@ -1040,6 +1068,18 @@ watch([isAddModalOpen, isEditModalOpen, isFilterModalOpen], () => {
   syncBodyScrollLock();
 });
 
+watch(actionError, (value) => {
+  if (actionErrorToastTimer) {
+    window.clearTimeout(actionErrorToastTimer);
+    actionErrorToastTimer = null;
+  }
+  if (!value) return;
+  actionErrorToastTimer = window.setTimeout(() => {
+    actionError.value = "";
+    actionErrorToastTimer = null;
+  }, 4200);
+});
+
 onBeforeUnmount(() => {
   if (mascotAutoHideTimer) {
     window.clearTimeout(mascotAutoHideTimer);
@@ -1051,6 +1091,10 @@ onBeforeUnmount(() => {
   if (realtimeSyncToastTimer) {
     window.clearTimeout(realtimeSyncToastTimer);
     realtimeSyncToastTimer = null;
+  }
+  if (actionErrorToastTimer) {
+    window.clearTimeout(actionErrorToastTimer);
+    actionErrorToastTimer = null;
   }
   if (recipesRealtimeChannel && isSupabaseConfigured()) {
     const supabase = getSupabaseClient();

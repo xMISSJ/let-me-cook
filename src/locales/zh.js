@@ -10,6 +10,7 @@ const zh = {
   },
   common: {
     retry: "重试",
+    close: "关闭",
     open: "打开",
     guest: "访客",
     servingsCount: "{count} 人份",

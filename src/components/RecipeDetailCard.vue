@@ -267,11 +267,11 @@ const detailImageUrl = computed(() => getRecipeImageDetailUrl(props.recipe.image
 const detailThumbUrl = computed(() => getRecipeImageThumbnailUrl(props.recipe.imageUrl || fetchedFallbackImageUrl.value));
 
 watch(
-  () => props.recipe?.id,
+  () => [props.recipe?.id, props.recipe?.imageUrl ?? ""],
   async () => {
     fetchedFallbackImageUrl.value = "";
     hasImageLoadError.value = false;
-    if (props.recipe?.imageUrl) return;
+    if (!props.recipe?.id || props.recipe?.imageUrl) return;
     fetchedFallbackImageUrl.value = await fetchRecipeImageFromSpoonacular(props.recipe);
   },
   { immediate: true },

@@ -2,7 +2,7 @@
   <section
     class="overflow-hidden rounded-3xl border border-amber-500/30 bg-amber-50 px-4 py-4 shadow-sm sm:px-5 sm:py-5 lg:rounded-2xl lg:px-7 lg:py-6 dark:bg-zinc-900"
   >
-    <div class="mb-4 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-200/70 via-amber-100/80 to-amber-50 px-4 py-4 dark:border-amber-300/20 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-900 sm:px-5">
+    <div class="mb-4 rounded-2xl border border-amber-500/25 bg-linear-to-br from-amber-200/70 via-amber-100/80 to-amber-50 px-4 py-4 dark:border-amber-300/20 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-900 sm:px-5">
       <div class="flex items-center gap-3">
         <img
           :src="selectedProfileAvatar.src"
@@ -82,11 +82,8 @@
               :model-value="locale"
               :items="languageItems"
               value-key="value"
-              color="neutral"
-              variant="ghost"
               :highlight="false"
               class="w-full"
-              :ui="profileLanguageSelectUi"
               @update:model-value="emit('set-language', $event)"
             />
           </label>
@@ -155,15 +152,6 @@ defineProps({
     required: true,
   },
 });
-
-const profileLanguageSelectUi = {
-  base: "min-h-9 rounded-lg border border-amber-500/20 bg-transparent px-2 text-amber-900 shadow-none transition-colors hover:border-amber-500/30 hover:bg-amber-100/40 focus-visible:ring-1 focus-visible:ring-amber-500/30 data-[state=open]:border-amber-500/30 data-[state=open]:bg-amber-100/40 dark:border-amber-300/15 dark:text-amber-100 dark:hover:border-amber-300/25 dark:hover:bg-zinc-800/70 dark:focus-visible:ring-amber-300/25 dark:data-[state=open]:border-amber-300/25 dark:data-[state=open]:bg-zinc-800/70",
-  trailingIcon: "text-amber-800/70 dark:text-amber-100/70",
-  value: "text-amber-900/90 dark:text-amber-100/90",
-  placeholder: "text-amber-900/55 dark:text-amber-100/55",
-  content: "rounded-xl border border-amber-500/25 bg-amber-50 p-1 shadow-lg shadow-amber-900/10 dark:border-amber-300/20 dark:bg-zinc-900 dark:shadow-black/35",
-  item: "rounded-lg text-amber-900/90 hover:bg-amber-100 dark:text-amber-100/90 dark:hover:bg-zinc-800 data-highlighted:not-data-disabled:bg-amber-100 dark:data-highlighted:not-data-disabled:bg-zinc-800",
-};
 
 const emit = defineEmits([
   "update:pendingGuestName",

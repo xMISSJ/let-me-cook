@@ -166,12 +166,9 @@
               :items="plannerRecipeOptions"
               value-key="value"
               label-key="label"
-              color="neutral"
-              variant="ghost"
               :highlight="false"
               class="w-full"
               :placeholder="t('planner.chooseRecipe')"
-              :ui="plannerRecipeSelectUi"
               @update:model-value="plannerSelectedRecipeId = $event ?? ''"
             />
           </label>
@@ -329,15 +326,6 @@ const plannerRecipeOptions = computed(() =>
       label: `${recipe.thumbnail || "🍽️"} ${recipe.title} - ${t(`mealType.${recipe.mealType}`, recipe.mealType)}`,
     })),
 );
-
-const plannerRecipeSelectUi = {
-  base: "min-h-9 rounded-lg border border-amber-500/35 bg-white px-2.5 py-1.5 text-sm text-amber-900 shadow-none transition-colors focus-visible:border-amber-500 focus-visible:ring-1 focus-visible:ring-amber-500/30 data-[state=open]:border-amber-500 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:focus-visible:border-amber-300 dark:focus-visible:ring-amber-300/25 dark:data-[state=open]:border-amber-300",
-  value: "text-amber-900 dark:text-amber-100",
-  placeholder: "text-amber-900/60 dark:text-amber-100/60",
-  trailingIcon: "text-amber-800/70 dark:text-amber-100/70",
-  content: "rounded-xl border border-amber-500/25 bg-amber-50 p-1 shadow-lg shadow-amber-900/10 dark:border-amber-300/20 dark:bg-zinc-900 dark:shadow-black/35",
-  item: "rounded-lg text-amber-900/90 hover:bg-amber-100 dark:text-amber-100/90 dark:hover:bg-zinc-800 data-highlighted:not-data-disabled:bg-amber-100 dark:data-highlighted:not-data-disabled:bg-zinc-800",
-};
 
 const plannedMeals = computed(() => {
   const recipeById = new Map(props.recipes.map((recipe) => [String(recipe.id), recipe]));

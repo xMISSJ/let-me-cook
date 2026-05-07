@@ -1,5 +1,5 @@
 <template>
-  <section class="min-h-dvh rounded-none border-0 bg-amber-50 px-4 py-4 shadow-none dark:bg-zinc-900 sm:min-h-0 sm:rounded-2xl sm:border sm:border-amber-500/30 sm:px-5 sm:shadow-sm">
+  <section class="rounded-none border-0 bg-amber-50 px-4 py-4 shadow-none dark:bg-zinc-900 sm:rounded-2xl sm:border sm:border-amber-500/30 sm:px-6 sm:py-5 sm:shadow-sm lg:rounded-3xl lg:px-7 lg:py-6">
     <div class="flex items-start justify-between gap-3">
       <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">
         {{ props.initialRecipe ? t("addRecipeForm.editTitle") : t("addRecipeForm.title") }}
@@ -24,7 +24,7 @@
       {{ t("addRecipeForm.subtitle") }}
     </p>
 
-    <form class="mt-4 grid gap-3" @submit.prevent="handleSubmit">
+    <form class="mt-4 grid gap-3 lg:gap-4" @submit.prevent="handleSubmit">
       <input
         v-model="form.title"
         class="rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
@@ -40,38 +40,38 @@
       <div class="grid gap-3 sm:grid-cols-2">
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.cuisine") }}</span>
-          <select
-            v-model="form.cuisine"
-            class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none focus:border-amber-500 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
-          >
-            <option v-for="item in cuisineItems" :key="item.value" :value="item.value">
-              {{ item.label() }}
-            </option>
-          </select>
+          <USelect
+            :model-value="form.cuisine"
+            :items="cuisineItems"
+            value-key="value"
+            :highlight="false"
+            class="w-full"
+            @update:model-value="form.cuisine = $event"
+          />
         </label>
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.mealType") }}</span>
-          <select
-            v-model="form.mealType"
-            class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none focus:border-amber-500 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
-          >
-            <option v-for="item in mealTypeItems" :key="item.value" :value="item.value">
-              {{ item.label() }}
-            </option>
-          </select>
+          <USelect
+            :model-value="form.mealType"
+            :items="mealTypeItems"
+            value-key="value"
+            :highlight="false"
+            class="w-full"
+            @update:model-value="form.mealType = $event"
+          />
         </label>
       </div>
       <div class="grid gap-3 sm:grid-cols-3">
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.difficulty") }}</span>
-          <select
-            v-model="form.difficulty"
-            class="w-full rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none focus:border-amber-500 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:focus:border-amber-300"
-          >
-            <option v-for="item in difficultyItems" :key="item.value" :value="item.value">
-              {{ item.label() }}
-            </option>
-          </select>
+          <USelect
+            :model-value="form.difficulty"
+            :items="difficultyItems"
+            value-key="value"
+            :highlight="false"
+            class="w-full"
+            @update:model-value="form.difficulty = $event"
+          />
         </label>
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.cookTime") }}</span>
@@ -216,8 +216,8 @@
           </div>
         </div>
       </div>
-      <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
-        <span>{{ t("addRecipeForm.image") }}</span>
+      <div class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
+        <label for="recipe-image-input">{{ t("addRecipeForm.image") }}</label>
         <div class="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-white px-2.5 py-2 text-sm text-amber-900 dark:bg-zinc-800 dark:text-amber-100">
           <input
             id="recipe-image-input"
@@ -249,17 +249,17 @@
             </svg>
           </button>
         </div>
-      </label>
+      </div>
       <p v-if="error" class="text-sm font-medium text-rose-300">{{ error }}</p>
-      <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <div class="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-amber-500/25 bg-amber-50/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-amber-50/80 dark:border-amber-300/20 dark:bg-zinc-900/95 dark:supports-backdrop-filter:bg-zinc-900/80 sm:static sm:mx-0 sm:justify-end sm:gap-2.5 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
         <button
-          class="inline-flex w-full items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400 sm:w-auto"
+          class="inline-flex w-full items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400 sm:w-auto sm:order-2"
           type="submit"
         >
           {{ props.submitLabel || (props.initialRecipe ? t("addRecipeForm.saveRecipe") : t("addRecipeForm.addRecipe")) }}
         </button>
         <button
-          class="inline-flex w-full items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-200 sm:w-auto dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+          class="inline-flex w-full items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-200 sm:w-auto sm:order-1 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
           type="button"
           @click="emit('cancel')"
         >
@@ -273,6 +273,7 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { isUserProvidedRecipeImage } from "../data/recipesDb";
 
 const props = defineProps({
   initialRecipe: {
@@ -305,49 +306,59 @@ const selectedImage = ref(null);
 const imageRemoved = ref(false);
 const imageInput = ref(null);
 const hasSelectedOrExistingImage = computed(() =>
-  Boolean(selectedImage.value || (isCustomUploadedImage(props.initialRecipe?.imageUrl) && !imageRemoved.value)),
+  Boolean(selectedImage.value || (isUserProvidedRecipeImage(props.initialRecipe?.imageUrl) && !imageRemoved.value)),
 );
 const displayImageName = computed(() => {
   if (selectedImage.value?.name) return selectedImage.value.name;
-  if (isCustomUploadedImage(props.initialRecipe?.imageUrl) && !imageRemoved.value) {
+  if (isUserProvidedRecipeImage(props.initialRecipe?.imageUrl) && !imageRemoved.value) {
     return extractImageName(props.initialRecipe.imageUrl);
   }
   return t("addRecipeForm.noImageSelected");
 });
 
-const cuisineItems = [
-  { label: () => t("cuisine.Italian"), value: "Italian" },
-  { label: () => t("cuisine.Chinese"), value: "Chinese" },
-  { label: () => t("cuisine.Japanese"), value: "Japanese" },
-  { label: () => t("cuisine.Mexican"), value: "Mexican" },
-  { label: () => t("cuisine.Indian"), value: "Indian" },
-  { label: () => t("cuisine.French"), value: "French" },
-  { label: () => t("cuisine.Thai"), value: "Thai" },
-  { label: () => t("cuisine.Mediterranean"), value: "Mediterranean" },
-  { label: () => t("cuisine.Spanish"), value: "Spanish" },
-  { label: () => t("cuisine.Greek"), value: "Greek" },
-  { label: () => t("cuisine.Korean"), value: "Korean" },
-  { label: () => t("cuisine.MiddleEastern"), value: "Middle Eastern" },
-  { label: () => t("cuisine.Vietnamese"), value: "Vietnamese" },
-  { label: () => t("cuisine.Turkish"), value: "Turkish" },
-  { label: () => t("cuisine.Lebanese"), value: "Lebanese" },
-  { label: () => t("cuisine.American"), value: "American" },
-  { label: () => t("cuisine.International"), value: "International" },
+const cuisineValues = [
+  "Italian",
+  "Chinese",
+  "Japanese",
+  "Mexican",
+  "Indian",
+  "French",
+  "Thai",
+  "Mediterranean",
+  "Spanish",
+  "Greek",
+  "Korean",
+  "Middle Eastern",
+  "Vietnamese",
+  "Turkish",
+  "Lebanese",
+  "American",
+  "International",
 ];
 
-const mealTypeItems = [
-  { label: () => t("mealType.Breakfast"), value: "Breakfast" },
-  { label: () => t("mealType.Lunch"), value: "Lunch" },
-  { label: () => t("mealType.Dinner"), value: "Dinner" },
-  { label: () => t("mealType.Snack"), value: "Snack" },
-  { label: () => t("mealType.Dessert"), value: "Dessert" },
-];
+const mealTypeValues = ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"];
+const difficultyValues = ["Easy", "Medium", "Hard"];
 
-const difficultyItems = [
-  { label: () => t("difficulty.Easy"), value: "Easy" },
-  { label: () => t("difficulty.Medium"), value: "Medium" },
-  { label: () => t("difficulty.Hard"), value: "Hard" },
-];
+const cuisineItems = computed(() =>
+  cuisineValues.map((value) => ({
+    value,
+    label: t(`cuisine.${value.replace(/\s+/g, "")}`, value),
+  })),
+);
+
+const mealTypeItems = computed(() =>
+  mealTypeValues.map((value) => ({
+    value,
+    label: t(`mealType.${value}`, value),
+  })),
+);
+
+const difficultyItems = computed(() =>
+  difficultyValues.map((value) => ({
+    value,
+    label: t(`difficulty.${value}`, value),
+  })),
+);
 
 function fillForm(recipe) {
   form.title = recipe?.title ?? "";
@@ -394,11 +405,6 @@ function extractImageName(url) {
   } catch {
     return t("addRecipeForm.currentImage");
   }
-}
-
-function isCustomUploadedImage(url) {
-  if (!url || typeof url !== "string") return false;
-  return url.includes("/recipe-images/") || url.includes("\\recipe-images\\");
 }
 
 function removeSelectedImage() {
