@@ -1,8 +1,25 @@
 <template>
-  <section class="min-h-dvh rounded-none border-0 bg-transparent px-4 py-4 shadow-none sm:min-h-0 sm:rounded-2xl sm:border sm:border-amber-500/30 sm:bg-amber-50 sm:px-5 sm:shadow-sm dark:sm:bg-zinc-900">
-    <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">
-      {{ props.initialRecipe ? t("addRecipeForm.editTitle") : t("addRecipeForm.title") }}
-    </h2>
+  <section class="min-h-dvh rounded-none border-0 bg-amber-50 px-4 py-4 shadow-none dark:bg-zinc-900 sm:min-h-0 sm:rounded-2xl sm:border sm:border-amber-500/30 sm:px-5 sm:shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+      <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">
+        {{ props.initialRecipe ? t("addRecipeForm.editTitle") : t("addRecipeForm.title") }}
+      </h2>
+      <button
+        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/45 bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+        type="button"
+        @click="emit('cancel')"
+        :aria-label="t('addRecipeForm.cancel')"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          class="h-4.5 w-4.5"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
     <p class="mt-1 text-sm text-amber-900/85 dark:text-amber-100/85">
       {{ t("addRecipeForm.subtitle") }}
     </p>

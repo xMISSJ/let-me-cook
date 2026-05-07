@@ -20,6 +20,43 @@ function writeLocalRecipes(recipes) {
   localStorage.setItem(LOCAL_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
 }
 
+function isLocalRecipeId(recipeId) {
+  return String(recipeId).startsWith("local-");
+}
+
+function buildRecipeFromInput(recipeId, recipe, fallback = {}) {
+  return {
+    id: recipeId,
+    userId: recipe.userId ?? fallback.userId ?? null,
+    createdAt: fallback.createdAt ?? null,
+    title: recipe.title,
+    description: recipe.description,
+    thumbnail: recipe.thumbnail ?? fallback.thumbnail ?? "🍽️",
+    cuisine: recipe.cuisine,
+    mealType: recipe.mealType,
+    difficulty: recipe.difficulty,
+    cookTimeMinutes: recipe.cookTimeMinutes,
+    servings: recipe.servings,
+    ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+    steps: Array.isArray(recipe.steps) ? recipe.steps : [],
+    imageUrl: recipe.imageUrl ?? fallback.imageUrl ?? "",
+    editorName: recipe.editorName ?? fallback.editorName ?? "",
+  };
+}
+
+function upsertLocalRecipe(recipeId, recipe, fallback = {}) {
+  const localRecipes = readLocalRecipes();
+  const nextRecipe = buildRecipeFromInput(recipeId, recipe, fallback);
+  const targetIndex = localRecipes.findIndex((item) => String(item.id) === String(recipeId));
+  if (targetIndex === -1) {
+    writeLocalRecipes([nextRecipe, ...localRecipes]);
+  } else {
+    localRecipes[targetIndex] = nextRecipe;
+    writeLocalRecipes(localRecipes);
+  }
+  return nextRecipe;
+}
+
 function shouldUseLocalFallback(error) {
   const message = String(error?.message ?? error ?? "").toLowerCase();
   return (
@@ -204,6 +241,9 @@ export async function listRecipes() {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase.from("recipes").select("*").order("id", { ascending: false });
     if (error) throw toReadableError(error);
+    if (Array.isArray(data) && data.length > 0) {
+      imageUrlColumnSupported = "image_url" in data[0];
+    }
     remoteRecipes = (data ?? []).map(normalizeRecipe);
   } catch (error) {
     if (!shouldUseLocalFallback(error)) throw error;
@@ -218,7 +258,6 @@ export async function listRecipes() {
 
 export async function createRecipe(recipe) {
   const insertPayload = {
-    user_id: recipe.userId ?? null,
     title: recipe.title,
     description: recipe.description,
     thumbnail: recipe.thumbnail ?? "🍽️",
@@ -229,9 +268,11 @@ export async function createRecipe(recipe) {
     servings: recipe.servings,
     ingredients: recipe.ingredients,
     steps: recipe.steps,
-    image_url: recipe.imageUrl ?? null,
     editor_name: recipe.editorName ?? null,
   };
+  if (imageUrlColumnSupported === true) {
+    insertPayload.image_url = recipe.imageUrl ?? null;
+  }
   try {
     const supabase = getSupabaseClient();
     let activeInsertPayload = insertPayload;
@@ -273,7 +314,12 @@ export async function createRecipe(recipe) {
   }
 }
 
-export async function updateRecipe(recipeId, recipe) {
+export async function updateRecipe(recipeId, recipe, fallback = {}) {
+  if (isLocalRecipeId(recipeId)) {
+    const existing = readLocalRecipes().find((item) => String(item.id) === String(recipeId)) ?? {};
+    return upsertLocalRecipe(recipeId, recipe, existing);
+  }
+
   const supabase = getSupabaseClient();
   const updatePayload = {
     title: recipe.title,
@@ -286,40 +332,37 @@ export async function updateRecipe(recipeId, recipe) {
     servings: recipe.servings,
     ingredients: recipe.ingredients,
     steps: recipe.steps,
-    image_url: recipe.imageUrl ?? null,
     editor_name: recipe.editorName ?? null,
   };
-  if ("userId" in recipe) {
-    updatePayload.user_id = recipe.userId ?? null;
+  if (imageUrlColumnSupported === true) {
+    updatePayload.image_url = recipe.imageUrl ?? null;
   }
   let activeUpdatePayload = updatePayload;
   if (imageUrlColumnSupported === false) {
     activeUpdatePayload = removeImageUrlField(updatePayload);
   }
-  let { data, error } = await supabase
-    .from("recipes")
-    .update(activeUpdatePayload)
-    .eq("id", recipeId)
-    .select("*")
-    .single();
+  let { error } = await supabase.from("recipes").update(activeUpdatePayload).eq("id", recipeId);
   if (error && isMissingImageUrlColumnError(error)) {
     imageUrlColumnSupported = false;
-    ({ data, error } = await supabase
+    ({ error } = await supabase
       .from("recipes")
       .update(removeImageUrlField(updatePayload))
-      .eq("id", recipeId)
-      .select("*")
-      .single());
+      .eq("id", recipeId));
   }
 
   if (error) throw toReadableError(error);
   if (imageUrlColumnSupported === null) {
     imageUrlColumnSupported = true;
   }
-  return normalizeRecipe(data);
+  return buildRecipeFromInput(recipeId, recipe, fallback);
 }
 
 export async function deleteRecipe(recipeId) {
+  if (isLocalRecipeId(recipeId)) {
+    const localRecipes = readLocalRecipes();
+    writeLocalRecipes(localRecipes.filter((item) => String(item.id) !== String(recipeId)));
+    return;
+  }
   const supabase = getSupabaseClient();
   const { error } = await supabase.from("recipes").delete().eq("id", recipeId);
   if (error) throw toReadableError(error);

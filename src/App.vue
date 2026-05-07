@@ -339,7 +339,7 @@
 
     <div
       v-if="isEditModalOpen && editingRecipe"
-      class="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/70 p-0 sm:items-center sm:p-4"
+      class="fixed inset-0 z-[60] overflow-y-auto bg-amber-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:bg-black/70 sm:p-4"
       @click.self="closeEditRecipeModal"
       @keydown.capture="stopModalClipboardShortcuts"
     >
@@ -851,19 +851,38 @@ function closeEditRecipeModal() {
 async function saveEditedRecipe(recipe) {
   if (!editingRecipe.value) return;
   actionError.value = "";
-  let imageUrl = editingRecipe.value.imageUrl ?? "";
-  if (recipe.imageFile) {
-    imageUrl = await uploadRecipeImage(recipe.imageFile, null);
-  } else if (!imageUrl) {
-    imageUrl = await fetchRecipeImageFromSpoonacular(recipe);
+  try {
+    let imageUrl = editingRecipe.value.imageUrl ?? "";
+    const previousTitle = String(editingRecipe.value.title ?? "").trim().toLowerCase();
+    const nextTitle = String(recipe.title ?? "").trim().toLowerCase();
+    const didTitleChange = previousTitle !== nextTitle;
+
+    if (recipe.imageFile) {
+      imageUrl = await uploadRecipeImage(recipe.imageFile, null);
+    } else if (didTitleChange || !imageUrl) {
+      const fetchedImageUrl = await fetchRecipeImageFromSpoonacular(recipe);
+      if (fetchedImageUrl) {
+        imageUrl = fetchedImageUrl;
+      }
+    }
+
+    const updated = await updateRecipe(
+      editingRecipe.value.id,
+      {
+        ...recipe,
+        thumbnail: inferRecipeEmoji(recipe, editingRecipe.value.thumbnail || "🍽️"),
+        imageUrl,
+        editorName: activeEditorName.value,
+      },
+      editingRecipe.value,
+    );
+    recipes.value = recipes.value.map((item) => (item.id === updated.id ? updated : item));
+    closeEditRecipeModal();
+  } catch (error) {
+    console.warn("Unable to edit recipe", error);
+    const reason = error instanceof Error ? error.message : String(error ?? "");
+    actionError.value = reason ? `Could not save recipe changes: ${reason}` : "Could not save recipe changes. Please try again.";
   }
-  const updated = await updateRecipe(editingRecipe.value.id, {
-    ...recipe,
-    thumbnail: inferRecipeEmoji(recipe, editingRecipe.value.thumbnail || "🍽️"),
-    imageUrl,
-  });
-  recipes.value = recipes.value.map((item) => (item.id === updated.id ? updated : item));
-  closeEditRecipeModal();
 }
 
 async function removeRecipeById(recipeId) {
