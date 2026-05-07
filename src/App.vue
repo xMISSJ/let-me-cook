@@ -920,6 +920,9 @@ async function saveEditedRecipe(recipe) {
 
     if (recipe.imageFile) {
       imageUrl = await uploadRecipeImage(recipe.imageFile, null);
+    } else if (recipe.imageRemoved) {
+      const fetchedImageUrl = await fetchRecipeImageFromSpoonacular(recipe);
+      imageUrl = fetchedImageUrl || "";
     } else if (didTitleChange || !imageUrl) {
       const fetchedImageUrl = await fetchRecipeImageFromSpoonacular(recipe);
       if (fetchedImageUrl) {
