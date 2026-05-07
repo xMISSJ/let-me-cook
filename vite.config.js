@@ -9,6 +9,26 @@ export default defineConfig({
     tailwindcss(),
     ui({
       ui: {
+        colors: {
+          primary: "amber",
+          neutral: "zinc",
+        },
+        button: {
+          compoundVariants: [
+            {
+              color: "neutral",
+              variant: "outline",
+              class:
+                "ring-0 border border-amber-500/50 bg-white text-amber-900 transition-[box-shadow,background-color,border-color] duration-200 ease-out hover:bg-amber-200 hover:shadow-sm active:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 dark:border-amber-300/35 dark:bg-zinc-700 dark:text-amber-100 dark:hover:bg-zinc-600 dark:focus-visible:ring-amber-300/35",
+            },
+            {
+              color: "neutral",
+              variant: "ghost",
+              class:
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 dark:focus-visible:ring-amber-300/35",
+            },
+          ],
+        },
         select: {
           slots: {
             base: "min-h-9 w-full rounded-lg border border-amber-500/35 bg-white px-2.5 py-1.5 text-sm text-amber-900 shadow-none transition-colors hover:border-amber-500/55 focus-visible:border-amber-500 focus-visible:ring-1 focus-visible:ring-amber-500/30 data-[state=open]:border-amber-500 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:hover:border-amber-300/45 dark:focus-visible:border-amber-300 dark:focus-visible:ring-amber-300/25 dark:data-[state=open]:border-amber-300",
