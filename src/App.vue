@@ -574,7 +574,7 @@ onBeforeUnmount(() => {
 <template>
   <div>
     <main
-      class="font-description-preview min-h-screen bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
+      class="font-description-preview box-border min-h-dvh bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
       :class="isRecipePage ? 'px-0 py-0 pb-24 md:pb-0' : 'px-4 py-8 pb-24 md:px-6 md:pb-8 xl:px-10'"
     >
     <div

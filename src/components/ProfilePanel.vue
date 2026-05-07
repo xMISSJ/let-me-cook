@@ -108,7 +108,7 @@ const { t } = useI18n();
                 <img
                   :src="avatar.src"
                   :alt="avatar.alt"
-                  class="h-full w-full rounded-[10px] bg-white/60 object-contain p-0.5 dark:bg-zinc-800/60"
+                  class="h-full w-full rounded-[10px] bg-white/60 object-cover p-0.5 dark:bg-zinc-800/60"
                   loading="lazy"
                 />
               </button>
