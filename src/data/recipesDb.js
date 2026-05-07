@@ -320,7 +320,6 @@ export async function updateRecipe(recipeId, recipe, fallback = {}) {
     return upsertLocalRecipe(recipeId, recipe, existing);
   }
 
-  const supabase = getSupabaseClient();
   const updatePayload = {
     title: recipe.title,
     description: recipe.description,
@@ -337,24 +336,43 @@ export async function updateRecipe(recipeId, recipe, fallback = {}) {
   if (imageUrlColumnSupported === true) {
     updatePayload.image_url = recipe.imageUrl ?? null;
   }
-  let activeUpdatePayload = updatePayload;
-  if (imageUrlColumnSupported === false) {
-    activeUpdatePayload = removeImageUrlField(updatePayload);
-  }
-  let { error } = await supabase.from("recipes").update(activeUpdatePayload).eq("id", recipeId);
-  if (error && isMissingImageUrlColumnError(error)) {
-    imageUrlColumnSupported = false;
-    ({ error } = await supabase
-      .from("recipes")
-      .update(removeImageUrlField(updatePayload))
-      .eq("id", recipeId));
-  }
 
-  if (error) throw toReadableError(error);
-  if (imageUrlColumnSupported === null) {
-    imageUrlColumnSupported = true;
+  try {
+    const supabase = getSupabaseClient();
+    let activeUpdatePayload = updatePayload;
+    if (imageUrlColumnSupported === false) {
+      activeUpdatePayload = removeImageUrlField(updatePayload);
+    }
+
+    let { data, error } = await supabase
+      .from("recipes")
+      .update(activeUpdatePayload)
+      .eq("id", recipeId)
+      .select("*")
+      .maybeSingle();
+
+    if (error && isMissingImageUrlColumnError(error)) {
+      imageUrlColumnSupported = false;
+      ({ data, error } = await supabase
+        .from("recipes")
+        .update(removeImageUrlField(updatePayload))
+        .eq("id", recipeId)
+        .select("*")
+        .maybeSingle());
+    }
+
+    if (error) throw toReadableError(error);
+    if (!data) {
+      throw new Error("Row-level security blocked update or recipe no longer exists");
+    }
+    if (imageUrlColumnSupported === null) {
+      imageUrlColumnSupported = true;
+    }
+    return normalizeRecipe(data);
+  } catch (error) {
+    if (!shouldUseLocalFallback(error)) throw error;
+    return upsertLocalRecipe(recipeId, recipe, fallback);
   }
-  return buildRecipeFromInput(recipeId, recipe, fallback);
 }
 
 export async function deleteRecipe(recipeId) {
