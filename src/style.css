@@ -12,7 +12,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --app-chrome-color: #fef3c7;
+  --app-chrome-color: #f4f4f5;
   color-scheme: light;
 }
 

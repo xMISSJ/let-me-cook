@@ -1,7 +1,7 @@
 <template>
   <div>
     <main
-      class="font-description-preview box-border min-h-dvh bg-amber-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
+      class="font-description-preview box-border min-h-dvh bg-zinc-100 text-amber-950 dark:bg-zinc-950 dark:text-amber-100"
       :class="isRecipePage ? 'px-0 py-0 pb-24 md:pb-0' : 'px-4 py-8 pb-24 md:px-6 md:pb-8 xl:px-10'"
     >
     <div
@@ -36,7 +36,7 @@
       <template v-if="isRecipePage">
         <section
           v-if="isLoadingRecipes"
-          class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-amber-100/95 dark:bg-zinc-950/95"
+          class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-zinc-100/95 dark:bg-zinc-950/95"
           aria-live="polite"
           aria-busy="true"
         >
@@ -60,7 +60,7 @@
         />
         <section
           v-else
-          class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
+          class="rounded-2xl border border-amber-500/30 bg-white px-5 py-6 text-center shadow-sm dark:bg-zinc-900"
         >
           <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("details.noneTitle") }}</h2>
           <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
@@ -97,7 +97,7 @@
         />
 
         <section v-else-if="!isRecipePage && currentMenu === 'favorites'" key="menu-favorites" class="grid gap-4">
-          <section class="rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900">
+          <section class="rounded-2xl border border-amber-500/30 bg-white px-5 py-4 shadow-sm dark:bg-zinc-900">
             <div class="flex items-start justify-between gap-3">
               <div>
                 <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">{{ t("favorites.title") }}</h2>
@@ -106,7 +106,7 @@
                 </p>
               </div>
               <button
-                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
+                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-zinc-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
                 type="button"
                 @click="navigateToMenu('overview')"
               >
@@ -193,7 +193,7 @@
 
     <div
       v-if="isAddModalOpen"
-      class="fixed inset-0 z-[60] overflow-y-auto bg-amber-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
+      class="fixed inset-0 z-[60] overflow-y-auto bg-zinc-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
       @click.self="closeAddRecipeModal"
       @keydown.capture="stopModalClipboardShortcuts"
     >
@@ -206,7 +206,7 @@
 
     <div
       v-if="isEditModalOpen && editingRecipe"
-      class="fixed inset-0 z-[60] overflow-y-auto bg-amber-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
+      class="fixed inset-0 z-[60] overflow-y-auto bg-zinc-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
       @click.self="closeEditRecipeModal"
       @keydown.capture="stopModalClipboardShortcuts"
     >

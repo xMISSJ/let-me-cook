@@ -1,6 +1,6 @@
 <template>
   <div
-    class="inline-flex items-center gap-3 whitespace-nowrap rounded-lg border border-amber-500/30 bg-amber-100/70 px-2.5 py-1.5 text-xs dark:bg-zinc-900/70"
+    class="inline-flex items-center gap-3 whitespace-nowrap rounded-lg border border-amber-500/30 bg-zinc-100/70 px-2.5 py-1.5 text-xs dark:bg-zinc-900/70"
   >
     <div class="flex items-center gap-1.5 text-amber-900/90 dark:text-amber-100/90">
       <svg

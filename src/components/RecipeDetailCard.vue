@@ -1,6 +1,6 @@
 <template>
   <section
-    class="overflow-hidden bg-white dark:bg-zinc-950 xl:mx-auto xl:my-8 xl:max-w-6xl xl:rounded-3xl xl:border xl:border-amber-500/25 xl:bg-amber-50/85 xl:shadow-[0_28px_70px_-38px_rgba(120,53,15,0.55)] dark:xl:border-amber-300/20 dark:xl:bg-zinc-900"
+    class="overflow-hidden bg-white dark:bg-zinc-950 xl:mx-auto xl:my-8 xl:max-w-6xl xl:rounded-3xl xl:border xl:border-amber-500/25 xl:bg-white/95 xl:shadow-[0_28px_70px_-38px_rgba(24,24,27,0.35)] dark:xl:border-amber-300/20 dark:xl:bg-zinc-900"
   >
     <div class="relative">
       <div
@@ -9,7 +9,7 @@
       >
         <div
           v-if="!isDetailImageLoaded"
-          class="absolute inset-0 animate-pulse bg-linear-to-br from-amber-200/70 via-amber-100/60 to-amber-300/50 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800"
+          class="absolute inset-0 animate-pulse bg-linear-to-br from-zinc-200/70 via-zinc-100/60 to-zinc-300/50 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800"
         />
         <img
           :src="detailImageUrl"
@@ -22,7 +22,7 @@
       </div>
       <div
         v-else
-        class="flex h-64 w-full items-center justify-center bg-amber-100 text-7xl sm:h-80 xl:h-100 dark:bg-zinc-900"
+        class="flex h-64 w-full items-center justify-center bg-zinc-100 text-7xl sm:h-80 xl:h-100 dark:bg-zinc-900"
         aria-hidden="true"
       >
         {{ props.recipe.thumbnail || "🍽️" }}
@@ -187,7 +187,7 @@
         </div>
 
         <aside
-          class="hidden rounded-2xl border border-amber-500/25 bg-white/90 p-4 shadow-[0_14px_32px_-28px_rgba(120,53,15,0.55)] xl:grid xl:gap-3 dark:border-amber-300/20 dark:bg-zinc-900/70"
+          class="hidden rounded-2xl border border-amber-500/25 bg-white/90 p-4 shadow-[0_14px_32px_-28px_rgba(24,24,27,0.35)] xl:grid xl:gap-3 dark:border-amber-300/20 dark:bg-zinc-900/70"
         >
           <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ t("details.snapshot") }}</p>
           <div class="grid gap-2 text-sm text-zinc-700 dark:text-zinc-300">

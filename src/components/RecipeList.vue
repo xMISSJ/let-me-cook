@@ -3,7 +3,7 @@
     :class="
       props.embedded
         ? 'px-0 py-0'
-        : 'rounded-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-sm dark:bg-zinc-900'
+        : 'rounded-2xl border border-amber-500/30 bg-white px-5 py-4 shadow-sm dark:bg-zinc-900'
     "
   >
     <div v-if="!props.embedded" class="flex items-start justify-between gap-3">
@@ -69,7 +69,7 @@
           {{ t("filters.mealType") }}: {{ props.noResultsMealTypeLabel || t("filters.all") }}
         </p>
         <button
-          class="mt-4 inline-flex items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
+          class="mt-4 inline-flex items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-zinc-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
           type="button"
           @click="clearFilters"
         >
@@ -79,7 +79,7 @@
       <div
         v-for="recipe in recipes"
         :key="recipe.id"
-        class="relative cursor-pointer rounded-xl border border-amber-500/30 bg-white p-4 text-left transition-all duration-300 ease-out lg:hover:border-amber-400/60 lg:hover:bg-amber-200 lg:hover:-translate-y-1 lg:hover:scale-[1.02] lg:hover:shadow-xl lg:hover:shadow-amber-900/10 xl:h-[12.5rem] dark:bg-zinc-800 dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/30"
+        class="relative cursor-pointer rounded-xl border border-amber-500/30 bg-white p-4 text-left transition-all duration-300 ease-out lg:hover:border-amber-400/60 lg:hover:bg-zinc-200 lg:hover:-translate-y-1 lg:hover:scale-[1.02] lg:hover:shadow-xl lg:hover:shadow-amber-900/10 xl:h-[12.5rem] dark:bg-zinc-800 dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/30"
         role="button"
         tabindex="0"
         @click="selectRecipe(recipe.id)"
@@ -113,7 +113,7 @@
         </button>
         <div class="absolute right-2 top-2 z-10 hidden items-center gap-1 lg:flex">
           <button
-            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-500/40 bg-white/90 text-amber-900 transition-[box-shadow,background-color,filter] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-900/90 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-500/40 bg-white/90 text-amber-900 transition-[box-shadow,background-color,filter] duration-200 ease-out lg:hover:bg-zinc-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-900/90 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
             type="button"
             :aria-label="t('details.editRecipe')"
             @click.stop="editRecipe(recipe.id)"
@@ -163,7 +163,7 @@
             <div class="h-full w-full overflow-hidden rounded-lg border border-amber-400/40">
               <div
                 v-if="!isImageLoaded(recipe)"
-                class="h-full w-full animate-pulse bg-gradient-to-br from-amber-300/40 to-amber-500/20 dark:from-zinc-700 dark:to-zinc-600"
+                class="h-full w-full animate-pulse bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-600"
               />
               <img
                 :src="getThumbnailUrl(recipe)"

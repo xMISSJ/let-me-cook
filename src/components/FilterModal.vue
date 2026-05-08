@@ -22,7 +22,7 @@
       >
         <section
           v-show="isOpen"
-          class="fixed bottom-0 left-0 right-0 rounded-t-2xl border border-amber-500/30 bg-amber-50 px-5 py-4 shadow-xl dark:bg-zinc-900 md:static md:w-full md:max-w-xl md:rounded-2xl"
+          class="fixed bottom-0 left-0 right-0 rounded-t-2xl border border-amber-500/30 bg-white px-5 py-4 shadow-xl dark:bg-zinc-900 md:static md:w-full md:max-w-xl md:rounded-2xl"
         >
           <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-amber-500/35 md:hidden" aria-hidden="true" />
       <div class="mb-4 flex items-center justify-between">
@@ -55,7 +55,7 @@
                   ? selectedCuisine.length === 0
                   : isCuisineSelected(selectedCuisine, option)
                   ? 'border-amber-300 bg-amber-500/30 text-amber-50'
-                  : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
+                  : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
               "
               @click="toggleCuisine(selectedCuisine, option)"
             >
@@ -79,7 +79,7 @@
                   ? selectedMealType.length === 0
                   : isMealTypeSelected(selectedMealType, option)
                   ? 'border-amber-300 bg-amber-500/30 text-amber-50'
-                  : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
+                  : 'border-amber-500/40 bg-white text-amber-900 hover:border-amber-400/70 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700'
               "
               @click="toggleMealType(selectedMealType, option)"
             >

@@ -1,6 +1,6 @@
 <template>
   <header
-    class="rounded-2xl border border-amber-500/40 bg-amber-50 px-5 py-5 shadow-sm dark:bg-zinc-900"
+    class="rounded-2xl border border-amber-500/40 bg-white px-5 py-5 shadow-sm dark:bg-zinc-900"
   >
     <p class="text-2xl font-extrabold uppercase tracking-[0.18em] text-amber-900 dark:text-amber-50">
       {{ t("appName") }}

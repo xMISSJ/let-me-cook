@@ -10,13 +10,13 @@
     >
       <UButton
         v-if="showSettingsMascot"
-        class="absolute right-0 bottom-12 w-48 cursor-pointer rounded-xl border border-amber-500/35 bg-amber-50/95 px-3 py-2 text-left shadow-md dark:border-amber-300/25 dark:bg-zinc-900/95"
+        class="absolute right-0 bottom-12 w-48 cursor-pointer rounded-xl border border-amber-500/35 bg-white/95 px-3 py-2 text-left shadow-md dark:border-amber-300/25 dark:bg-zinc-900/95"
         color="neutral"
         variant="ghost"
         @click="$emit('dismiss-settings-mascot')"
       >
         <span
-          class="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-r border-b border-amber-500/35 bg-amber-50/95 dark:border-amber-300/25 dark:bg-zinc-900/95"
+          class="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-r border-b border-amber-500/35 bg-white/95 dark:border-amber-300/25 dark:bg-zinc-900/95"
           aria-hidden="true"
         />
         <div class="flex items-center gap-2">
@@ -28,7 +28,7 @@
         </p>
       </UButton>
     </Transition>
-    <div v-if="isDesktopSettingsOpen" class="font-sans absolute right-0 bottom-12 w-48 rounded-xl border border-amber-500/25 bg-amber-50/95 p-2 shadow-lg dark:border-amber-300/20 dark:bg-zinc-900/95">
+    <div v-if="isDesktopSettingsOpen" class="font-sans absolute right-0 bottom-12 w-48 rounded-xl border border-amber-500/25 bg-white/95 p-2 shadow-lg dark:border-amber-300/20 dark:bg-zinc-900/95">
       <USelect
         :model-value="locale"
         :items="languageItems"
@@ -47,7 +47,7 @@
       </div>
     </div>
     <UButton
-      class="cursor-pointer rounded-full border border-amber-500/45 bg-amber-50 px-4 py-2 text-amber-900 shadow-sm transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-md dark:border-amber-300/35 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+      class="cursor-pointer rounded-full border border-amber-500/45 bg-white px-4 py-2 text-amber-900 shadow-sm transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-zinc-200 lg:hover:shadow-md dark:border-amber-300/35 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
       color="neutral"
       variant="ghost"
       @click="$emit('toggle-desktop-settings')"

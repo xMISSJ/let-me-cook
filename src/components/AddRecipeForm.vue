@@ -1,11 +1,11 @@
 <template>
-  <section class="rounded-none border-0 bg-amber-50 px-4 py-4 shadow-none dark:bg-zinc-900 sm:rounded-2xl sm:border sm:border-amber-500/30 sm:px-6 sm:py-5 sm:shadow-sm lg:rounded-3xl lg:px-7 lg:py-6">
+  <section class="rounded-none border-0 bg-white px-4 py-4 shadow-none dark:bg-zinc-900 sm:rounded-2xl sm:border sm:border-amber-500/30 sm:px-6 sm:py-5 sm:shadow-sm lg:rounded-3xl lg:px-7 lg:py-6">
     <div class="flex items-start justify-between gap-3">
       <h2 class="text-xl font-semibold text-amber-900 dark:text-amber-50">
         {{ props.initialRecipe ? t("addRecipeForm.editTitle") : t("addRecipeForm.title") }}
       </h2>
       <button
-        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/45 bg-white text-amber-900 hover:bg-amber-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/45 bg-white text-amber-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
         type="button"
         @click="emit('cancel')"
         :aria-label="t('addRecipeForm.cancel')"
@@ -114,7 +114,7 @@
             />
             <div class="flex gap-2 sm:contents">
               <button
-                class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+                class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-zinc-200 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
                 type="button"
                 @click="insertIngredientAfter(index)"
                 :aria-label="t('addRecipeForm.addIngredientRowAria')"
@@ -174,7 +174,7 @@
             />
             <div class="col-start-2 flex gap-2 sm:contents">
               <button
-                class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-amber-200 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+                class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-amber-500/50 bg-white text-amber-900 hover:bg-zinc-200 sm:h-9 sm:w-9 sm:flex-none dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
                 type="button"
                 @click="insertStepAfter(index)"
                 :aria-label="t('addRecipeForm.addStepRowAria')"
@@ -247,7 +247,7 @@
         </div>
       </div>
       <p v-if="error" class="text-sm font-medium text-rose-300">{{ error }}</p>
-      <div class="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-amber-500/25 bg-amber-50/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-amber-50/80 dark:border-amber-300/20 dark:bg-zinc-900/95 dark:supports-backdrop-filter:bg-zinc-900/80 sm:static sm:mx-0 sm:justify-end sm:gap-2.5 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+      <div class="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-amber-500/25 bg-white/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-white/80 dark:border-amber-300/20 dark:bg-zinc-900/95 dark:supports-backdrop-filter:bg-zinc-900/80 sm:static sm:mx-0 sm:justify-end sm:gap-2.5 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
         <button
           class="inline-flex w-full items-center justify-center cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400 sm:w-auto sm:order-2"
           type="submit"
@@ -255,7 +255,7 @@
           {{ props.submitLabel || (props.initialRecipe ? t("addRecipeForm.saveRecipe") : t("addRecipeForm.addRecipe")) }}
         </button>
         <button
-          class="inline-flex w-full items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-200 sm:w-auto sm:order-1 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+          class="inline-flex w-full items-center justify-center cursor-pointer rounded-lg border border-amber-500/50 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-zinc-200 sm:w-auto sm:order-1 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
           type="button"
           @click="emit('cancel')"
         >

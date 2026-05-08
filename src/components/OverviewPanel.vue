@@ -23,7 +23,7 @@
         />
       </div>
 
-      <aside class="hidden min-w-0 h-fit rounded-2xl border border-amber-500/30 bg-amber-50 p-4 shadow-sm md:grid md:gap-4 dark:bg-zinc-900">
+      <aside class="hidden min-w-0 h-fit rounded-2xl border border-amber-500/30 bg-white p-4 shadow-sm md:grid md:gap-4 dark:bg-zinc-900">
         <section class="grid gap-2">
           <h3 class="text-sm font-semibold uppercase tracking-wide text-amber-900/75 dark:text-amber-100/75">{{ t("overview.panelTitle") }}</h3>
         </section>
@@ -43,7 +43,7 @@
             <span class="font-semibold">{{ selectedMealTypeLabels.length === 0 ? t("filters.all") : selectedMealTypeLabels.join(", ") }}</span>
           </p>
           <button
-            class="mt-1 inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-amber-200 lg:hover:shadow-md active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
+            class="mt-1 inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/50 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition-[box-shadow,background-color] duration-200 ease-out lg:hover:bg-zinc-200 lg:hover:shadow-md active:brightness-95 dark:bg-zinc-700 dark:text-amber-100 dark:lg:hover:bg-zinc-600"
             type="button"
             @click="$emit('open-filter-modal')"
           >
@@ -59,7 +59,7 @@
           <button
             v-for="recipe in recentRecipes"
             :key="recipe.id"
-            class="group min-w-0 grid cursor-pointer gap-2 rounded-lg border border-amber-500/30 bg-white/70 px-3 py-2.5 text-left transition-[box-shadow,background-color,border-color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-50 lg:hover:border-amber-400/70 lg:hover:bg-amber-200 lg:hover:shadow-sm lg:hover:shadow-amber-900/10 dark:bg-zinc-800/70 dark:focus-visible:ring-amber-300/60 dark:focus-visible:ring-offset-zinc-800 dark:lg:hover:border-amber-300/50 dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/25"
+            class="group min-w-0 grid cursor-pointer gap-2 rounded-lg border border-amber-500/30 bg-white/70 px-3 py-2.5 text-left transition-[box-shadow,background-color,border-color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white lg:hover:border-amber-400/70 lg:hover:bg-zinc-200 lg:hover:shadow-sm lg:hover:shadow-amber-900/10 dark:bg-zinc-800/70 dark:focus-visible:ring-amber-300/60 dark:focus-visible:ring-offset-zinc-800 dark:lg:hover:border-amber-300/50 dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/25"
             type="button"
             @click="$emit('open-recipe', recipe.id)"
           >
@@ -69,10 +69,10 @@
                   {{ recipe.title }}
                 </p>
                 <div class="mt-1 flex flex-wrap items-center gap-1 text-[11px] font-medium text-amber-900/80 dark:text-amber-100/80">
-                  <span class="-ml-px rounded-md bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
+                  <span class="-ml-px rounded-md bg-zinc-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-zinc-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
                     {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
                   </span>
-                  <span class="rounded-md bg-amber-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-amber-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
+                  <span class="rounded-md bg-zinc-200/85 px-2 py-0.5 transition-colors duration-200 ease-out group-hover:bg-zinc-300 dark:bg-zinc-700 dark:group-hover:bg-zinc-600">
                     {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
                   </span>
                 </div>

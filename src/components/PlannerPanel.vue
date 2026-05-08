@@ -1,7 +1,7 @@
 <template>
   <section class="w-full">
     <div class="grid gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] lg:items-stretch">
-      <section class="h-full rounded-2xl border border-amber-500/30 bg-amber-50 px-3 py-3 shadow-sm dark:bg-zinc-900">
+      <section class="h-full rounded-2xl border border-amber-500/30 bg-white px-3 py-3 shadow-sm dark:bg-zinc-900">
       <div class="flex items-start justify-between gap-3">
         <div>
           <h2 class="text-lg font-semibold text-amber-900 dark:text-amber-50 sm:text-xl">{{ t("planner.title") }}</h2>
@@ -21,7 +21,7 @@
       <section class="mt-2.5 w-full rounded-xl border border-amber-500/30 bg-white p-2 dark:border-amber-300/20 dark:bg-zinc-800">
         <div class="mb-2 flex items-center justify-between gap-2">
           <button
-            class="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-amber-500/40 bg-white text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+            class="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-amber-500/40 bg-white text-amber-900 transition-colors lg:hover:bg-zinc-100 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
             type="button"
             :aria-label="t('planner.previousMonthAria')"
             @click="shiftPlannerWeek(-1)"
@@ -39,7 +39,7 @@
           </button>
           <p class="text-xs font-semibold text-amber-900 dark:text-amber-50 sm:text-sm">{{ plannerMobileWeekRangeLabel }}</p>
           <button
-            class="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-amber-500/40 bg-white text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+            class="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-amber-500/40 bg-white text-amber-900 transition-colors lg:hover:bg-zinc-100 dark:border-amber-300/25 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
             type="button"
             :aria-label="t('planner.nextMonthAria')"
             @click="shiftPlannerWeek(1)"
@@ -179,7 +179,7 @@
       <div class="grid h-full auto-rows-fr gap-3">
         <section
           v-if="plannerSelectedDate"
-          class="h-full rounded-2xl border border-amber-500/30 bg-amber-50 px-3 py-3 shadow-sm dark:bg-zinc-900"
+          class="h-full rounded-2xl border border-amber-500/30 bg-white px-3 py-3 shadow-sm dark:bg-zinc-900"
         >
           <div class="flex items-center justify-between gap-3">
             <div>
@@ -192,7 +192,7 @@
             </div>
             <button
               v-if="selectedDatePlan"
-              class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/45 bg-white px-3 py-2 text-xs font-semibold text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+              class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/45 bg-white px-3 py-2 text-xs font-semibold text-amber-900 transition-colors lg:hover:bg-zinc-100 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
               type="button"
               @click="clearPlannerEntry(plannerSelectedDate)"
             >
@@ -221,7 +221,7 @@
           </div>
         </section>
 
-        <section class="h-full rounded-2xl border border-amber-500/30 bg-amber-50 px-3 py-3 shadow-sm dark:bg-zinc-900">
+        <section class="h-full rounded-2xl border border-amber-500/30 bg-white px-3 py-3 shadow-sm dark:bg-zinc-900">
           <h3 class="text-base font-semibold text-amber-900 dark:text-amber-50">{{ t("planner.upcomingPlans") }}</h3>
           <p v-if="plannedMeals.length === 0" class="mt-2 text-sm text-amber-900/80 dark:text-amber-100/80">
             {{ t("planner.noPlannedRecipes") }}
@@ -246,7 +246,7 @@
                 </button>
               </div>
               <button
-                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/45 bg-white px-2.5 py-1.5 text-xs font-semibold text-amber-900 transition-colors lg:hover:bg-amber-100 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
+                class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-amber-500/45 bg-white px-2.5 py-1.5 text-xs font-semibold text-amber-900 transition-colors lg:hover:bg-zinc-100 dark:border-amber-300/30 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
                 type="button"
                 @click="clearPlannerEntry(entry.date)"
               >
@@ -560,15 +560,15 @@ function plannerCalendarCellClass(day) {
     return "cursor-pointer border-emerald-500/30 bg-emerald-50/60 text-emerald-800/80 lg:hover:bg-emerald-100/70 dark:border-emerald-300/25 dark:bg-emerald-950/20 dark:text-emerald-200/80 dark:lg:hover:bg-emerald-900/40";
   }
   if (day.isCurrentMonth) {
-    return "cursor-pointer border-amber-500/25 bg-white text-amber-900 lg:hover:border-amber-500/45 lg:hover:bg-amber-100 dark:border-amber-300/20 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700";
+    return "cursor-pointer border-amber-500/25 bg-white text-amber-900 lg:hover:border-amber-500/45 lg:hover:bg-zinc-100 dark:border-amber-300/20 dark:bg-zinc-800 dark:text-amber-100 dark:lg:hover:bg-zinc-700";
   }
-  return "cursor-pointer border-amber-500/15 bg-amber-50/50 text-amber-900/50 lg:hover:bg-amber-100/70 dark:border-amber-300/10 dark:bg-zinc-900/40 dark:text-amber-100/45 dark:lg:hover:bg-zinc-800/60";
+  return "cursor-pointer border-amber-500/15 bg-zinc-50/50 text-amber-900/50 lg:hover:bg-zinc-100/70 dark:border-amber-300/10 dark:bg-zinc-900/40 dark:text-amber-100/45 dark:lg:hover:bg-zinc-800/60";
 }
 
 function plannerCalendarDayBadgeClass(day) {
   if (day.isSelected) return "bg-zinc-950/15 text-zinc-950";
-  if (day.isCurrentMonth) return "bg-amber-200/70 text-amber-900 dark:bg-zinc-700/80 dark:text-amber-100";
-  return "bg-amber-200/45 text-amber-900/70 dark:bg-zinc-700/45 dark:text-amber-100/70";
+  if (day.isCurrentMonth) return "bg-zinc-200/70 text-amber-900 dark:bg-zinc-700/80 dark:text-amber-100";
+  return "bg-zinc-200/45 text-amber-900/70 dark:bg-zinc-700/45 dark:text-amber-100/70";
 }
 
 function plannerCalendarPlanChipClass(day) {

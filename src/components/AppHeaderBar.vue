@@ -46,7 +46,7 @@
       </div>
     </nav>
 
-    <nav class="fixed inset-x-0 bottom-[-2px] z-40 border-t border-amber-500/40 bg-amber-50 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom,0)+1rem)] backdrop-blur md:hidden dark:border-amber-300/20 dark:bg-zinc-900">
+    <nav class="fixed inset-x-0 bottom-[-2px] z-40 border-t border-amber-500/40 bg-white px-3 pt-3 pb-[calc(env(safe-area-inset-bottom,0)+1rem)] backdrop-blur md:hidden dark:border-amber-300/20 dark:bg-zinc-900">
       <div class="relative grid rounded-xl bg-white/90 p-1 shadow-sm dark:bg-zinc-800/90" :style="{ gridTemplateColumns: `repeat(${menuItems.length}, minmax(0, 1fr))` }">
         <span
           class="pointer-events-none absolute bottom-1 top-1 rounded-lg bg-amber-500 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -61,7 +61,7 @@
             :class="
               props.activeMenu === item.key
                 ? 'text-zinc-950'
-                : 'text-amber-900/85 lg:hover:bg-amber-200/70 dark:text-amber-100/90 dark:lg:hover:bg-zinc-700'
+                : 'text-amber-900/85 lg:hover:bg-zinc-200/70 dark:text-amber-100/90 dark:lg:hover:bg-zinc-700'
             "
             type="button"
             @click="navigateTo(item.key)"
@@ -94,7 +94,7 @@
           </svg>
           <svg
             v-else-if="item.icon === 'calendar'"
-            class="h-4 w-4"
+            class="h-[1.125rem] w-[1.125rem]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -121,7 +121,7 @@
           </svg>
           <svg
             v-else
-            class="h-4 w-4"
+            class="h-5 w-5"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
