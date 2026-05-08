@@ -110,7 +110,7 @@
           :class="
             props.viewMode === 'grid'
               ? isFavorite(recipe.id)
-                ? 'right-2 top-2 rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-zinc-900/90 dark:text-rose-300'
+                ? 'right-2 top-2 rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-zinc-900/90'
                 : 'right-2 top-2 rounded-full bg-white/90 text-amber-700 shadow-sm dark:bg-zinc-900/90 dark:text-amber-100'
               : isFavorite(recipe.id)
                 ? 'right-2 bottom-2 text-rose-500 lg:hover:text-rose-400'
