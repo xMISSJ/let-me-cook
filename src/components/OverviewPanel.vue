@@ -3,13 +3,16 @@
     <OverviewToolbar
       :filtered-count="filteredRecipes.length"
       :total-count="recipes.length"
+      :view-mode="viewMode"
       @edit-filters="$emit('open-filter-modal')"
+      @update:view-mode="setViewMode"
     />
     <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
       <div class="min-w-0 grid gap-4">
         <RecipeList
           :recipes="filteredRecipes"
           :favorite-recipe-ids="favoriteRecipeIds"
+          :view-mode="viewMode"
           :is-loading="isLoadingRecipes"
           :show-no-results="!isLoadingRecipes && recipes.length > 0 && filteredRecipes.length === 0 && hasActiveFilters"
           :no-results-cuisine-label="selectedCuisineLabels.length === 0 ? t('filters.all') : selectedCuisineLabels.join(', ')"
@@ -98,6 +101,7 @@
 </template>
 
 <script setup>
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import OverviewToolbar from "./OverviewToolbar.vue";
 import RecipeList from "./RecipeList.vue";
@@ -124,4 +128,10 @@ defineEmits([
 ]);
 
 const { t } = useI18n();
+const viewMode = ref(localStorage.getItem("let-me-cook-overview-view-mode") === "grid" ? "grid" : "list");
+
+function setViewMode(mode) {
+  viewMode.value = mode === "grid" ? "grid" : "list";
+  localStorage.setItem("let-me-cook-overview-view-mode", viewMode.value);
+}
 </script>

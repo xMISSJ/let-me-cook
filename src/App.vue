@@ -191,36 +191,40 @@
       @update:selected-meal-type="selectedMealType = $event"
     />
 
-    <div
-      v-if="isAddModalOpen"
-      class="fixed inset-0 z-[60] overflow-y-auto bg-zinc-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
-      @click.self="closeAddRecipeModal"
-      @keydown.capture="stopModalClipboardShortcuts"
-    >
-      <div class="w-full sm:w-full sm:max-w-2xl sm:rounded-2xl sm:overflow-hidden">
-        <div class="sm:max-h-[calc(100dvh-2rem)] sm:overflow-y-auto">
-        <AddRecipeForm @save-recipe="addRecipe" @cancel="closeAddRecipeModal" />
+    <Transition name="recipe-modal">
+      <div
+        v-if="isAddModalOpen"
+        class="fixed inset-0 z-[60] overflow-y-auto bg-zinc-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
+        @click.self="closeAddRecipeModal"
+        @keydown.capture="stopModalClipboardShortcuts"
+      >
+        <div class="recipe-modal-panel w-full sm:w-full sm:max-w-2xl sm:rounded-2xl sm:overflow-hidden">
+          <div class="sm:max-h-[calc(100dvh-2rem)] sm:overflow-y-auto">
+            <AddRecipeForm @save-recipe="addRecipe" @cancel="closeAddRecipeModal" />
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
 
-    <div
-      v-if="isEditModalOpen && editingRecipe"
-      class="fixed inset-0 z-[60] overflow-y-auto bg-zinc-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
-      @click.self="closeEditRecipeModal"
-      @keydown.capture="stopModalClipboardShortcuts"
-    >
-      <div class="w-full sm:w-full sm:max-w-2xl sm:rounded-2xl sm:overflow-hidden">
-        <div class="sm:max-h-[calc(100dvh-2rem)] sm:overflow-y-auto">
-        <AddRecipeForm
-          :initial-recipe="editingRecipe"
-          submit-label="Save Recipe"
-          @save-recipe="saveEditedRecipe"
-          @cancel="closeEditRecipeModal"
-        />
+    <Transition name="recipe-modal">
+      <div
+        v-if="isEditModalOpen && editingRecipe"
+        class="fixed inset-0 z-[60] overflow-y-auto bg-zinc-100 dark:bg-zinc-950 sm:flex sm:items-center sm:justify-center sm:overflow-hidden sm:bg-black/70 sm:p-4"
+        @click.self="closeEditRecipeModal"
+        @keydown.capture="stopModalClipboardShortcuts"
+      >
+        <div class="recipe-modal-panel w-full sm:w-full sm:max-w-2xl sm:rounded-2xl sm:overflow-hidden">
+          <div class="sm:max-h-[calc(100dvh-2rem)] sm:overflow-y-auto">
+            <AddRecipeForm
+              :initial-recipe="editingRecipe"
+              submit-label="Save Recipe"
+              @save-recipe="saveEditedRecipe"
+              @cancel="closeEditRecipeModal"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
     </main>
     <Transition
       enter-active-class="transition-all duration-250 ease-out"
@@ -793,6 +797,31 @@ onBeforeUnmount(() => {
 .menu-panel-leave-to {
   opacity: 0;
   transform: translateY(8px);
+}
+
+.recipe-modal-enter-active,
+.recipe-modal-leave-active {
+  transition:
+    opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.recipe-modal-enter-from,
+.recipe-modal-leave-to {
+  opacity: 0;
+}
+
+.recipe-modal-enter-active .recipe-modal-panel,
+.recipe-modal-leave-active .recipe-modal-panel {
+  transition:
+    opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.recipe-modal-enter-from .recipe-modal-panel,
+.recipe-modal-leave-to .recipe-modal-panel {
+  opacity: 0;
+  transform: translateY(14px) scale(0.99);
 }
 
 @keyframes bobble {

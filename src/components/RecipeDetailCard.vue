@@ -49,7 +49,7 @@
         </button>
         <div class="flex items-center gap-2">
           <button
-            class="inline-flex items-center justify-center rounded-xl bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm hover:bg-black/65 lg:hidden"
+            class="inline-flex h-8 items-center justify-center rounded-lg bg-black/55 px-3 text-xs font-semibold text-white backdrop-blur-sm hover:bg-black/65 lg:hidden"
             type="button"
             :aria-label="isFavorite ? t('favorites.removeAria') : t('favorites.addAria')"
             @click="emit('toggle-favorite')"
@@ -119,46 +119,36 @@
     <div class="px-4 py-4 sm:px-5 xl:px-8 xl:py-8">
       <div class="flex items-start gap-3">
         <div class="min-w-0">
-          <h2 class="text-3xl font-black tracking-tight text-zinc-900 xl:text-4xl dark:text-zinc-50">{{ props.recipe.title }}</h2>
-          <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+          <h2 class="text-3xl font-black tracking-tight text-amber-900 xl:text-4xl dark:text-amber-50">{{ props.recipe.title }}</h2>
+          <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-amber-900/80 dark:text-amber-100/85">
             <span>{{ t("details.prepTime", { minutes: props.recipe.cookTimeMinutes }) }}</span>
             <span>{{ t("details.cookTime", { minutes: props.recipe.cookTimeMinutes }) }}</span>
             <span>{{ t("details.totalTime", { minutes: props.recipe.cookTimeMinutes * 2 }) }}</span>
           </div>
         </div>
       </div>
-      <p class="mt-2 text-sm text-zinc-700 xl:mt-3 xl:text-base dark:text-zinc-300">{{ props.recipe.description }}</p>
+      <p class="mt-2 text-sm text-amber-900/85 xl:mt-3 xl:text-base dark:text-amber-100/85">{{ props.recipe.description }}</p>
 
       <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-7">
         <div>
-          <div
-            class="relative grid rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900"
-            :style="{ gridTemplateColumns: `repeat(${detailTabs.length}, minmax(0, 1fr))` }"
-          >
-            <span
-              class="pointer-events-none absolute bottom-1 top-1 rounded-lg bg-white shadow transition-transform duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] dark:bg-zinc-800"
-              :style="{ width: `calc((100% - 0.5rem) / ${detailTabs.length})`, transform: `translateX(${activeDetailTabIndex * 100}%)` }"
-              aria-hidden="true"
-            />
-            <button
-              v-for="tab in detailTabs"
-              :key="tab.key"
-              class="relative z-10 rounded-lg px-2 py-2 text-sm font-semibold transition-colors duration-200 ease-out"
-              :class="detailTab === tab.key ? 'text-zinc-950 dark:text-zinc-100' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'"
-              type="button"
-              @click="detailTab = tab.key"
-            >
-              {{ tab.label }}
-            </button>
-          </div>
+          <SegmentedToggle
+            :model-value="detailTab"
+            :items="detailTabs"
+            container-class="rounded-xl border border-amber-500/30 bg-white p-1 dark:border-amber-300/20 dark:bg-zinc-900"
+            indicator-class="top-1 bottom-1 left-1 bg-amber-500 shadow-sm dark:bg-amber-400/85"
+            button-class="rounded-lg px-2 py-2 text-sm font-semibold transition-colors duration-200 ease-out"
+            active-button-class="text-zinc-950 dark:text-zinc-950"
+            inactive-button-class="text-amber-900/80 hover:text-amber-900 dark:text-amber-100/80 dark:hover:text-amber-50"
+            @update:model-value="detailTab = $event"
+          />
 
           <section v-if="detailTab === 'ingredients'" class="mt-4">
-            <h3 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ t("details.ingredients") }}</h3>
-            <ul class="mt-3 space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
+            <h3 class="text-2xl font-bold text-amber-900 dark:text-amber-50">{{ t("details.ingredients") }}</h3>
+            <ul class="mt-3 space-y-2 text-sm text-amber-900/85 dark:text-amber-100/85">
               <li
                 v-for="item in props.recipe.ingredients"
                 :key="item"
-                class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900"
+                class="rounded-xl border border-amber-500/30 bg-amber-50/55 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900"
               >
                 {{ item }}
               </li>
@@ -166,21 +156,21 @@
           </section>
 
           <section v-else-if="detailTab === 'instructions'" class="mt-4">
-            <h3 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ t("details.steps") }}</h3>
-            <ol class="mt-3 space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
+            <h3 class="text-2xl font-bold text-amber-900 dark:text-amber-50">{{ t("details.steps") }}</h3>
+            <ol class="mt-3 space-y-2 text-sm text-amber-900/85 dark:text-amber-100/85">
               <li
                 v-for="(item, index) in props.recipe.steps"
                 :key="item"
-                class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900"
+                class="rounded-xl border border-amber-500/30 bg-amber-50/55 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900"
               >
-                <span class="mr-2 font-semibold text-zinc-900 dark:text-zinc-100">{{ index + 1 }}.</span>{{ item }}
+                <span class="mr-2 font-semibold text-amber-900 dark:text-amber-50">{{ index + 1 }}.</span>{{ item }}
               </li>
             </ol>
           </section>
 
           <section v-else class="mt-4">
-            <h3 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ t("details.nutrition") }}</h3>
-            <p class="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+            <h3 class="text-2xl font-bold text-amber-900 dark:text-amber-50">{{ t("details.nutrition") }}</h3>
+            <p class="mt-2 text-sm text-amber-900/85 dark:text-amber-100/85">
               {{ t("details.nutritionUnavailable") }}
             </p>
           </section>
@@ -217,6 +207,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import SegmentedToggle from "./SegmentedToggle.vue";
 import {
   fetchRecipeImageFromSpoonacular,
   getRecipeImageDetailUrl,
@@ -252,11 +243,6 @@ const detailTabs = computed(() => [
   { key: "instructions", label: t("details.steps") },
   { key: "nutrition", label: t("details.nutrition") },
 ]);
-const activeDetailTabIndex = computed(() => {
-  const index = detailTabs.value.findIndex((tab) => tab.key === detailTab.value);
-  return index >= 0 ? index : 0;
-});
-
 watch(
   () => [props.recipe?.id, props.recipe?.imageUrl ?? ""],
   async () => {

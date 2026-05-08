@@ -51,6 +51,8 @@ const nl = {
     myRecipes: "Mijn Recepten",
     helpText: "Klik op een recept om ingredienten en stapsgewijze details te openen.",
     addRecipe: "Recept Toevoegen",
+    listView: "Lijstweergave",
+    gridView: "Rasterweergave",
   },
   favorites: {
     title: "Favorieten",

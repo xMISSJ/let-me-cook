@@ -2,15 +2,15 @@
   <div>
     <div class="md:hidden px-4 py-3.5">
       <button class="grid gap-0.5 text-left" type="button" @click="navigateTo('overview')">
-        <p class="font-brand-name text-[2.15rem] leading-[0.95] text-amber-900 dark:text-amber-50">{{ t("appName") }}</p>
-        <p class="font-brand-rounded text-lg font-medium text-amber-900/75 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
+        <p class="font-brand-name text-[2.15rem] leading-[0.95] text-amber-600 dark:text-amber-50">{{ t("appName") }}</p>
+        <p class="font-brand-rounded text-lg font-medium text-amber-600/70 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
       </button>
     </div>
 
     <nav class="hidden items-center justify-between border-b border-amber-500/30 px-4 py-3 lg:px-5 md:flex">
       <button class="grid gap-0.5 text-left" type="button" @click="navigateTo('overview')">
-        <p class="font-brand-name text-[2.65rem] leading-[0.95] text-amber-900 dark:text-amber-50">{{ t("appName") }}</p>
-        <p class="font-brand-rounded text-xl font-medium text-amber-900/75 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
+        <p class="font-brand-name text-[2.65rem] leading-[0.95] text-amber-600 dark:text-amber-50">{{ t("appName") }}</p>
+        <p class="font-brand-rounded text-xl font-medium text-amber-600/70 dark:text-amber-100/75">{{ t("brandTagline") }}</p>
       </button>
       <div class="flex items-center gap-3">
         <p
@@ -47,25 +47,17 @@
     </nav>
 
     <nav class="fixed inset-x-0 bottom-[-2px] z-40 border-t border-amber-500/40 bg-white px-3 pt-3 pb-[calc(env(safe-area-inset-bottom,0)+1rem)] backdrop-blur md:hidden dark:border-amber-300/20 dark:bg-zinc-900">
-      <div class="relative grid rounded-xl bg-white/90 p-1 shadow-sm dark:bg-zinc-800/90" :style="{ gridTemplateColumns: `repeat(${menuItems.length}, minmax(0, 1fr))` }">
-        <span
-          class="pointer-events-none absolute bottom-1 top-1 rounded-lg bg-amber-500 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.22,1,0.36,1)]"
-          :style="{ width: `calc((100% - 0.5rem) / ${menuItems.length})`, transform: `translateX(${activeMenuIndex * 100}%)` }"
-          aria-hidden="true"
-        />
-
-          <button
-            v-for="item in menuItems"
-            :key="item.key"
-            class="relative z-10 inline-flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-xs font-semibold transition-colors duration-200 ease-out"
-            :class="
-              props.activeMenu === item.key
-                ? 'text-zinc-950'
-                : 'text-amber-900/85 lg:hover:bg-zinc-200/70 dark:text-amber-100/90 dark:lg:hover:bg-zinc-700'
-            "
-            type="button"
-            @click="navigateTo(item.key)"
-          >
+      <SegmentedToggle
+        :model-value="props.activeMenu"
+        :items="menuItems"
+        container-class="rounded-xl bg-white/90 p-1 shadow-sm dark:bg-zinc-800/90"
+        indicator-class="top-1 bottom-1 left-1 bg-amber-500 shadow-sm"
+        button-class="inline-flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1 text-xs font-semibold transition-colors duration-200 ease-out"
+        active-button-class="text-white"
+        inactive-button-class="text-amber-900/85 lg:hover:bg-zinc-200/70 dark:text-amber-100/90 dark:lg:hover:bg-zinc-700"
+        @update:model-value="navigateTo"
+      >
+        <template #option="{ item }">
           <svg
             v-if="item.icon === 'grid'"
             class="h-4 w-4"
@@ -132,8 +124,8 @@
             <path d="M5 20c0-3.2 2.9-5.5 7-5.5s7 2.3 7 5.5" />
           </svg>
           <span class="leading-none">{{ item.label }}</span>
-          </button>
-      </div>
+        </template>
+      </SegmentedToggle>
     </nav>
   </div>
 </template>
@@ -141,6 +133,7 @@
 <script setup>
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import SegmentedToggle from "./SegmentedToggle.vue";
 
 defineOptions({
   name: "AppHeaderBar",
@@ -173,11 +166,6 @@ const menuItems = computed(() => [
   { key: "planner", label: t("nav.planner"), icon: "calendar" },
   { key: "profile", label: t("nav.profile"), icon: "user" },
 ]);
-
-const activeMenuIndex = computed(() => {
-  const index = menuItems.value.findIndex((item) => item.key === props.activeMenu);
-  return index >= 0 ? index : 0;
-});
 
 function navigateTo(menu) {
   emit("navigate", menu);

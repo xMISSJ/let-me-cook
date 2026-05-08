@@ -51,6 +51,8 @@ const zh = {
     myRecipes: "我的菜谱",
     helpText: "点击菜谱可查看食材和分步详情。",
     addRecipe: "添加菜谱",
+    listView: "列表视图",
+    gridView: "网格视图",
   },
   favorites: {
     title: "收藏",

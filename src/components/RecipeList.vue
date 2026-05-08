@@ -44,7 +44,19 @@
       </button>
     </div>
 
-    <div :class="props.embedded ? 'grid items-start gap-3 xl:grid-cols-2' : 'mt-4 grid items-start gap-3 xl:grid-cols-2'">
+    <Transition name="layout-switch" mode="out-in">
+      <div
+        :key="`layout-${props.viewMode}`"
+        :class="
+          props.viewMode === 'grid'
+            ? props.embedded
+              ? 'grid items-start gap-3 grid-cols-2'
+              : 'mt-4 grid items-start gap-3 grid-cols-2 md:grid-cols-2 lg:grid-cols-3'
+            : props.embedded
+              ? 'grid items-start gap-3 xl:grid-cols-2'
+              : 'mt-4 grid items-start gap-3 xl:grid-cols-2'
+        "
+      >
       <section
         v-if="!props.embedded && props.isLoading"
         class="col-span-full rounded-xl border border-amber-500/30 bg-white px-5 py-7 text-center dark:bg-zinc-800"
@@ -76,10 +88,16 @@
           {{ t("filters.clear") }}
         </button>
       </section>
+      <TransitionGroup :name="props.viewMode === 'grid' ? 'card-grid' : 'card-list'" tag="div" class="contents">
       <div
         v-for="recipe in recipes"
-        :key="recipe.id"
-        class="relative cursor-pointer rounded-xl border border-amber-500/30 bg-white p-4 text-left transition-all duration-300 ease-out lg:hover:border-amber-400/60 lg:hover:bg-zinc-200 lg:hover:-translate-y-1 lg:hover:scale-[1.02] lg:hover:shadow-xl lg:hover:shadow-amber-900/10 xl:h-[12.5rem] dark:bg-zinc-800 dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/30"
+        :key="`${props.viewMode}-${recipe.id}`"
+        class="relative cursor-pointer rounded-xl border border-amber-500/30 bg-white text-left transition-all duration-300 ease-out dark:bg-zinc-800"
+        :class="
+          props.viewMode === 'grid'
+            ? 'overflow-hidden p-0 lg:hover:border-amber-400/60 lg:hover:-translate-y-1 lg:hover:shadow-xl lg:hover:shadow-amber-900/10 dark:lg:hover:shadow-black/30'
+            : 'p-0 sm:p-4 lg:hover:border-amber-400/60 lg:hover:bg-zinc-200 lg:hover:-translate-y-1 lg:hover:scale-[1.02] lg:hover:shadow-xl lg:hover:shadow-amber-900/10 xl:h-[12.5rem] dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/30'
+        "
         role="button"
         tabindex="0"
         @click="selectRecipe(recipe.id)"
@@ -88,8 +106,16 @@
         @keydown="onCardKeydown($event, recipe.id)"
       >
         <button
-          class="absolute right-2 bottom-2 z-10 inline-flex h-11 w-11 items-center justify-center transition-[transform,color] duration-200 ease-out lg:hover:scale-105 active:scale-95"
-          :class="isFavorite(recipe.id) ? 'text-rose-500 lg:hover:text-rose-400' : 'text-white lg:hover:text-amber-50'"
+          class="absolute z-10 inline-flex h-10 w-10 items-center justify-center transition-[transform,color] duration-200 ease-out lg:hover:scale-105 active:scale-95"
+          :class="
+            props.viewMode === 'grid'
+              ? isFavorite(recipe.id)
+                ? 'right-2 top-2 rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-zinc-900/90 dark:text-rose-300'
+                : 'right-2 top-2 rounded-full bg-white/90 text-amber-700 shadow-sm dark:bg-zinc-900/90 dark:text-amber-100'
+              : isFavorite(recipe.id)
+                ? 'right-2 bottom-2 text-rose-500 lg:hover:text-rose-400'
+                : 'right-2 bottom-2 text-amber-700 lg:hover:text-amber-600 dark:text-amber-100 dark:lg:hover:text-amber-50'
+          "
           type="button"
           :aria-label="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
           :title="isFavorite(recipe.id) ? t('favorites.removeAria') : t('favorites.addAria')"
@@ -111,7 +137,10 @@
             />
           </svg>
         </button>
-        <div class="absolute right-2 top-2 z-10 hidden items-center gap-1 lg:flex">
+        <div
+          class="absolute right-2 top-2 z-10 hidden items-center gap-1 lg:flex"
+          :class="props.viewMode === 'grid' ? 'top-auto bottom-2' : ''"
+        >
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-500/40 bg-white/90 text-amber-900 transition-[box-shadow,background-color,filter] duration-200 ease-out lg:hover:bg-zinc-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-900/90 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
             type="button"
@@ -155,12 +184,12 @@
             </svg>
           </button>
         </div>
-        <div class="flex h-full items-center gap-3">
+        <div v-if="props.viewMode === 'list'" class="flex h-full items-stretch gap-4 pr-2.5 pl-0 sm:items-center sm:gap-3 sm:p-0">
           <div
             v-if="getEffectiveImageUrl(recipe)"
-            class="relative h-28 w-28 shrink-0"
+            class="relative h-30 w-30 shrink-0 sm:h-28 sm:w-28"
           >
-            <div class="h-full w-full overflow-hidden rounded-lg border border-amber-400/40">
+            <div class="h-full w-full overflow-hidden rounded-l-xl border-0 sm:rounded-lg sm:border sm:border-amber-400/40">
               <div
                 v-if="!isImageLoaded(recipe)"
                 class="h-full w-full animate-pulse bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-600"
@@ -183,25 +212,25 @@
           </div>
           <div
             v-else
-            class="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg border border-amber-400/40 bg-amber-500/20 text-5xl"
+            class="flex h-30 w-30 shrink-0 items-center justify-center rounded-l-xl border-0 bg-amber-500/20 text-5xl sm:h-28 sm:w-28 sm:rounded-lg sm:border sm:border-amber-400/40"
             aria-hidden="true"
           >
             {{ recipe.thumbnail || "🍽️" }}
           </div>
-          <div class="min-w-0 flex-1">
-            <h3 class="min-w-0 break-words text-pretty font-semibold text-amber-900 line-clamp-2 pr-2 dark:text-amber-50 lg:pr-20">{{ recipe.title }}</h3>
-            <p class="mt-1 hidden text-xs text-amber-900/75 dark:text-amber-100/75 md:line-clamp-2 md:block">
+          <div class="min-w-0 flex-1 py-2.5 sm:py-0">
+            <h3 class="min-w-0 wrap-break-word text-pretty text-[0.94rem] leading-snug font-semibold text-amber-900 line-clamp-2 pr-1 dark:text-amber-50 sm:pr-2 sm:text-base lg:pr-20">{{ recipe.title }}</h3>
+            <p class="mt-0.5 hidden text-xs text-amber-900/75 dark:text-amber-100/75 md:mt-1 md:line-clamp-2 md:block">
               {{ recipe.description || t("overview.tapToView") }}
             </p>
-            <div class="mt-2 space-y-1.5">
-              <div class="flex flex-wrap gap-2">
+            <div class="mt-1.5 space-y-1 sm:mt-2 sm:space-y-1.5">
+              <div class="flex flex-wrap gap-1.5 sm:gap-2">
                 <span
-                  class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-900 dark:text-amber-100"
+                  class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 sm:text-[11px] dark:text-amber-100"
                 >
                   {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
                 </span>
                 <span
-                  class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-900 dark:text-amber-100"
+                  class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 sm:text-[11px] dark:text-amber-100"
                 >
                   {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
                 </span>
@@ -210,8 +239,51 @@
             </div>
           </div>
         </div>
+
+        <div v-else class="flex h-full flex-col">
+          <div v-if="getEffectiveImageUrl(recipe)" class="relative aspect-[4/3] w-full shrink-0 bg-zinc-100 dark:bg-zinc-700">
+            <div
+              v-if="!isImageLoaded(recipe)"
+              class="h-full w-full animate-pulse bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-600"
+            />
+            <img
+              :src="getThumbnailUrl(recipe)"
+              class="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
+              :class="isImageLoaded(recipe) ? 'opacity-100' : 'opacity-0'"
+              alt=""
+              @load="markImageLoaded(recipe)"
+              @error="markImageLoaded(recipe)"
+            />
+          </div>
+          <div
+            v-else
+            class="flex aspect-[4/3] w-full items-center justify-center bg-amber-500/20 text-5xl"
+            aria-hidden="true"
+          >
+            {{ recipe.thumbnail || "🍽️" }}
+          </div>
+          <div class="grid gap-2 px-3 pb-3 pt-2">
+            <h3 class="line-clamp-2 text-sm font-semibold text-amber-900 dark:text-amber-50">
+              {{ recipe.title }}
+            </h3>
+            <div class="flex flex-wrap gap-1.5">
+              <span
+                class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 dark:text-amber-100"
+              >
+                {{ t(`cuisine.${recipe.cuisine}`, recipe.cuisine) }}
+              </span>
+              <span
+                class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 dark:text-amber-100"
+              >
+                {{ t(`mealType.${recipe.mealType}`, recipe.mealType) }}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+      </TransitionGroup>
+      </div>
+    </Transition>
   </section>
 </template>
 
@@ -253,6 +325,10 @@ const props = defineProps({
   noResultsMealTypeLabel: {
     type: String,
     default: "",
+  },
+  viewMode: {
+    type: String,
+    default: "list",
   },
 });
 
@@ -382,3 +458,44 @@ function onCardKeydown(event, recipeId) {
 }
 
 </script>
+
+<style scoped>
+.layout-switch-enter-active,
+.layout-switch-leave-active {
+  transition: all 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.layout-switch-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+}
+
+.layout-switch-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.985);
+}
+
+.card-list-enter-active,
+.card-list-leave-active,
+.card-grid-enter-active,
+.card-grid-leave-active {
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 260ms ease,
+    filter 260ms ease;
+}
+
+.card-list-enter-from,
+.card-grid-enter-from {
+  opacity: 0;
+  transform: translateY(14px) scale(0.97);
+  filter: blur(2px);
+}
+
+.card-list-leave-to,
+.card-grid-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.97);
+  filter: blur(2px);
+}
+</style>

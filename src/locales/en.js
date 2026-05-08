@@ -51,6 +51,8 @@ const en = {
     myRecipes: "My Recipes",
     helpText: "Click a recipe to open ingredients and step-by-step details.",
     addRecipe: "Add Recipe",
+    listView: "List view",
+    gridView: "Grid view",
   },
   favorites: {
     title: "Favorites",

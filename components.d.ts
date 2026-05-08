@@ -26,6 +26,7 @@ declare module 'vue' {
     RecipeMetaInfo: typeof import('./src/components/RecipeMetaInfo.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SegmentedToggle: typeof import('./src/components/SegmentedToggle.vue')['default']
     StepsCard: typeof import('./src/components/StepsCard.vue')['default']
     UButton: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Button.vue')['default']
     UFileUpload: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/FileUpload.vue')['default']
