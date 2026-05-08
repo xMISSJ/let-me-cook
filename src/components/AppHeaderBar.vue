@@ -46,7 +46,7 @@
       </div>
     </nav>
 
-    <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-amber-500/40 bg-amber-50/95 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] backdrop-blur md:hidden dark:border-amber-300/20 dark:bg-zinc-900/95">
+    <nav class="fixed inset-x-0 bottom-[-2px] z-40 border-t border-amber-500/40 bg-amber-50 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom,0)+1rem)] backdrop-blur md:hidden dark:border-amber-300/20 dark:bg-zinc-900">
       <div class="relative grid rounded-xl bg-white/90 p-1 shadow-sm dark:bg-zinc-800/90" :style="{ gridTemplateColumns: `repeat(${menuItems.length}, minmax(0, 1fr))` }">
         <span
           class="pointer-events-none absolute bottom-1 top-1 rounded-lg bg-amber-500 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.22,1,0.36,1)]"
