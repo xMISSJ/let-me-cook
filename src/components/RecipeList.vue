@@ -184,7 +184,7 @@
             </svg>
           </button>
         </div>
-        <div v-if="props.viewMode === 'list'" class="flex h-full items-stretch gap-4 pr-2.5 pl-0 sm:items-center sm:gap-3 sm:p-0">
+        <div v-if="props.viewMode === 'list'" class="flex h-full items-center gap-4 pr-2.5 py-2.5 pl-0 sm:gap-3 sm:p-0">
           <div
             v-if="getEffectiveImageUrl(recipe)"
             class="relative h-30 w-30 shrink-0 sm:h-28 sm:w-28"
@@ -217,7 +217,7 @@
           >
             {{ recipe.thumbnail || "🍽️" }}
           </div>
-          <div class="min-w-0 flex-1 py-2.5 sm:py-0">
+          <div class="min-w-0 flex-1 py-0 sm:py-0">
             <h3 class="min-w-0 wrap-break-word text-pretty text-[0.94rem] leading-snug font-semibold text-amber-900 line-clamp-2 pr-1 dark:text-amber-50 sm:pr-2 sm:text-base lg:pr-20">{{ recipe.title }}</h3>
             <p class="mt-0.5 hidden text-xs text-amber-900/75 dark:text-amber-100/75 md:mt-1 md:line-clamp-2 md:block">
               {{ recipe.description || t("overview.tapToView") }}
