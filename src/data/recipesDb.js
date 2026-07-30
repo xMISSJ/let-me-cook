@@ -469,10 +469,31 @@ export async function uploadRecipeImage(file, userId) {
   throw new Error("Could not upload image.");
 }
 
-export async function fetchRecipeImageFromSpoonacular(recipe) {
+function normalizeImageIdentity(url) {
+  if (!url || typeof url !== "string") return "";
+  try {
+    const parsed = new URL(url);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return url.split("?")[0];
+  }
+}
+
+/**
+ * Fetch a recipe image from Unsplash (MealDB fallback).
+ * @param {object} recipe
+ * @param {{ excludeUrl?: string, page?: number }} [options]
+ */
+export async function fetchRecipeImageFromSpoonacular(recipe, options = {}) {
+  const excludeIdentity = normalizeImageIdentity(options.excludeUrl || "");
+  const page = Math.max(1, Number(options.page) || 1);
+  const perPage = excludeIdentity || page > 1 ? 10 : 1;
+
   if (!UNSPLASH_ACCESS_KEY || unsplashDisabledForSession) {
     const mealDbImage = await fetchRecipeImageFromMealDb(recipe);
-    return mealDbImage || "";
+    if (!mealDbImage) return "";
+    if (excludeIdentity && normalizeImageIdentity(mealDbImage) === excludeIdentity) return "";
+    return mealDbImage;
   }
 
   const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients.slice(0, 5).join(" ") : "";
@@ -485,7 +506,8 @@ export async function fetchRecipeImageFromSpoonacular(recipe) {
   for (const query of queries) {
     const params = new URLSearchParams({
       query,
-      per_page: "1",
+      per_page: String(perPage),
+      page: String(page),
       orientation: "landscape",
       content_filter: "high",
     });
@@ -508,10 +530,13 @@ export async function fetchRecipeImageFromSpoonacular(recipe) {
         continue;
       }
       const data = await response.json();
-      const match = data?.results?.[0];
-      const imageUrl = getBestSpoonacularImageUrl(getHighQualityUnsplashUrl(match));
-      if (!imageUrl) continue;
-      return withUnsplashTracking(imageUrl);
+      const results = Array.isArray(data?.results) ? data.results : [];
+      for (const match of results) {
+        const imageUrl = getBestSpoonacularImageUrl(getHighQualityUnsplashUrl(match));
+        if (!imageUrl) continue;
+        if (excludeIdentity && normalizeImageIdentity(imageUrl) === excludeIdentity) continue;
+        return withUnsplashTracking(imageUrl);
+      }
     } catch (error) {
       console.warn("Unsplash image fetch error", { query, error });
     }
@@ -519,7 +544,18 @@ export async function fetchRecipeImageFromSpoonacular(recipe) {
 
   // No Unsplash result (or blocked by quota/rate limits): fallback to MealDB only.
   const mealDbImage = await fetchRecipeImageFromMealDb(recipe);
-  return mealDbImage || "";
+  if (!mealDbImage) return "";
+  if (excludeIdentity && normalizeImageIdentity(mealDbImage) === excludeIdentity) return "";
+  return mealDbImage;
+}
+
+/** Pick a different stock image for a recipe (skips the current URL when possible). */
+export async function rerollRecipeImage(recipe) {
+  const page = Math.floor(Math.random() * 5) + 1;
+  return fetchRecipeImageFromSpoonacular(recipe, {
+    excludeUrl: recipe?.imageUrl || "",
+    page,
+  });
 }
 
 export async function backfillMissingRecipeImages(limit = 20) {

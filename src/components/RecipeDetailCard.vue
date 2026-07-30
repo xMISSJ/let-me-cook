@@ -8,24 +8,39 @@
         class="relative h-64 w-full overflow-hidden sm:h-80 xl:h-100"
       >
         <div
-          v-if="!isDetailImageLoaded"
-          class="absolute inset-0 animate-pulse bg-linear-to-br from-zinc-200/70 via-zinc-100/60 to-zinc-300/50 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800"
+          v-if="!isDetailImageLoaded || isRerollingImage"
+          class="absolute inset-0 z-[1] animate-pulse bg-linear-to-br from-zinc-200/70 via-zinc-100/60 to-zinc-300/50 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800"
         />
         <img
           :src="detailImageUrl"
           class="h-full w-full object-cover transition-opacity duration-300"
-          :class="isDetailImageLoaded ? 'opacity-100' : 'opacity-0'"
+          :class="isDetailImageLoaded && !isRerollingImage ? 'opacity-100' : 'opacity-0'"
           alt=""
           @load="handleDetailImageLoad"
           @error="handleDetailImageError"
         />
+        <div
+          v-if="isRerollingImage"
+          class="absolute inset-0 z-[2] flex items-center justify-center bg-black/25 backdrop-blur-[1px]"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <span class="inline-block h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden="true" />
+        </div>
       </div>
       <div
         v-else
-        class="flex h-64 w-full items-center justify-center bg-zinc-100 text-7xl sm:h-80 xl:h-100 dark:bg-zinc-900"
-        aria-hidden="true"
+        class="relative flex h-64 w-full items-center justify-center bg-zinc-100 text-7xl sm:h-80 xl:h-100 dark:bg-zinc-900"
       >
-        {{ props.recipe.thumbnail || "🍽️" }}
+        <span aria-hidden="true">{{ props.recipe.thumbnail || "🍽️" }}</span>
+        <div
+          v-if="isRerollingImage"
+          class="absolute inset-0 z-[2] flex items-center justify-center bg-black/25 backdrop-blur-[1px]"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <span class="inline-block h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden="true" />
+        </div>
       </div>
       <div class="absolute left-3 right-3 top-3 flex items-center justify-between xl:left-5 xl:right-5 xl:top-5">
         <button
@@ -97,6 +112,38 @@
             </svg>
           </button>
           <template v-if="canManage">
+            <button
+              class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/55 text-white backdrop-blur-sm hover:bg-black/65 disabled:cursor-not-allowed disabled:opacity-60"
+              type="button"
+              :disabled="isRerollingImage"
+              :aria-label="t('details.rerollImage')"
+              :title="t('details.rerollImage')"
+              @click="emit('reroll-image')"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="h-4 w-4"
+                :class="isRerollingImage ? 'animate-spin' : ''"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M4.5 12a7.5 7.5 0 0 1 12.6-5.5L19 8.5M19.5 12a7.5 7.5 0 0 1-12.6 5.5L5 15.5"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M19 4.5v4h-4M5 19.5v-4h4"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
             <button
               class="inline-flex h-8 items-center justify-center rounded-lg bg-black/55 px-3 text-xs font-semibold text-white backdrop-blur-sm hover:bg-black/65"
               type="button"
@@ -227,9 +274,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isRerollingImage: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(["back", "edit", "delete", "toggle-favorite"]);
+const emit = defineEmits(["back", "edit", "delete", "toggle-favorite", "reroll-image"]);
 const { t } = useI18n();
 const detailTab = ref("ingredients");
 const fetchedFallbackImageUrl = ref("");

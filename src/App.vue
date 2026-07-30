@@ -53,10 +53,12 @@
           :recipe="selectedRecipe"
           :can-manage="canManageSelectedRecipe"
           :is-favorite="isFavoriteRecipe(selectedRecipe.id)"
+          :is-rerolling-image="isRerollingRecipeImage"
           @back="goToOverview"
           @edit="openEditRecipeModal"
           @delete="removeSelectedRecipe"
           @toggle-favorite="toggleFavoriteRecipe(selectedRecipe.id)"
+          @reroll-image="rerollSelectedRecipeImage"
         />
         <section
           v-else
@@ -297,6 +299,7 @@ import {
   fetchRecipeImageFromSpoonacular,
   isUserProvidedRecipeImage,
   listRecipes,
+  rerollRecipeImage,
   seedRecipesIfEmpty,
   updateRecipe,
   uploadRecipeImage,
@@ -328,6 +331,7 @@ const editingRecipeId = ref(null);
 const isFilterModalOpen = ref(false);
 const isDesktopSettingsOpen = ref(false);
 const showSettingsMascot = ref(false);
+const isRerollingRecipeImage = ref(false);
 let mascotAutoHideTimer = null;
 const selectedCuisine = ref([]);
 const selectedMealType = ref([]);
@@ -571,7 +575,9 @@ async function addRecipe(recipe) {
     let imageUrl = "";
     if (recipe.imageFile) {
       imageUrl = await uploadRecipeImage(recipe.imageFile, null);
-    } else {
+    } else if (recipe.imageUrl) {
+      imageUrl = recipe.imageUrl;
+    } else if (!recipe.imageRemoved) {
       imageUrl = await fetchRecipeImageFromSpoonacular(recipe);
     }
     const created = await createRecipe({
@@ -597,6 +603,40 @@ function openEditRecipeModal() {
   }
   editingRecipeId.value = selectedRecipe.value.id;
   isEditModalOpen.value = true;
+}
+
+async function rerollSelectedRecipeImage() {
+  if (!selectedRecipe.value || !canManageSelectedRecipe.value) {
+    actionError.value = t("errors.onlyOwnerOrAdminEdit");
+    return;
+  }
+  if (isRerollingRecipeImage.value) return;
+
+  actionError.value = "";
+  isRerollingRecipeImage.value = true;
+  try {
+    const recipe = selectedRecipe.value;
+    const nextImageUrl = await rerollRecipeImage(recipe);
+    if (!nextImageUrl) {
+      actionError.value = t("details.rerollImageFailed");
+      return;
+    }
+
+    const updated = await updateRecipe(
+      recipe.id,
+      {
+        ...recipe,
+        imageUrl: nextImageUrl,
+      },
+      recipe,
+    );
+    recipes.value = recipes.value.map((item) => (item.id === updated.id ? updated : item));
+  } catch (error) {
+    console.warn("Unable to reroll recipe image", error);
+    actionError.value = t("details.rerollImageFailed");
+  } finally {
+    isRerollingRecipeImage.value = false;
+  }
 }
 
 function openEditRecipeModalById(recipeId) {

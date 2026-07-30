@@ -24,7 +24,49 @@
       {{ t("addRecipeForm.subtitle") }}
     </p>
 
-    <form class="mt-4 grid gap-3 lg:gap-4" @submit.prevent="handleSubmit">
+    <div
+      v-if="!props.initialRecipe"
+      class="mt-4 grid gap-2 rounded-xl border border-dashed border-amber-500/40 bg-amber-50/60 p-3 dark:border-amber-300/25 dark:bg-amber-950/30"
+    >
+      <p class="text-sm font-semibold text-amber-900/90 dark:text-amber-100/90">
+        {{ t("addRecipeForm.importTitle") }}
+      </p>
+      <p class="text-xs text-amber-900/75 dark:text-amber-100/75">
+        {{ t("addRecipeForm.importHint") }}
+      </p>
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <input
+          v-model="importUrl"
+          class="min-w-0 flex-1 rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
+          :placeholder="t('addRecipeForm.importUrlPlaceholder')"
+          type="url"
+          inputmode="url"
+          autocomplete="url"
+          :disabled="isImporting"
+          @keydown.enter.prevent="handleImportFromUrl"
+        />
+        <button
+          class="inline-flex items-center justify-center rounded-lg border border-amber-500/50 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-800 dark:text-amber-100 dark:hover:bg-zinc-700"
+          type="button"
+          :disabled="isImporting || !importUrl.trim()"
+          @click="handleImportFromUrl"
+        >
+          {{ t("addRecipeForm.importButton") }}
+        </button>
+      </div>
+      <p v-if="importSuccess" class="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+        {{ importSuccess }}
+      </p>
+      <p v-if="importError" class="text-xs font-medium text-rose-600 dark:text-rose-300">
+        {{ importError }}
+      </p>
+    </div>
+
+    <form
+      class="relative mt-4 grid gap-3 lg:gap-4"
+      :aria-busy="isImporting || undefined"
+      @submit.prevent="handleSubmit"
+    >
       <input
         v-model="form.title"
         class="rounded-lg border border-amber-500/40 bg-white px-3 py-2 text-sm text-amber-900 outline-none placeholder:text-amber-700/55 focus:border-amber-500 dark:bg-zinc-800 dark:text-amber-100 dark:placeholder:text-amber-200/55 dark:focus:border-amber-300"
@@ -38,7 +80,7 @@
         type="text"
       />
       <div class="grid gap-3 sm:grid-cols-2">
-        <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
+        <div class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.cuisine") }}</span>
           <USelect
             :model-value="form.cuisine"
@@ -46,10 +88,11 @@
             value-key="value"
             :highlight="false"
             class="w-full"
+            :ui="{ content: 'z-[80]' }"
             @update:model-value="form.cuisine = $event"
           />
-        </label>
-        <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
+        </div>
+        <div class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.mealType") }}</span>
           <USelect
             :model-value="form.mealType"
@@ -57,12 +100,13 @@
             value-key="value"
             :highlight="false"
             class="w-full"
+            :ui="{ content: 'z-[80]' }"
             @update:model-value="form.mealType = $event"
           />
-        </label>
+        </div>
       </div>
       <div class="grid gap-3 sm:grid-cols-3">
-        <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
+        <div class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.difficulty") }}</span>
           <USelect
             :model-value="form.difficulty"
@@ -70,9 +114,10 @@
             value-key="value"
             :highlight="false"
             class="w-full"
+            :ui="{ content: 'z-[80]' }"
             @update:model-value="form.difficulty = $event"
           />
-        </label>
+        </div>
         <label class="grid gap-1 text-sm text-amber-900/85 dark:text-amber-100/85">
           <span>{{ t("addRecipeForm.cookTime") }}</span>
           <input
@@ -225,11 +270,11 @@
             :multiple="false"
             :preview="false"
             class="w-full rounded-lg border border-amber-500/40 bg-white px-2.5 py-2 text-sm text-amber-900 dark:bg-zinc-800 dark:text-amber-100"
-            @update:model-value="imageRemoved = false"
+              @update:model-value="onImageSelected"
           />
           <div class="flex items-center gap-2">
             <span class="min-w-0 flex-1 truncate text-xs text-amber-900/85 dark:text-amber-100/85">
-            {{ displayImageName }}
+              {{ displayImageName }}
             </span>
             <button
               v-if="hasSelectedOrExistingImage"
@@ -262,13 +307,49 @@
           {{ t("addRecipeForm.cancel") }}
         </button>
       </div>
+
+      <div
+        v-if="isImporting && !useFullscreenImportLoader"
+        class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl bg-white/80 backdrop-blur-sm dark:bg-zinc-900/80"
+        aria-live="polite"
+      >
+        <img
+          :src="loadingSpinnerSrc"
+          alt=""
+          class="h-12 w-12 animate-spin rounded-full shadow-md [animation-duration:1.2s]"
+          aria-hidden="true"
+        />
+        <p class="text-sm font-semibold text-amber-900/85 dark:text-amber-100/85">
+          {{ t("addRecipeForm.importing") }}
+        </p>
+      </div>
     </form>
+
+    <Teleport to="body">
+      <div
+        v-if="isImporting && useFullscreenImportLoader"
+        class="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-white/95 backdrop-blur-sm dark:bg-zinc-950/95"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <img
+          :src="loadingSpinnerSrc"
+          alt=""
+          class="h-16 w-16 animate-spin rounded-full shadow-lg [animation-duration:1.2s]"
+          aria-hidden="true"
+        />
+        <p class="text-sm font-semibold text-amber-900/85 dark:text-amber-100/85">
+          {{ t("addRecipeForm.importing") }}
+        </p>
+      </div>
+    </Teleport>
   </section>
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { importRecipeFromUrl } from "../data/importRecipeFromUrl";
 import { isUserProvidedRecipeImage } from "../data/recipesDb";
 
 const props = defineProps({
@@ -297,14 +378,45 @@ const form = reactive({
   stepsList: [""],
 });
 
+const loadingSpinnerSrc = `${import.meta.env.BASE_URL}favicon.svg`;
 const error = ref("");
+const importUrl = ref("");
+const isImporting = ref(false);
+const useFullscreenImportLoader = ref(false);
+
+const FULLSCREEN_LOADER_QUERY = "(max-width: 639px), (max-height: 719px)";
+let fullscreenLoaderMediaQuery = null;
+
+function syncFullscreenImportLoader() {
+  useFullscreenImportLoader.value = Boolean(fullscreenLoaderMediaQuery?.matches);
+}
+
+onMounted(() => {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+  fullscreenLoaderMediaQuery = window.matchMedia(FULLSCREEN_LOADER_QUERY);
+  syncFullscreenImportLoader();
+  fullscreenLoaderMediaQuery.addEventListener("change", syncFullscreenImportLoader);
+});
+
+onUnmounted(() => {
+  fullscreenLoaderMediaQuery?.removeEventListener("change", syncFullscreenImportLoader);
+  fullscreenLoaderMediaQuery = null;
+});
+const importError = ref("");
+const importSuccess = ref("");
 const selectedImage = ref(null);
 const imageRemoved = ref(false);
+const importedImageUrl = ref("");
 const hasSelectedOrExistingImage = computed(() =>
-  Boolean(selectedImage.value || (isUserProvidedRecipeImage(props.initialRecipe?.imageUrl) && !imageRemoved.value)),
+  Boolean(
+    selectedImage.value ||
+      importedImageUrl.value ||
+      (isUserProvidedRecipeImage(props.initialRecipe?.imageUrl) && !imageRemoved.value),
+  ),
 );
 const displayImageName = computed(() => {
   if (selectedImage.value?.name) return selectedImage.value.name;
+  if (importedImageUrl.value) return extractImageName(importedImageUrl.value);
   if (isUserProvidedRecipeImage(props.initialRecipe?.imageUrl) && !imageRemoved.value) {
     return extractImageName(props.initialRecipe.imageUrl);
   }
@@ -367,6 +479,9 @@ function fillForm(recipe) {
   form.stepsList = Array.isArray(recipe?.steps) && recipe.steps.length > 0 ? [...recipe.steps] : [""];
   selectedImage.value = null;
   imageRemoved.value = false;
+  importedImageUrl.value = "";
+  importError.value = "";
+  importSuccess.value = "";
 }
 
 watch(
@@ -376,10 +491,6 @@ watch(
   },
   { immediate: true },
 );
-
-function resetForm() {
-  fillForm(props.initialRecipe);
-}
 
 function extractImageName(url) {
   try {
@@ -393,7 +504,54 @@ function extractImageName(url) {
 
 function removeSelectedImage() {
   selectedImage.value = null;
+  importedImageUrl.value = "";
   imageRemoved.value = true;
+}
+
+function onImageSelected() {
+  imageRemoved.value = false;
+  if (selectedImage.value) importedImageUrl.value = "";
+}
+
+async function handleImportFromUrl() {
+  importError.value = "";
+  importSuccess.value = "";
+  error.value = "";
+
+  const url = importUrl.value.trim();
+  if (!url) {
+    importError.value = t("addRecipeForm.importInvalidUrl");
+    return;
+  }
+
+  isImporting.value = true;
+  try {
+    const imported = await importRecipeFromUrl(url);
+    form.title = imported.title;
+    form.description = imported.description;
+    form.cuisine = imported.cuisine;
+    form.mealType = imported.mealType;
+    form.difficulty = imported.difficulty;
+    form.cookTimeMinutes = imported.cookTimeMinutes;
+    form.servings = imported.servings;
+    form.ingredientsList = imported.ingredients.length > 0 ? [...imported.ingredients] : [""];
+    form.stepsList = imported.steps.length > 0 ? [...imported.steps] : [""];
+    selectedImage.value = null;
+    imageRemoved.value = false;
+    importedImageUrl.value = imported.imageUrl || "";
+    importSuccess.value = t("addRecipeForm.importSuccess");
+  } catch (err) {
+    const code = String(err?.message ?? err ?? "");
+    if (code === "INVALID_URL") {
+      importError.value = t("addRecipeForm.importInvalidUrl");
+    } else if (code === "NO_RECIPE_FOUND" || code === "INCOMPLETE_RECIPE") {
+      importError.value = t("addRecipeForm.importNoRecipe");
+    } else {
+      importError.value = t("addRecipeForm.importFailed");
+    }
+  } finally {
+    isImporting.value = false;
+  }
 }
 
 function addIngredient() {
@@ -423,6 +581,7 @@ function removeStep(index) {
 }
 
 function handleSubmit() {
+  if (isImporting.value) return;
   error.value = "";
   const title = form.title.trim();
   const description = form.description.trim();
@@ -462,6 +621,7 @@ function handleSubmit() {
     ingredients,
     steps,
     imageFile: selectedImage.value,
+    imageUrl: importedImageUrl.value,
     imageRemoved: imageRemoved.value,
   });
 }

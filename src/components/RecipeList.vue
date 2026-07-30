@@ -50,8 +50,8 @@
         :class="
           props.viewMode === 'grid'
             ? props.embedded
-              ? 'grid items-start gap-3 grid-cols-2'
-              : 'mt-4 grid items-start gap-3 grid-cols-2 md:grid-cols-2 lg:grid-cols-3'
+              ? 'grid items-stretch gap-3 grid-cols-2'
+              : 'mt-4 grid items-stretch gap-3 grid-cols-2 md:grid-cols-2 lg:grid-cols-3'
             : props.embedded
               ? 'grid items-start gap-3 xl:grid-cols-2'
               : 'mt-4 grid items-start gap-3 xl:grid-cols-2'
@@ -95,7 +95,7 @@
         class="relative cursor-pointer rounded-xl border border-amber-500/30 bg-white text-left transition-all duration-300 ease-out dark:bg-zinc-800"
         :class="
           props.viewMode === 'grid'
-            ? 'overflow-hidden p-0 lg:hover:border-amber-400/60 lg:hover:-translate-y-1 lg:hover:shadow-xl lg:hover:shadow-amber-900/10 dark:lg:hover:shadow-black/30'
+            ? 'h-full overflow-hidden p-0 lg:hover:border-amber-400/60 lg:hover:-translate-y-1 lg:hover:shadow-xl lg:hover:shadow-amber-900/10 dark:lg:hover:shadow-black/30'
             : 'p-0 sm:p-4 lg:hover:border-amber-400/60 lg:hover:bg-zinc-200 lg:hover:-translate-y-1 lg:hover:scale-[1.02] lg:hover:shadow-xl lg:hover:shadow-amber-900/10 xl:h-[12.5rem] dark:lg:hover:bg-zinc-700 dark:lg:hover:shadow-black/30'
         "
         role="button"
@@ -110,8 +110,8 @@
           :class="
             props.viewMode === 'grid'
               ? isFavorite(recipe.id)
-                ? 'right-2 top-2 rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-zinc-900/90'
-                : 'right-2 top-2 rounded-full bg-white/90 text-amber-700 shadow-sm dark:bg-zinc-900/90 dark:text-amber-100'
+                ? 'left-2 top-2 rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-zinc-900/90'
+                : 'left-2 top-2 rounded-full bg-white/90 text-amber-700 shadow-sm dark:bg-zinc-900/90 dark:text-amber-100'
               : isFavorite(recipe.id)
                 ? 'right-2 bottom-2 text-rose-500 lg:hover:text-rose-400'
                 : 'right-2 bottom-2 text-amber-700 lg:hover:text-amber-600 dark:text-amber-100 dark:lg:hover:text-amber-50'
@@ -139,7 +139,6 @@
         </button>
         <div
           class="absolute right-2 top-2 z-10 hidden items-center gap-1 lg:flex"
-          :class="props.viewMode === 'grid' ? 'top-auto bottom-2' : ''"
         >
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-500/40 bg-white/90 text-amber-900 transition-[box-shadow,background-color,filter] duration-200 ease-out lg:hover:bg-zinc-200 lg:hover:shadow-sm active:brightness-95 dark:bg-zinc-900/90 dark:text-amber-100 dark:lg:hover:bg-zinc-700"
@@ -262,11 +261,14 @@
           >
             {{ recipe.thumbnail || "🍽️" }}
           </div>
-          <div class="grid gap-2 px-3 pb-3 pt-2">
-            <h3 class="line-clamp-2 text-sm font-semibold text-amber-900 dark:text-amber-50">
+          <div class="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-3 pt-3.5">
+            <h3 class="line-clamp-2 text-sm font-semibold leading-snug text-amber-900 dark:text-amber-50">
               {{ recipe.title }}
             </h3>
-            <div class="flex flex-wrap gap-1.5">
+            <p class="hidden text-xs leading-snug text-amber-900/75 dark:text-amber-100/75 lg:line-clamp-2 lg:block">
+              {{ recipe.description || t("overview.tapToView") }}
+            </p>
+            <div class="mt-auto flex flex-wrap gap-1.5">
               <span
                 class="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 dark:text-amber-100"
               >
