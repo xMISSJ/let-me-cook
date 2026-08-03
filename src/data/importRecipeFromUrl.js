@@ -18,12 +18,26 @@ const CUISINE_VALUES = [
   "International",
 ];
 
-const MEAL_TYPE_VALUES = ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"];
+const MEAL_TYPE_VALUES = ["Breakfast", "Lunch", "Dinner", "Side", "Snack", "Dessert"];
+const FETCH_TIMEOUT_MS = 12000;
 
-const CORS_PROXIES = [
-  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+const PAGE_FETCHERS = [
+  // Jina Reader returns page HTML reliably from the browser (CORS-friendly).
+  async (url) =>
+    fetchWithTimeout(`https://r.jina.ai/${url}`, {
+      headers: {
+        Accept: "text/html",
+        "X-Return-Format": "html",
+      },
+    }),
+  async (url) =>
+    fetchWithTimeout(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, {
+      headers: { Accept: "text/html,application/xhtml+xml" },
+    }),
+  async (url) =>
+    fetchWithTimeout(`https://corsproxy.io/?${encodeURIComponent(url)}`, {
+      headers: { Accept: "text/html,application/xhtml+xml" },
+    }),
 ];
 
 /**
@@ -39,6 +53,7 @@ const CORS_PROXIES = [
  *   servings: number,
  *   ingredients: string[],
  *   steps: string[],
+ *   imageUrl: string,
  *   sourceUrl: string,
  * }>}
  */
@@ -73,6 +88,7 @@ export async function importRecipeFromUrl(rawUrl) {
     servings: extractServings(recipeNode.recipeYield),
     ingredients,
     steps,
+    imageUrl: extractImageUrl(recipeNode.image),
     sourceUrl,
   };
 }
@@ -91,23 +107,35 @@ function normalizeUrl(rawUrl) {
   }
 }
 
+async function fetchWithTimeout(requestUrl, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(requestUrl, {
+      ...options,
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP_${response.status}`);
+    }
+    const text = await response.text();
+    if (!text || text.length < 200) {
+      throw new Error("EMPTY_RESPONSE");
+    }
+    return text;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchPageHtml(url) {
   let lastError = null;
 
-  for (const buildProxyUrl of CORS_PROXIES) {
+  for (const fetcher of PAGE_FETCHERS) {
     try {
-      const response = await fetch(buildProxyUrl(url), {
-        headers: { Accept: "text/html,application/xhtml+xml" },
-      });
-      if (!response.ok) {
-        lastError = new Error(`HTTP_${response.status}`);
-        continue;
-      }
-      const html = await response.text();
-      if (html && html.length > 200) return html;
-      lastError = new Error("EMPTY_RESPONSE");
+      return await fetcher(url);
     } catch (error) {
-      lastError = error;
+      lastError = error?.name === "AbortError" ? new Error("TIMEOUT") : error;
     }
   }
 
@@ -120,9 +148,7 @@ function findRecipeJsonLd(html) {
   let match;
 
   while ((match = scriptRegex.exec(html)) !== null) {
-    const raw = match[1]
-      .replace(/<!--[\s\S]*?-->/g, "")
-      .trim();
+    const raw = match[1].replace(/<!--[\s\S]*?-->/g, "").trim();
     if (!raw) continue;
 
     try {
@@ -130,7 +156,6 @@ function findRecipeJsonLd(html) {
       const recipe = findRecipeNode(parsed);
       if (recipe) return recipe;
     } catch {
-      // Some sites emit multiple JSON objects; try recovering the first object.
       try {
         const recovered = JSON.parse(raw.replace(/[\u0000-\u001F]+/g, " "));
         const recipe = findRecipeNode(recovered);
@@ -227,6 +252,17 @@ function splitInstructionText(text) {
     .filter(Boolean);
 }
 
+function extractImageUrl(image) {
+  if (!image) return "";
+  if (typeof image === "string") return image.trim();
+  if (Array.isArray(image)) return extractImageUrl(image[0]);
+  if (typeof image === "object") {
+    const candidate = image.url ?? image.contentUrl ?? image["@id"] ?? "";
+    return typeof candidate === "string" ? candidate.trim() : "";
+  }
+  return "";
+}
+
 function extractCookTimeMinutes(recipeNode) {
   const candidates = [recipeNode.totalTime, recipeNode.cookTime, recipeNode.prepTime];
   for (const candidate of candidates) {
@@ -279,9 +315,10 @@ function mapMealType(...candidates) {
   if (/\bbreakfast\b|\bbrunch\b/.test(haystack)) return "Breakfast";
   if (/\blunch\b/.test(haystack)) return "Lunch";
   if (/\bdessert\b|\bcake\b|\bcookie\b|\bsweet\b/.test(haystack)) return "Dessert";
+  if (/\bside\b|\bsauce\b|\bcondiment\b|\bdipping\b/.test(haystack)) return "Side";
   if (/\bsnack\b|\bappetizer\b/.test(haystack)) return "Snack";
   if (/\bdinner\b|\bsupper\b|\bmain\b/.test(haystack)) return "Dinner";
-  return MEAL_TYPE_VALUES.includes("Dinner") ? "Dinner" : "Dinner";
+  return "Dinner";
 }
 
 function cleanText(value) {

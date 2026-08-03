@@ -20,7 +20,7 @@ const DEFAULT_CUISINES = [
   "International",
 ];
 
-const DEFAULT_MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"];
+const DEFAULT_MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Side", "Snack", "Dessert"];
 
 function mergeDiscoveredOptions(recipes, fieldName, defaults) {
   const normalizedDefaults = new Map(defaults.map((value) => [value.toLowerCase(), value]));

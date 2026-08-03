@@ -223,26 +223,31 @@
           </section>
         </div>
 
-        <aside
-          class="hidden rounded-2xl border border-amber-500/25 bg-white/90 p-4 shadow-[0_14px_32px_-28px_rgba(24,24,27,0.35)] xl:grid xl:gap-3 dark:border-amber-300/20 dark:bg-zinc-900/70"
-        >
-          <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ t("details.snapshot") }}</p>
-          <div class="grid gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-            <p class="rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-              <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ t("details.typeLabel") }}</span>
-              {{ getMealTypeEmoji(props.recipe) }} {{ props.recipe.mealType || t("details.mealFallback") }}
-            </p>
-            <p class="rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-              <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ t("details.cuisineLabel") }}</span>
-              {{ props.recipe.cuisine || t("details.globalFallback") }}
-            </p>
-            <p class="rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-              <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ t("details.servingsLabel") }}</span>
-              {{ props.recipe.servings || t("details.na") }}
-            </p>
-            <p class="rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-              <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ t("details.cookTimeLabel") }}</span>
-              {{ t("details.minutesCount", { minutes: props.recipe.cookTimeMinutes }) }}
+        <aside class="hidden xl:block">
+          <h3 class="text-base font-bold text-amber-900 dark:text-amber-50">{{ t("details.snapshot") }}</h3>
+          <div class="mt-3 bg-zinc-100 px-5 py-5 dark:bg-zinc-800/80">
+            <p class="text-base font-bold text-amber-950 dark:text-amber-50">{{ props.recipe.title }}</p>
+            <div class="mt-1 space-y-0.5 text-sm leading-snug text-amber-900/80 dark:text-amber-100/80">
+              <p>
+                {{ getMealTypeEmoji(props.recipe) }}
+                {{ props.recipe.mealType || t("details.mealFallback") }}
+              </p>
+              <p>{{ props.recipe.cuisine || t("details.globalFallback") }}</p>
+            </div>
+            <div class="mt-4 space-y-1.5 text-sm text-amber-900/85 dark:text-amber-100/85">
+              <p>
+                <span class="font-semibold text-amber-950 dark:text-amber-50">{{ t("details.servingsLabel") }}</span>
+                {{ props.recipe.servings || t("details.na") }}
+              </p>
+              <p>
+                <span class="font-semibold text-amber-950 dark:text-amber-50">{{ t("details.cookTimeLabel") }}</span>
+                {{ t("details.minutesCount", { minutes: props.recipe.cookTimeMinutes }) }}
+              </p>
+            </div>
+            <p class="mt-4 text-sm text-amber-900/65 dark:text-amber-100/70">
+              {{ t("details.prepTime", { minutes: props.recipe.cookTimeMinutes }) }}
+              ·
+              {{ t("details.totalTime", { minutes: props.recipe.cookTimeMinutes * 2 }) }}
             </p>
           </div>
         </aside>
@@ -327,6 +332,7 @@ function getMealTypeEmoji(recipe) {
   if (mealType === "breakfast") return "🍳";
   if (mealType === "lunch") return "🥪";
   if (mealType === "dinner") return "🍽️";
+  if (mealType === "side") return "🥗";
   if (mealType === "snack") return "🍿";
   if (mealType === "dessert") return "🍰";
   return "🍽️";

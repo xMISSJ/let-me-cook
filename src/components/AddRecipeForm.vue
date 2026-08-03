@@ -416,7 +416,7 @@ const hasSelectedOrExistingImage = computed(() =>
 );
 const displayImageName = computed(() => {
   if (selectedImage.value?.name) return selectedImage.value.name;
-  if (importedImageUrl.value) return extractImageName(importedImageUrl.value);
+  if (importedImageUrl.value) return t("addRecipeForm.importedImage");
   if (isUserProvidedRecipeImage(props.initialRecipe?.imageUrl) && !imageRemoved.value) {
     return extractImageName(props.initialRecipe.imageUrl);
   }
@@ -443,7 +443,7 @@ const cuisineValues = [
   "International",
 ];
 
-const mealTypeValues = ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"];
+const mealTypeValues = ["Breakfast", "Lunch", "Dinner", "Side", "Snack", "Dessert"];
 const difficultyValues = ["Easy", "Medium", "Hard"];
 
 const cuisineItems = computed(() =>
@@ -621,7 +621,7 @@ function handleSubmit() {
     ingredients,
     steps,
     imageFile: selectedImage.value,
-    imageUrl: importedImageUrl.value,
+    imageUrl: selectedImage.value ? "" : importedImageUrl.value,
     imageRemoved: imageRemoved.value,
   });
 }

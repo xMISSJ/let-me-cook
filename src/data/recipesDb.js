@@ -482,12 +482,13 @@ function normalizeImageIdentity(url) {
 /**
  * Fetch a recipe image from Unsplash (MealDB fallback).
  * @param {object} recipe
- * @param {{ excludeUrl?: string, page?: number }} [options]
+ * @param {{ excludeUrl?: string, page?: number, titleOnly?: boolean }} [options]
  */
 export async function fetchRecipeImageFromSpoonacular(recipe, options = {}) {
   const excludeIdentity = normalizeImageIdentity(options.excludeUrl || "");
   const page = Math.max(1, Number(options.page) || 1);
   const perPage = excludeIdentity || page > 1 ? 10 : 1;
+  const titleOnly = Boolean(options.titleOnly);
 
   if (!UNSPLASH_ACCESS_KEY || unsplashDisabledForSession) {
     const mealDbImage = await fetchRecipeImageFromMealDb(recipe);
@@ -496,12 +497,17 @@ export async function fetchRecipeImageFromSpoonacular(recipe, options = {}) {
     return mealDbImage;
   }
 
-  const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients.slice(0, 5).join(" ") : "";
-  const queries = [
-    [recipe.title, ingredients, recipe.cuisine, recipe.mealType].filter(Boolean).join(" "),
-    [recipe.title, recipe.cuisine].filter(Boolean).join(" "),
-    recipe.title || "",
-  ].filter((value) => value.trim());
+  const title = String(recipe.title || "").trim();
+  const queries = titleOnly
+    ? [title].filter(Boolean)
+    : (() => {
+        const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients.slice(0, 5).join(" ") : "";
+        return [
+          [recipe.title, ingredients, recipe.cuisine, recipe.mealType].filter(Boolean).join(" "),
+          [recipe.title, recipe.cuisine].filter(Boolean).join(" "),
+          recipe.title || "",
+        ].filter((value) => value.trim());
+      })();
 
   for (const query of queries) {
     const params = new URLSearchParams({
@@ -555,6 +561,7 @@ export async function rerollRecipeImage(recipe) {
   return fetchRecipeImageFromSpoonacular(recipe, {
     excludeUrl: recipe?.imageUrl || "",
     page,
+    titleOnly: true,
   });
 }
 
